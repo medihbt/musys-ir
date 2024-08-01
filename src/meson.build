@@ -1,0 +1,60 @@
+musys_ir_src = files([
+    'base/exception.vala',
+    'base/stdc.vala',
+    'base/hash.vala',
+    'base/reflist.vala',
+    'base/fmt.vala',
+    'base/apint.vala',
+    'base/base.vala',
+    'type/function-type.vala',
+    'type/value-type.vala',
+    'type/type.vala',
+    'type/type-context.vala',
+    'type/ref-type.vala',
+    'type/aggregate-type.vala',
+    'ir/use-def.vala',
+    'ir/value-type-check.vala',
+    'ir/constant.vala',
+    'ir/const-data.vala',
+    'ir/const-undefined.vala',
+    'ir/const-expr.vala',
+    'ir/const-array.vala',
+    'ir/const-ptr-null.vala',
+    'ir/global-object.vala',
+    'ir/global-variable.vala',
+    'ir/function.vala',
+    'ir/basic-block.vala',
+    'ir/instruction-list.vala',
+    'ir/instruction-alloca.vala',
+    'ir/instruction-unary.vala',
+    'ir/instruction-phi.vala',
+    'ir/instruction.vala',
+    'ir/instruction-branch.vala',
+    'ir/instruction-unreachable.vala',
+    'ir/instruction-binary.vala',
+    'ir/instruction-cast.vala',
+    'ir/instruction-load.vala',
+    'ir/instruction-store.vala',
+    'ir/instruction-jump.vala',
+    'ir/instruction-return.vala',
+    'ir/instruction-index-insert.vala',
+    'ir/instruction-index-extract.vala',
+    'ir/instruction-index-ptr.vala',
+    'ir/instruction-jump-base.vala',
+    'ir/instruction-compare.vala',
+    'ir/instruction-call.vala',
+    'ir/ivalue-visitor.vala',
+])
+
+musys_ir_deps = [
+    dependency('gee-0.8')
+]
+
+musys_lib = library(
+    'musys',
+    sources: musys_ir_src,
+    dependencies: musys_ir_deps,
+    include_directories: musys_include
+)
+
+message(musys_lib.name())
