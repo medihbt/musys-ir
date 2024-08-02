@@ -18,7 +18,7 @@ namespace Musys.IR {
         crash(@"Value type mismatch: requires bool, but got $(t)\nadditional: $(msg)",
               true, {Log.FILE, Log.METHOD, Log.LINE});
     }
-    public FloatType? value_float_or_crash(Value? value, string msg = "")
+    public unowned FloatType? value_float_or_crash(Value? value, string msg = "")
     {
         if (value == null)
             return null;
@@ -29,7 +29,7 @@ namespace Musys.IR {
         crash(@"Value type mismatch: requires float, but got $(t)\nadditional: $(msg)",
               true, {Log.FILE, Log.METHOD, Log.LINE});
     }
-    public PointerType? value_ptr_or_crash(Value? value, string msg = "")
+    public unowned PointerType? value_ptr_or_crash(Value? value, string msg = "")
     {
         if (value == null)
             return null;

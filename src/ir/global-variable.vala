@@ -1,6 +1,7 @@
 namespace Musys.IR {
     public class GlobalVariable: GlobalObject {
         public Constant    init_content{get;set;}
+        [CCode(notify=false)]
         public override bool is_mutable{get;set;}
         public override bool is_extern {
             get { return init_content == null; }

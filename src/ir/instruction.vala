@@ -8,7 +8,7 @@ namespace Musys.IR {
         INEG, FNEG, NOT,
         SITOFP, UITOFP, FPTOSI, ZEXT, SEXT, TRUNC, FPEXT, FPTRUNC,
         SELECT, INDEX_EXTRACT, INDEX_INSERT, INDEX_PTR,
-        LOAD, STORE, ALLOCA,
+        LOAD, STORE, ALLOCA, DYN_ALLOCA,
         ICMP, FCMP,
         INTRIN, RESERVED_CNT;
 
@@ -54,6 +54,7 @@ namespace Musys.IR {
             base.C1(tid, type);
             _opcode = opcode;
         }
+        class construct { _istype[TID.INSTRUCTION] = true; }
     }
 
     public interface IBasicBlockTerminator: Instruction {

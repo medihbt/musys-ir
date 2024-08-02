@@ -6,11 +6,14 @@ namespace Musys.IR {
         public Type content_type { get { return ptr_type.target; } }
 
         public abstract bool is_extern {get;}
+        [CCode(notify=false)]
         public abstract bool is_mutable{get;set;}
         public abstract bool enable_impl ();
         public abstract bool disable_impl();
 
         protected bool _is_internal = false;
+
+        [CCode(notify=false)]
         public    bool  is_internal {
             get { return _is_internal;  }
             set { _is_internal = value; }

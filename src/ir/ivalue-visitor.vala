@@ -13,6 +13,8 @@ namespace Musys.IR {
         public virtual void visit_inst_binary     (BinarySSA      inst) {}
         public virtual void visit_inst_unary      (UnaryOpSSA     inst) {}
         public virtual void visit_inst_cast       (CastSSA        inst) {}
+        public virtual void visit_inst_alloca     (AllocaSSA      inst) {}
+        public virtual void visit_inst_dyn_alloca (DynAllocaSSA   inst) {}
         public virtual void visit_inst_load       (LoadSSA        inst) {}
         public virtual void visit_inst_store      (StoreSSA       inst) {}
         public virtual void visit_inst_unreachable(UnreachableSSA inst) {}
