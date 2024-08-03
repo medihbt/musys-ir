@@ -23,9 +23,11 @@ namespace Musys.IR {
 
         protected TID _tid;
         public    TID  tid{ get { return _tid; } }
+
+        public int id{get;set;}
+
         protected class stdc.bool _istype[Value.TID.RESERVED_COUNT];
         protected class stdc.bool _shares_ref = false;
-
         public bool shares_ref { get { return _shares_ref; } }
         public bool isvalue_by_id(TID tid) {
             return this._tid == tid || _istype[tid];
@@ -223,6 +225,18 @@ namespace Musys.IR {
                 index--;
             }
             return cur;
+        }
+        public void clean_raw() {
+            _tail._prev = _head;
+            _head._next = _tail;
+        }
+        public void clean() {
+            Use u = _head._next;
+            while (u != _tail) {
+                unowned Use ou = u;
+                u = u._next;
+                ou.remove_this();
+            }
         }
 
         public OperandList(User user) {

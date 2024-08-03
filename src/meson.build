@@ -5,6 +5,7 @@ musys_ir_src = files([
     'base/fmt.vala',
     'base/apint.vala',
     'base/base.vala',
+    'base/stream.vala',
     'type/function-type.vala',
     'type/value-type.vala',
     'type/type.vala',
@@ -44,6 +45,8 @@ musys_ir_src = files([
     'ir/instruction-call-base.vala',
     'ir/instruction-call.vala',
     'ir/ivalue-visitor.vala',
+    'ir/module.vala',
+    'ir-util/writer.vala',
 ])
 
 musys_ir_deps = [

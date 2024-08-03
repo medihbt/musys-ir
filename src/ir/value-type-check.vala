@@ -71,6 +71,20 @@ namespace Musys.IR {
         crash(@"Type mismatch: requires $(required), but got $(value)",
               true, current);
     }
+    public unowned IntType int_value_match_or_crash(Value lhs, Value rhs)
+    {
+        unowned var lty = lhs.value_type;
+        unowned var rty = rhs.value_type;
+        if (!lty.is_int || !rty.is_int) {
+            crash(@"instruction requires int type, but:\nlhs is $(lty)\nrhs is $(rty)"
+                  , true, {Log.FILE, Log.METHOD, Log.LINE});
+        }
+        if (!lty.equals(rty)) {
+            crash(@"instruction requires LHS and RHS type be the same, but:\nlhs is $(lty)\nrhs is $(rty)"
+                  , true, {Log.FILE, Log.METHOD, Log.LINE});
+        }
+        return static_cast<IntType>(lty);
+    }
 
     public bool type_bit_same(Type l, Type r) {
         if (l.equals(r))
@@ -108,5 +122,12 @@ namespace Musys.IR {
         }
         crash(@"type L($l, $lbit bits) and R($r, $rbit bits) should have same size",
               true, {Log.FILE, Log.METHOD, Log.LINE});
+    }
+
+    public IntType get_bool_type(Type type)
+    {
+        if (type.is_int && static_cast<IntType>(type).binary_bits == 1)
+            return static_cast<IntType>(type);
+        return type.type_ctx.bool_type;
     }
 }

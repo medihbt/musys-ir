@@ -175,19 +175,8 @@ namespace Musys.IR {
         }
         return lty;
     }
-    private unowned IntType _int_same_or_crash(Value lhs, Value rhs)
-    {
-        unowned var lty = lhs.value_type;
-        unowned var rty = rhs.value_type;
-        if (!lty.is_int || !rty.is_int) {
-            crash(@"Add instruction requires int type, but:\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        if (!lty.equals(rty)) {
-            crash(@"Add instruction requires LHS and RHS type be the same, but:\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        return static_cast<IntType>(lty);
+    private inline unowned IntType _int_same_or_crash(Value lhs, Value rhs) {
+        return int_value_match_or_crash(lhs, rhs);
     }
     private unowned FloatType _floattype_same_or_crash(Value lhs, Value rhs)
     {

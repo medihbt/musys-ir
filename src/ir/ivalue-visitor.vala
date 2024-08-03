@@ -11,6 +11,7 @@ namespace Musys.IR {
         public virtual void visit_argument        (FuncArg        farg) {}
         public virtual void visit_basicblock      (BasicBlock    block) {}
         public virtual void visit_inst_binary     (BinarySSA      inst) {}
+        public virtual void visit_inst_compare    (CompareSSA     inst) {}
         public virtual void visit_inst_unary      (UnaryOpSSA     inst) {}
         public virtual void visit_inst_cast       (CastSSA        inst) {}
         public virtual void visit_inst_call       (CallSSA        inst) {}
