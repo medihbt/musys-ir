@@ -22,5 +22,6 @@ namespace Musys.IR {
         public virtual void visit_inst_return     (ReturnSSA      inst) {}
         public virtual void visit_inst_jump       (JumpSSA        inst) {}
         public virtual void visit_inst_branch     (BranchSSA      inst) {}
+        public virtual void visit_inst_phi        (PhiSSA         inst) {}
     }
 }

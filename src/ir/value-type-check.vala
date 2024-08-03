@@ -71,4 +71,42 @@ namespace Musys.IR {
         crash(@"Type mismatch: requires $(required), but got $(value)",
               true, current);
     }
+
+    public bool type_bit_same(Type l, Type r) {
+        if (l.equals(r))
+            return true;
+        size_t lbit = 0, rbit = 0;
+        if (l.is_valuetype && r.is_valuetype) {
+            lbit = static_cast<ValueType>(l).binary_bits;
+            rbit = static_cast<ValueType>(r).binary_bits;
+            if (lbit == rbit)
+                return true;
+        } else {
+            lbit = l.instance_size;
+            rbit = r.instance_size;
+            if (lbit == rbit)
+                return true;
+            lbit *= 8; rbit *= 8;
+        }
+        return false;
+    }
+    public void type_bit_same_or_crash(Type l, Type r) {
+        if (l.equals(r))
+            return;
+        size_t lbit = 0, rbit = 0;
+        if (l.is_valuetype && r.is_valuetype) {
+            lbit = static_cast<ValueType>(l).binary_bits;
+            rbit = static_cast<ValueType>(r).binary_bits;
+            if (lbit == rbit)
+                return;
+        } else {
+            lbit = l.instance_size;
+            rbit = r.instance_size;
+            if (lbit == rbit)
+                return;
+            lbit *= 8; rbit *= 8;
+        }
+        crash(@"type L($l, $lbit bits) and R($r, $rbit bits) should have same size",
+              true, {Log.FILE, Log.METHOD, Log.LINE});
+    }
 }

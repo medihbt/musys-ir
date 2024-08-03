@@ -153,6 +153,12 @@ namespace Musys.IR {
             _op_list = null;
             return othis;
         }
+        public virtual Use remove_operand()
+        {
+            var othis = this;
+            usee  = null;
+            return othis;
+        }
 
         protected Use.C1(User user) {
             this._user = user;
