@@ -117,6 +117,7 @@ namespace Musys.IR {
             return lhs.value_type.is_int? new BinarySSA.as_irem(lhs, rhs, is_signed):
                                           new BinarySSA.as_frem(lhs, rhs);
         }
+        class construct { _istype[TID.BINARY_SSA] = true; }
     }
 
     private sealed class BinaryLHSUse: Use {

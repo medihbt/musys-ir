@@ -1,11 +1,13 @@
 namespace Musys.IR {
     public class GlobalVariable: GlobalObject {
         public Constant    init_content{get;set;}
+
         [CCode(notify=false)]
         public override bool is_mutable{get;set;}
         public override bool is_extern {
             get { return init_content == null; }
         }
+        public size_t align{get;set;}
 
         public override bool enable_impl() {
             try {
@@ -39,5 +41,6 @@ namespace Musys.IR {
                 crash("TypemismatchErr message %s\n".printf(e.message));
             }
         }
+        class construct { _istype[TID.GLOBAL_VARIABLE] = true; }
     }
 }

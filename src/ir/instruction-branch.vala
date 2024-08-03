@@ -55,6 +55,7 @@ namespace Musys.IR {
                 condition, "at BranchSSA::with()::condition");
             var voidty = boolty.type_ctx.void_type;
             this.raw(voidty, boolty);
+            this.condition = condition;
         }
         class construct { _istype[TID.BR_SSA] = true; }
     }

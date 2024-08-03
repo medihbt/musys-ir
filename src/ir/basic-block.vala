@@ -57,6 +57,7 @@ namespace Musys.IR {
                 i.on_parent_finalize();
             instructions.clean();
         }
+        class construct { _istype[TID.BASIC_BLOCK] = true; }
 
         [CCode(cname="_ZN5Musys2IR10BasicBlock8ReadFuncE")]
         public delegate bool        ReadFunc   (BasicBlock value);

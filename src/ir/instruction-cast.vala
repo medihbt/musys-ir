@@ -35,8 +35,10 @@ namespace Musys.IR {
             var sbit = ity.binary_bits;
             var tbit = target_type.binary_bits;
             OpCode opcode;
-            if (tbit >= sbit)
+            if (tbit > sbit)
                 opcode = is_signed ? OpCode.SEXT: OpCode.ZEXT;
+            else if (tbit == sbit)
+                opcode = OpCode.BITCAST;
             else
                 opcode = TRUNC;
             this.nocheck(opcode, target_type, source);
@@ -49,6 +51,22 @@ namespace Musys.IR {
             var tbit = target_type.binary_bits;
             var opcode = tbit >= sbit? OpCode.FPEXT: OpCode.FPTRUNC;
             this.nocheck(opcode, target_type, source);
+        }
+        public CastSSA.as_bitcast(Type target_type, Value source)
+        {
+            if (!target_type.is_instantaneous)
+                crash(@"Type Mismatch: requires instantaneous target, but got $target_type");
+            var srcty = source.value_type;
+            _type_bit_same_or_crash(srcty, target_type);
+            this.nocheck(BITCAST, target_type, source);
+        }
+    }
+
+    private void _type_bit_same_or_crash(Type l, Type r) {
+        if (l.equals(r))
+            return;
+        if (l.is_valuetype && r.is_valuetype) {
+        } else {
         }
     }
 }

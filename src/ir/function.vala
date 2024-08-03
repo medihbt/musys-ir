@@ -92,6 +92,7 @@ namespace Musys.IR {
             base.C1(FUNC_ARG, type);
             this.parent = parent;
         }
+        class construct { _istype[TID.FUNC_ARG] = true; }
     }
 
     [Compact]
