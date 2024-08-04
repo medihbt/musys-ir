@@ -39,6 +39,9 @@ namespace Musys {
     public enum ErrLevel {
         INFO, DEBUG, WARNING, CRITICAL, FATAL;
     }
+    public errordomain RuntimeErr {
+        NULL_PTR;
+    }
 
     public inline int print_backtrace()
     {

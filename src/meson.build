@@ -47,6 +47,7 @@ musys_ir_src = files([
     'ir/ivalue-visitor.vala',
     'ir/module.vala',
     'ir-util/writer.vala',
+    'ir-util/value-type-index.vala',
 ])
 
 musys_ir_deps = [
