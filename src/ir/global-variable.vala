@@ -26,13 +26,13 @@ namespace Musys.IR {
             visitor.visit_global_variable(this);
         }
 
-        public GlobalVariable.extern(PointerType type) {
-            base.C1(GLOBAL_VARIABLE, type, false);
+        public GlobalVariable.extern(PointerType type, string name) {
+            base.C1(GLOBAL_VARIABLE, type, name, false);
             _init_content = null;
         }
-        public GlobalVariable.define(PointerType type, bool is_internal = false)
+        public GlobalVariable.define(PointerType type, string name, bool is_internal = false)
         {
-            base.C1(GLOBAL_VARIABLE, type, false);
+            base.C1(GLOBAL_VARIABLE, type, name, false);
             try {
                 _init_content = create_const_zero(type.target);
             } catch (TypeMismatchErr.NOT_INSTANTANEOUS e) {

@@ -4,6 +4,7 @@ namespace Musys.IR {
             get { return static_cast<PointerType>(_value_type); }
         }
         public Type content_type { get { return ptr_type.target; } }
+        public string name{get;set;}
 
         public abstract bool is_extern {get;}
         [CCode(notify=false)]
@@ -21,7 +22,7 @@ namespace Musys.IR {
 
         public override bool is_zero { get { return false; } }
 
-        protected GlobalObject.C1(Value.TID tid, PointerType type, bool is_internal) {
+        protected GlobalObject.C1(Value.TID tid, PointerType type, string name, bool is_internal) {
             base.C1 (tid, type);
             this._is_internal = is_internal;
         }

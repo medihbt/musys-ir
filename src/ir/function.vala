@@ -35,14 +35,14 @@ namespace Musys.IR {
             return true;
         }
 
-        public Function.as_extern(PointerType fty)
+        public Function.as_extern(PointerType fty, string name)
         {
-            base.C1(FUNCTION, fty, false);
+            base.C1(FUNCTION, fty, name, false);
             _init_head(fty);
         }
-        public Function.as_impl(PointerType fty)
+        public Function.as_impl(PointerType fty, string name)
         {
-            base.C1(FUNCTION, fty, false);
+            base.C1(FUNCTION, fty, name, false);
             this._init_head(fty);
             this._init_body();
         }
