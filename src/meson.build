@@ -37,6 +37,7 @@ musys_ir_src = files([
     'ir/instruction-store.vala',
     'ir/instruction-jump.vala',
     'ir/instruction-return.vala',
+    'ir/instruction-index-base.vala',
     'ir/instruction-index-insert.vala',
     'ir/instruction-index-extract.vala',
     'ir/instruction-index-ptr.vala',

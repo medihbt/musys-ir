@@ -19,14 +19,15 @@ namespace Musys.IR {
 
         public override void on_parent_finalize()
         {
-            lhs = null; rhs = null;
-            _nodeof_this = null;
-            _parent = null;
+            value_deep_clean(ref _lhs, _ulhs);
+            value_deep_clean(ref _rhs, _urhs);
+            base._deep_clean();
         }
         public override void on_function_finalize()
         {
-            _lhs = null; _rhs = null;
-            _nodeof_this = null;
+            value_fast_clean(ref _lhs, _ulhs);
+            value_fast_clean(ref _rhs, _urhs);
+            base._fast_clean();
         }
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_compare(this);

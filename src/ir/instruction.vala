@@ -46,9 +46,11 @@ namespace Musys.IR {
             _parent = null;
             return ret;
         }
-        public abstract void on_parent_finalize();
-        public virtual void on_function_finalize() {
-            _nodeof_this = null;
+        public virtual void on_parent_finalize()   { this._deep_clean(); }
+        public virtual void on_function_finalize() { this._fast_clean(); }
+        protected void _fast_clean() { _nodeof_this = null; }
+        protected void _deep_clean() {
+            _nodeof_this = null; _parent = null;
         }
 
         protected Instruction.C1(Value.TID tid, OpCode opcode, Type type)

@@ -9,12 +9,8 @@ namespace Musys.IR {
         protected abstract void foreach_target(BasicBlock.ReadFunc    fn);
         protected abstract void replace_target(BasicBlock.ReplaceFunc fn);
 
-        public void forEachTarget (BasicBlock.ReadFunc fn) {
-            foreach_target(fn);
-        }
-        public void replaceTarget (BasicBlock.ReplaceFunc fn) {
-            replace_target(fn);
-        }
+        public void forEachTarget(BasicBlock.ReadFunc    fn) { foreach_target(fn); }
+        public void replaceTarget(BasicBlock.ReplaceFunc fn) { replace_target(fn); }
 
         protected JumpBase.C1(Value.TID tid, OpCode opcode, VoidType voidty) {
             base.C1(tid, opcode, voidty);

@@ -22,13 +22,15 @@ namespace Musys.IR {
             _operand.remove_use_as_usee(operands.front());
             _operand = null;
         }
-        public override void on_parent_finalize() {
+        public override void on_function_finalize() { _fast_clean(); }
+        public override void on_parent_finalize()   { _deep_clean(); }
+        protected new void _deep_clean() {
             _clean_operand();
-            _nodeof_this = null;
+            base._deep_clean();
         }
-        public override void on_function_finalize() {
-            _operand     = null;
-            _nodeof_this = null;
+        protected new void _fast_clean() {
+            _clean_operand();
+            base._fast_clean();
         }
 
         protected UnarySSA.C1(Value.TID tid, OpCode opcode, Type type, Type op_type)

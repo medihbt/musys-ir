@@ -25,5 +25,7 @@ namespace Musys.IR {
         public virtual void visit_inst_branch     (BranchSSA      inst) {}
         public virtual void visit_inst_phi        (PhiSSA         inst) {}
         public virtual void visit_inst_index_ptr  (IndexPtrSSA    inst) {}
+        public virtual void visit_inst_index_extract(IndexExtractSSA inst) {}
+        public virtual void visit_inst_index_insert (IndexInsertSSA  inst) {}
     }
 }

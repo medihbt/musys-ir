@@ -16,9 +16,13 @@ namespace Musys.IR {
         }
         public override void on_parent_finalize() {
             _default_target = null;
-            _nodeof_this    = null;
+            base._deep_clean();
         }
-        public override void accept (IValueVisitor visitor) {
+        public override void on_function_finalize() {
+            _default_target = null;
+            base._fast_clean();
+        }
+        public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_jump(this);
         }
 

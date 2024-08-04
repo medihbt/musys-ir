@@ -17,7 +17,7 @@ namespace Musys.IR {
             ALLOCA_BASE, ALLOCA_SSA, DYN_ALLOCA_SSA,
             CALL_BASE, CALL_SSA, DYN_CALL_SSA, INVOKE_SSA, INTRIN_SSA,
             LOAD_SSA, STORE_SSA,
-            INDEX_INSERT_SSA, INDEX_EXTRACT_SSA, INDEX_PTR_SSA,
+            INDEX_SSA_BASE, INDEX_INSERT_SSA, INDEX_EXTRACT_SSA, INDEX_PTR_SSA,
             RESERVED_COUNT;
         }
 
@@ -113,6 +113,21 @@ namespace Musys.IR {
                 type_match_or_crash(type, from.value_type);
             User.replace_use(to, from, use);
             to = from;
+        }
+
+        protected static void value_fast_clean(ref IR.Value? value, IR.Use use)
+        {
+            if (value == null)
+                return;
+            if (value.isvalue_by_id(GLOBAL_OBJECT))
+                value.remove_use_as_usee(use);
+            value = null;
+        }
+        protected static void value_deep_clean(ref IR.Value? value, IR.Use use) {
+            if (value == null)
+                return;
+            value.remove_use_as_usee(use);
+            value = null;
         }
     }
 

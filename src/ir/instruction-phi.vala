@@ -42,12 +42,11 @@ namespace Musys.IR {
 
         public override void on_parent_finalize() {
             _clean_from();
-            _nodeof_this = null;
-            _parent      = null;
+            base._deep_clean();
         }
         public override void on_function_finalize() {
             _clean_from();
-            _nodeof_this = null;
+            base._fast_clean();
         }
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_phi(this);

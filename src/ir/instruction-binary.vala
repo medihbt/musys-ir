@@ -26,10 +26,12 @@ namespace Musys.IR {
         public bool is_signed{get;}
 
         public override void on_parent_finalize () {
-            assert_not_reached ();
+            lhs = null; rhs = null;
+            base._deep_clean();
         }
         public override void on_function_finalize () {
-            assert_not_reached ();
+            _lhs = null; _rhs = null;
+            base._fast_clean();
         }
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_binary(this);

@@ -16,11 +16,12 @@ namespace Musys.IR {
         }
         public unowned BasicBlock if_true{get;set;}
 
-        protected override void foreach_target (Musys.IR.BasicBlock.ReadFunc fn) {
-            if (fn(if_false)) return;
+        protected override void foreach_target(BasicBlock.ReadFunc fn) {
+            if (fn(if_false)) 
+                return;
             fn(if_true);
         }
-        protected override void replace_target (Musys.IR.BasicBlock.ReplaceFunc fn)
+        protected override void replace_target(BasicBlock.ReplaceFunc fn)
         {
             BasicBlock? replaced = null;
             BasicBlock  if_false = this.if_false;
@@ -40,7 +41,7 @@ namespace Musys.IR {
             _nodeof_this = null;
             _parent      = null;
         }
-        public override void accept (IValueVisitor visitor) {
+        public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_branch(this);
         }
 

@@ -16,9 +16,6 @@ namespace Musys.IR {
     }
 
     public class AllocaSSA: AllocaBase {
-        public override void on_parent_finalize () {
-            _nodeof_this = null;
-        }
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_alloca(this);
         }
@@ -51,12 +48,12 @@ namespace Musys.IR {
                 _length = value;
             }
         }
-        
-        public override void on_parent_finalize()
-        {
-            length       = null;
-            _nodeof_this = null;
-            _parent      = null;
+
+        public override void on_parent_finalize() {
+            length = null;  base._deep_clean();
+        }
+        public override void on_function_finalize() {
+            _length = null; base._deep_clean();
         }
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_dyn_alloca(this);
