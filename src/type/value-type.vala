@@ -1,10 +1,8 @@
 namespace Musys {
-    private inline size_t
-    bit_to_byte(size_t bit) {
+    private inline size_t bit_to_byte(size_t bit) {
         return bit / 8 + (size_t)(bit % 8 != 0);
     }
-    private inline size_t
-    size_get_align(size_t bytes) {
+    private inline size_t size_get_align(size_t bytes) {
         if (bytes >= 8)      return 8;
         else if (bytes >  4) return 8;
         else if (bytes >  2) return 4;

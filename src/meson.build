@@ -55,11 +55,15 @@ musys_ir_deps = [
     dependency('gee-0.8')
 ]
 
-musys_lib = library(
+add_project_arguments(['-h', 'musys.internal.h'], language: 'vala')
+
+musys_lib = shared_library(
     'musys',
     sources: musys_ir_src,
     dependencies: musys_ir_deps,
-    include_directories: musys_include
+    include_directories: musys_include,
+    install: true,
+    install_dir: [true, true, true]
 )
 
 message(musys_lib.name())

@@ -43,7 +43,12 @@ namespace Musys.IRUtil {
             }
 
             outs.write_str(") {\n");
+            var entry = func.body.entry;
+            _wrap_indent();
+            this.visit_basicblock(entry);
             foreach (IR.BasicBlock b in func.body) {
+                if (b == entry)
+                    continue;
                 _wrap_indent();
                 this.visit_basicblock(b);
             }
@@ -59,6 +64,15 @@ namespace Musys.IRUtil {
                 _write_by_ref(gvar.init_content);
             }
             outs.printf(", align %lu\n", gvar.align);
+        }
+        public override void visit_basicblock(IR.BasicBlock block)
+        {
+            unowned var outs = _rt->outs;
+            outs.printf("%d:", block.id);
+            _rt->indent_level++;
+            foreach (var inst in block.instructions)
+                inst.accept(this);
+            _rt->indent_level--;
         }
 
         private void _write_by_ref(IR.Value value)

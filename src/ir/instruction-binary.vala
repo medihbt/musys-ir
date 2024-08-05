@@ -17,7 +17,7 @@ namespace Musys.IR {
                     set_usee_type_match_self(ref _lhs, value, _ulhs);
                     return;
                 }
-                _int_or_crash(value);
+                value_int_or_crash(value, "at BinarySSA.rhs::set()");
                 User.replace_use(_rhs, value, _urhs);
                 _rhs = value;
             }
@@ -71,7 +71,7 @@ namespace Musys.IR {
             this._is_signed = is_signed;
         }
         public BinarySSA.as_idiv(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = _int_same_or_crash(lhs, rhs);
+            unowned var type = int_value_match_or_crash(lhs, rhs);
             var opcode = is_signed? OpCode.SDIV: OpCode.UDIV;
             this.nocheck(opcode, type, lhs, rhs);
             this._is_signed = is_signed;
@@ -82,7 +82,7 @@ namespace Musys.IR {
             this._is_signed = true;
         }
         public BinarySSA.as_irem(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = _int_same_or_crash(lhs, rhs);
+            unowned var type = int_value_match_or_crash(lhs, rhs);
             var opcode = is_signed? OpCode.SREM: OpCode.UREM;
             this.nocheck(opcode, type, lhs, rhs);
             this._is_signed = is_signed;
@@ -98,7 +98,7 @@ namespace Musys.IR {
                 crash (@"Requires logic opcode, but got $(opcode)");
             unowned Type type = opcode.is_shift_op() ?
                                 _all_int_or_crash(lhs, rhs):
-                                _int_same_or_crash(lhs, rhs);
+                                int_value_match_or_crash(lhs, rhs);
             this.nocheck(opcode, type, lhs, rhs);
             this._is_signed = opcode == ASHR;
         }
@@ -142,17 +142,6 @@ namespace Musys.IR {
         public BinaryRHSUse(BinarySSA user) { base.C1(user); }
     }
 
-    private unowned IntType? _int_or_crash(Value? usee)
-    {
-        if (usee == null)
-            return null;
-        unowned Type usee_type = usee.value_type;
-        if (!usee_type.is_int) crash(
-            @"Usee Type mismatch: requires int type, but got $(usee_type)",
-            true, {Log.FILE, Log.METHOD, Log.LINE}
-        );
-        return (IntType)usee_type;
-    }
     private unowned ValueType _valuetype_same_or_crash(Value lhs, Value rhs)
     {
         unowned var lty = lhs.value_type;
@@ -172,24 +161,21 @@ namespace Musys.IR {
         unowned var lty = lhs.value_type;
         unowned var rty = rhs.value_type;
         if (!lty.is_int || !rty.is_int) {
-            crash(@"Add instruction requires int type, but:\nlhs is $(lty)\nrhs is $(rty)"
+            crash(@"requires int type, but:\nlhs is $(lty)\nrhs is $(rty)"
                   , true, {Log.FILE, Log.METHOD, Log.LINE});
         }
         return lty;
-    }
-    private inline unowned IntType _int_same_or_crash(Value lhs, Value rhs) {
-        return int_value_match_or_crash(lhs, rhs);
     }
     private unowned FloatType _floattype_same_or_crash(Value lhs, Value rhs)
     {
         unowned var lty = lhs.value_type;
         unowned var rty = rhs.value_type;
         if (!lty.is_float || !rty.is_float) {
-            crash(@"Add instruction requires float type, but:\nlhs is $(lty)\nrhs is $(rty)"
+            crash(@"requires float type, but:\nlhs is $(lty)\nrhs is $(rty)"
                   , true, {Log.FILE, Log.METHOD, Log.LINE});
         }
         if (!lty.equals(rty)) {
-            crash(@"Add instruction requires LHS and RHS type be the same, but:\nlhs is $(lty)\nrhs is $(rty)"
+            crash(@"requires LHS and RHS type be the same, but:\nlhs is $(lty)\nrhs is $(rty)"
                   , true, {Log.FILE, Log.METHOD, Log.LINE});
         }
         return static_cast<FloatType>(lty);

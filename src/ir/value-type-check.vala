@@ -104,7 +104,8 @@ namespace Musys.IR {
         }
         return false;
     }
-    public void type_bit_same_or_crash(Type l, Type r) {
+    public void type_bit_same_or_crash(Type l, Type r)
+    {
         if (l.equals(r))
             return;
         size_t lbit = 0, rbit = 0;
