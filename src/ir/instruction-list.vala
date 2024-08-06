@@ -28,7 +28,7 @@ namespace Musys.IR {
             crash("Instruction List %p is empty".printf(this));
             return _node_begin._prev->item;
         }
-        public Iterator iterator() { return {_node_begin._next}; }
+        public Iterator iterator() { return {&_node_begin}; }
 
         public void append(Instruction inst)
         {
@@ -113,7 +113,7 @@ namespace Musys.IR {
             internal static Node* Create(InstructionList list, Instruction  item,
                                          Node*    prev = null, Node* next = null)
             {
-                var ret = (Node*)malloc(sizeof(Node));
+                var ret = (Node*)malloc0(sizeof(Node));
                 ret->_list = list;
                 ret->item  = item;
                 ret->_prev = prev;
@@ -131,11 +131,16 @@ namespace Musys.IR {
             public Instruction get() { return node->item; }
             public bool       next()
             {
-                var list = node->_list;
-                Node* node_end = &list._node_end;
-                if (node == node_end)
+                if (node == null)
+                    crash("node is NULL!\n", true, {Log.FILE, Log.METHOD, Log.LINE});
+                if (node->_next == null) {
+                    warning("touched end of BasicBlock %p(%d)",
+                            list.parent, list.parent.id);
                     return false;
+                }
                 node = node->_next;
+                if (node->_next == null)
+                    return false;
                 return true;
             }
         }
@@ -170,10 +175,12 @@ namespace Musys.IR {
                     crash("node %p is not available for list %p"
                           .printf(node, list));
                 }
-                if (inst.modifier.available) {
+                if (inst.is_attached()) {
+                    unowned string iklass = inst.get_class().get_name();
+                    unowned string opcode = inst.opcode.to_string();
                     throw new InstructionListErr.INST_ATTACHED(
-                        "instruction %p attached to list %p (this %p)"
-                        .printf(inst, inst.modifier.list, list)
+                        "Requires instruction %p(class %s, opcode %s) not attached, but attached to list %p (this %p)"
+                        .printf(inst, iklass, opcode, inst.modifier.list, list)
                     );
                 }
                 Node* next     = node->_next;

@@ -27,9 +27,9 @@ namespace Musys {
         [CCode (cname="__FILE__")]
         public extern const string CFILE;
 
-        public SourceLocation.current(string filename = CFILE,
-                                      string method   = CFUNC,
-                                      int    line     = CLINE) {
+        public SourceLocation.current(string filename = Musys.SourceLocation.CFILE,
+                                      string method   = Musys.SourceLocation.CFUNC,
+                                      int    line     = Musys.SourceLocation.CLINE) {
             this.filename = filename;
             this.method   = method;
             this.line     = line;

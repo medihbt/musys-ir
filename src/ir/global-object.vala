@@ -25,6 +25,7 @@ namespace Musys.IR {
         protected GlobalObject.C1(Value.TID tid, PointerType type, string name, bool is_internal) {
             base.C1 (tid, type);
             this._is_internal = is_internal;
+            this._name = name;
         }
         class construct {
             _istype[TID.GLOBAL_OBJECT] = true;

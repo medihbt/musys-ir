@@ -37,10 +37,9 @@ namespace Musys {
     public sealed class IntType: ValueType {
         public override string name {
             get {
-                if (_name == null) {
-                    char buff[16];
-                    _name = @"i$(Fmt.u32base10(&buff[0], 16, (uint32)_binary_bits))";
-                } return _name;
+                if (_name == null)
+                    _name = @"i$(_binary_bits)";
+                return _name;
             }
         }
         public override size_t hash() {

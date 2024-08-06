@@ -13,6 +13,10 @@ namespace Musys.IR {
 
     public Constant create_const_zero(Type type) throws TypeMismatchErr
     {
+        if (type.is_int)
+            return new ConstInt.from_i64(static_cast<IntType>(type), 0);
+        if (type.is_float)
+            return new ConstFloat.from_f64(static_cast<FloatType>(type), 0);
         if (type.is_valuetype)
             return new ConstDataZero(static_cast<ValueType>(type));
         if (type.is_aggregate)

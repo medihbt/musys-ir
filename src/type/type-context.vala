@@ -86,13 +86,17 @@ namespace Musys {
             return (PointerType)get_or_register_type(ret);
         }
         public FunctionType
-        get_func_type(Type ret_ty, Type []args_ty) throws TypeMismatchErr
+        get_func_type(Type ret_ty, Type []?args_ty) throws TypeMismatchErr
         {
             foreach (unowned Type arg_ty in args_ty) {
                 if (!arg_ty.is_instantaneous)
                     throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
             }
-            var fty = new FunctionType(ret_ty, args_ty);
+            FunctionType fty = null;
+            if (args_ty != null)
+                fty = new FunctionType(ret_ty, args_ty);
+            else
+                fty = new FunctionType.move(ret_ty, new Type[0]);
             return (FunctionType)get_or_register_type(fty);
         }
         public FunctionType

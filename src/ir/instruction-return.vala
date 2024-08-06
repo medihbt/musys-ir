@@ -21,11 +21,19 @@ public class Musys.IR.ReturnSSA: Instruction, IBasicBlockTerminator {
         value_fast_clean(ref _retval, operands.front());
         base._fast_clean();
     }
+    public ReturnSSA.raw(Type return_type) {
+        base.C1(RET_SSA, RET, return_type);
+        new RetvalUse(this).attach_back(this);
+    }
     public ReturnSSA(Value retval) {
         base.C1(RET_SSA, RET, retval.value_type);
         new RetvalUse(this).attach_back(this);
+        this.retval = retval;
     }
-    class construct { _istype[TID.RET_SSA] = true; }
+    class construct {
+        _istype[TID.RET_SSA]                 = true;
+        _istype[TID.IBASIC_BLOCK_TERMINATOR] = true;
+    }
 
     private sealed class RetvalUse: Use {
         public new ReturnSSA user {

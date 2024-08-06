@@ -95,7 +95,6 @@ namespace Musys.IR {
         class construct { _istype[TID.FUNC_ARG] = true; }
     }
 
-    [Compact]
     public class FuncBody {
         internal BasicBlock _node_begin;
         internal BasicBlock _node_end;
@@ -103,6 +102,7 @@ namespace Musys.IR {
         public weak Function    parent;
         public weak TypeContext type_ctx;
         public weak BasicBlock  entry;
+        public size_t length{get;internal set;default = 0;}
 
         public FuncBody.empty(TypeContext tctx, Function parent)
         {
@@ -110,23 +110,28 @@ namespace Musys.IR {
             _node_end   = new BasicBlock.raw(tctx);
             _node_begin._next = _node_end;
             _node_end._prev = _node_begin;
+            _node_begin._list = this;
+            _node_end._list   = this;
             this.type_ctx = tctx;
             this.parent  = parent;
         }
         internal void append_raw(BasicBlock block)
         {
-            unowned var node = _node_end._prev;
-            node._next      = block;
-            _node_end._prev = block;
+            var prev = _node_end._prev;
             block._next     = _node_end;
-            block._prev     = node;
+            block._prev     = prev;
+            block._list     = this;
+
+            prev._next      = block;
+            _node_end._prev = block;
+            _length++;
         }
         internal void append_as_entry(BasicBlock block)
         {
             this.entry = block;
             append_raw(block);
         }
-        public Iterator iterator() { return {_node_begin._next}; }
+        public Iterator iterator() { return {_node_begin}; }
         public void clean()
         {
             _node_end._prev = _node_begin;
@@ -141,9 +146,13 @@ namespace Musys.IR {
             public unowned BasicBlock get() { return block; }
             public bool next()
             {
-                if (block == list._node_end)
+                if (block == null)
+                    crash("Block is NULL!", true, {Log.FILE, Log.METHOD, Log.LINE});
+                if (block._next == null || block == list._node_end)
                     return false;
                 block = block._next;
+                if (block._next == null || block == list._node_end)
+                    return false;
                 return true;
             }
         }

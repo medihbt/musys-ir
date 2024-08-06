@@ -5,3 +5,8 @@ message('[Musys] Include directory: '+ musys_include_str)
 musys_include=include_directories(musys_include_str)
 
 subdir('src')
+
+musys_dep = declare_dependency(
+    include_directories: [ '.', 'include' ],
+    link_with: musys_lib
+)
