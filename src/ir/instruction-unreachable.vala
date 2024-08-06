@@ -14,6 +14,10 @@ namespace Musys.IR {
             base.C1(UNREACHABLE_SSA, UNREACHABLE,
                     parent.value_type.type_ctx.void_type);
         }
+        class construct {
+            _istype[TID.IBASIC_BLOCK_TERMINATOR] = true;
+            _istype[TID.UNREACHABLE_SSA]         = true;
+        }
 
         public void forEachTarget(BasicBlock.ReadFunc fn) {}
         public void replaceTarget(BasicBlock.ReplaceFunc fn) {}

@@ -34,8 +34,8 @@ namespace Musys {
         public bool is_vector     { get { return _istype[TID.VEC_TYPE]; }   }
         public bool is_struct     { get { return _istype[TID.STRUCT_TYPE];} }
 
-        public bool is_ref        { get { return _istype[TID.REF_TYPE]; }   }
-        public bool is_pointer    { get { return _istype[TID.ARRAY_TYPE]; } }
+        public bool is_ref        { get { return _istype[TID.REF_TYPE]; } }
+        public bool is_pointer    { get { return _istype[TID.PTR_TYPE]; } }
         public bool is_label      { get { return _istype[TID.LABEL_TYPE]; } }
 
         public bool is_function   { get { return _istype[TID.FUNCTION_TYPE]; } }

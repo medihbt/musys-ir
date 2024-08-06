@@ -51,21 +51,39 @@ namespace Musys {
         return ret_nlayers;
     }
 
-    [NoReturn]
-    public void crash(string msg, bool pauses = true, SourceLocation loc = SourceLocation.current())
+    private void _crash_print_head(ref SourceLocation loc)
     {
-        stderr.printf("|================ [进程 %s 已崩溃] ================|\n",
-                      Environment.get_prgname());
+        stderr.printf("|================ [进程 %d 已崩溃] ================|\n",
+                      stdc.getpid());
         stderr.puts  ("-----------------<  位置  >-----------------\n");
         stderr.printf("源文件: %s\n行:   %d\n方法: %s\n", loc.filename, loc.line, loc.method);
         stderr.puts  ("-----------------< 栈回溯 >-----------------\n");
         print_backtrace();
-        stderr.puts  ("-----------------<  消息  >-----------------\n");
-        stderr.puts  (msg);
+    }
+    [NoReturn]
+    public void crash(string msg, bool pauses = true, SourceLocation loc = SourceLocation.current())
+    {
+        _crash_print_head(ref loc);
+        stderr.puts("-----------------<  消息  >-----------------\n");
+        stderr.puts(msg);
         if (pauses) {
             stderr.puts("请按回车键继续...");
             stdin.getc();
         }
         GLibC.abort();
+    }
+    [NoReturn]
+    public inline void crash_vfmt(SourceLocation loc, string fmt, va_list ap)
+    {
+        _crash_print_head(ref loc);
+        stderr.puts("-----------------<  消息  >-----------------\n");
+        stderr.vprintf(fmt, ap);
+        stderr.puts("\n请按回车键继续...");
+        stdin.getc();
+        GLibC.abort();
+    }
+    [NoReturn, PrintfFormat]
+    public void crash_fmt(SourceLocation loc, string fmt, ...) {
+        crash_vfmt(loc, fmt, va_list());
     }
 }

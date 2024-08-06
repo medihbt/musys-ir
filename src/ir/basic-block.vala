@@ -6,11 +6,57 @@ public class Musys.IR.BasicBlock: Value {
     public BasicBlock unplug()
     {
         BasicBlock othis = this;
-        _prev._next = _next;
-        _next._prev = _prev;
+        BasicBlock next  = othis._next;
+        BasicBlock prev  = othis._prev;
+        prev._next = next; next._prev = prev;
         _list.length--;
+        this._next = null; this._prev = null;
+        this._list = null;
         return othis;
     }
+    private inline void _plug_check(BasicBlock before)
+    {
+        if (this == before)
+            crash("DO NOT plug this basic block after itself\n");
+        if (this._list != null) {
+            crash("DO NOT plug this basic block if it's already plugged (to %p, function %s)"
+                 .printf(_list, _list.parent.name));
+        }
+        unowned var list = before._list;
+        if (before._list == null) {
+            crash("DO NOT plug this basic block (%p) after/before an UNCONNECTED block (%p)"
+                 .printf(this, before));
+        }
+    }
+    public void plug_this_after(BasicBlock before)
+    {
+        _plug_check(before);
+        unowned var list = before._list;
+        if (before == list._node_end || before._next == null) {
+            crash("Node(%p) at the end of the list is NOT ACCESSIBLE. DO NOT insert this(%p) at its next\n"
+                 .printf(before, this));
+        }
+        BasicBlock next = before._next, prev = before;
+        this._next = next; this._prev = prev;
+        prev._next = this; next._prev = this;
+        this._list = list; this.parent = before.parent;
+        list.length++;
+    }
+    public void plug_this_before(BasicBlock after)
+    {
+        _plug_check(after);
+        unowned var list = after._list;
+        if (after == list._node_begin || after._prev == null) {
+            crash("Node(%p) at the begin of the list is NOT ACCESSIBLE. DO NOT insert this(%p) at its front\n"
+                 .printf(after, this));
+        }
+        BasicBlock next = after, prev = after._prev;
+        this._next = next; this._prev = prev;
+        prev._next = this; next._prev = this;
+        this._list = list; this.parent = after.parent;
+        list.length++;
+    }
+
     public void on_function_finalize()
     {
         if (instructions == null)
@@ -42,12 +88,12 @@ public class Musys.IR.BasicBlock: Value {
     public override void accept(IValueVisitor visitor) {
         visitor.visit_basicblock (this);
     }
-    internal BasicBlock.raw(TypeContext tctx) {
-        base.C1(BASIC_BLOCK, tctx.label_type);
+    internal BasicBlock.raw(LabelType labelty) {
+        base.C1(BASIC_BLOCK, labelty);
         _instructions = null;
     }
-    public BasicBlock.with_unreachable(TypeContext tctx) {
-        base.C1(BASIC_BLOCK, tctx.label_type);
+    public BasicBlock.with_unreachable(LabelType labelty) {
+        base.C1(BASIC_BLOCK, labelty);
         _instructions = new InstructionList.empty(this);
         _instructions.append(
             new UnreachableSSA(this)

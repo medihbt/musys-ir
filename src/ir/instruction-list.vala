@@ -129,7 +129,7 @@ namespace Musys.IR {
                 get { return node->_list; }
             }
             public Instruction get() { return node->item; }
-            public bool       next()
+            public bool next()
             {
                 if (node == null)
                     crash("node is NULL!\n", true, {Log.FILE, Log.METHOD, Log.LINE});

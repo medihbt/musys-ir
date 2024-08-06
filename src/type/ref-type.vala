@@ -45,7 +45,7 @@ namespace Musys {
             base.C1(tctx, TID.PTR_TYPE, target);
             _hash_cache = 0;
         }
-        class construct { _istype[TID.PTR_TYPE] = false; }
+        class construct { _istype[TID.PTR_TYPE] = true; }
 
         [CCode(cname="Musys_PtrType_MakeHash")]
         public static inline size_t MakeHash(Type target) {

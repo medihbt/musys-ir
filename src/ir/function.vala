@@ -106,8 +106,8 @@ namespace Musys.IR {
 
         public FuncBody.empty(TypeContext tctx, Function parent)
         {
-            _node_begin = new BasicBlock.raw(tctx);
-            _node_end   = new BasicBlock.raw(tctx);
+            _node_begin = new BasicBlock.raw(tctx.label_type);
+            _node_end   = new BasicBlock.raw(tctx.label_type);
             _node_begin._next = _node_end;
             _node_end._prev = _node_begin;
             _node_begin._list = this;

@@ -10,4 +10,7 @@ namespace stdc {
             return str[0] == 'T' || str[0] == 't';
         }
     }
+
+    [CCode (cname="getpid", cheader_filename="unistd.h")]
+    public extern Pid getpid();
 }
