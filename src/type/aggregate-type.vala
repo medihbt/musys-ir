@@ -74,6 +74,4 @@ namespace Musys {
                                  elemty.hash(), elem_number);
         }
     }
-
-    //  public sealed class VectorType: Aggrega
 }

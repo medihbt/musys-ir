@@ -35,8 +35,8 @@ namespace Musys.IR {
         }
         public abstract void accept(IValueVisitor visitor);
 
-        protected Type _value_type;
-        public    Type  value_type{ get { return _value_type; } }
+        protected unowned Type _value_type;
+        public    unowned Type  value_type{ get { return _value_type; } }
 
         public Gee.TreeSet<unowned Use> set_as_usee{get;}
 

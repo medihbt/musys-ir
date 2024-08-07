@@ -65,13 +65,22 @@ public class Musys.IR.BasicBlock: Value {
         instructions.clean();
     }
 
-    public weak Function parent{get;set;}
+    public unowned Function parent{get;set;}
 
     internal InstructionList _instructions;
     public   InstructionList  instructions {
         get { return _instructions; }
     }
-    public IBasicBlockTerminator terminator{get;set;}
+    public unowned IBasicBlockTerminator terminator {
+        get { return static_cast<IBasicBlockTerminator>(_instructions.back()); }
+        set {
+            assert_nonnull(value);
+            if (value == _instructions.back())
+                return;
+            try { _instructions.back().modifier.replace(value); }
+            catch (Error e) { crash(e.message); }
+        }
+    }
     public InstructionList.Iterator append(Instruction inst) throws InstructionListErr
     {
         if (inst is IBasicBlockTerminator) {
@@ -87,7 +96,7 @@ public class Musys.IR.BasicBlock: Value {
     public override void accept(IValueVisitor visitor) {
         visitor.visit_basicblock (this);
     }
-    internal BasicBlock.raw(LabelType labelty) {
+    public BasicBlock.raw(LabelType labelty) {
         base.C1(BASIC_BLOCK, labelty);
         _instructions = null;
     }
@@ -97,6 +106,7 @@ public class Musys.IR.BasicBlock: Value {
         _instructions.append(
             new UnreachableSSA(this)
         );
+        print("Unreachable: refcnt %u\n", _instructions.back().ref_count);
     }
     public BasicBlock.with_terminator(owned IBasicBlockTerminator terminator)
     {
@@ -111,7 +121,6 @@ public class Musys.IR.BasicBlock: Value {
             return;
         foreach (var i in instructions)
             i.on_parent_finalize();
-        instructions.clean();
     }
     class construct { _istype[TID.BASIC_BLOCK] = true; }
 

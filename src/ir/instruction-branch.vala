@@ -57,6 +57,8 @@ namespace Musys.IR {
             var voidty = boolty.type_ctx.void_type;
             this.raw(voidty, boolty);
             this.condition = condition;
+            this.if_true   = if_true;
+            this.if_false  = if_false;
         }
         class construct { _istype[TID.BR_SSA] = true; }
     }

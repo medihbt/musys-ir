@@ -43,6 +43,8 @@ namespace Musys.IR {
         {
             unowned var ity = int_value_match_or_crash(lhs, rhs);
             this.raw(ICMP, ity, cond.make_int());
+            this.lhs = lhs;
+            this.rhs = rhs;
         }
         class construct { _istype[TID.COMPARE_SSA] = true; }
 

@@ -18,7 +18,10 @@ namespace Musys.IR {
         protected ConstData.C1(Value.TID tid, ValueType type) {
             base.C1(tid, type);
         }
-        class construct { _istype[TID.CONST_DATA] = true; }
+        class construct {
+            _istype[TID.CONST_DATA] = true;
+            _shares_ref             = true;
+        }
     }
 
     public class ConstDataZero: ConstData, IConstZero {

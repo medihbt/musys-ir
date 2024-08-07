@@ -7,7 +7,7 @@ public class Musys.IR.InstructionList {
     internal Node _node_end;
 
     internal unowned BasicBlock _parent;
-    public BasicBlock parent {
+    public unowned BasicBlock parent {
         get { return _parent;  }
         set { _parent = value; }
     }
@@ -25,7 +25,7 @@ public class Musys.IR.InstructionList {
     public unowned Instruction back() {
         if (is_empty())
         crash("Instruction List %p is empty".printf(this));
-        return _node_begin._prev->item;
+        return _node_end._prev->item;
     }
     public Iterator iterator() { return {&_node_begin}; }
 
@@ -59,7 +59,7 @@ public class Musys.IR.InstructionList {
         while (cur != &_node_end) {
             Node *cached = cur;
             cur = cur->_next;
-            delete cached;
+            Node.Finalize(cached);
         }
         _node_begin._next = &_node_end;
         _node_end._prev   = &_node_begin;
@@ -120,6 +120,16 @@ public class Musys.IR.InstructionList {
             item._nodeof_this = ret;
             return ret;
         }
+
+        [CCode (cname="Musys_IR_InstructionList_Node_Finalize")]
+        internal static void Finalize(Node *node)
+        {
+            node->_list = null;
+            node->_prev = null;
+            node->_next = null;
+            node->item  = null;
+            free(node);
+        }
     }
 
     public struct Iterator {
@@ -170,6 +180,7 @@ public class Musys.IR.InstructionList {
         }
         internal Modifier append_raw(Instruction inst) throws InstructionListErr
         {
+            unowned var list = this.list;
             if (!this.available && list._parent == null) {
                 crash("node %p is not available for list %p"
                         .printf(node, list));
@@ -186,6 +197,7 @@ public class Musys.IR.InstructionList {
             Node* new_node = Node.Create(list, inst, node, next);
             node->_next = new_node;
             next->_prev = new_node;
+            inst._nodeof_this = new_node;
             list._length++;
             return {new_node};
         }
@@ -205,6 +217,7 @@ public class Musys.IR.InstructionList {
             Node* new_node = Node.Create(list, inst, prev, node);
             node->_prev = new_node;
             prev->_next = new_node;
+            inst._nodeof_this = new_node;
             list._length++;
             return {new_node};
         }
@@ -227,6 +240,7 @@ public class Musys.IR.InstructionList {
             unowned BasicBlock parent = old_item.on_unplug();
             original->item = new_item;
             new_item.on_plug(parent);
+            new_item._nodeof_this = node;
             old_item._nodeof_this = null;
             return old_item;
         }
@@ -241,9 +255,8 @@ public class Musys.IR.InstructionList {
             ret.on_unplug();
             Node *prev = node->_prev;
             Node *next = node->_next;
-            prev->_next = next;
-            next->_prev = prev;
-            delete node; node = null;
+            prev->_next = next; next->_prev = prev;
+            Node.Finalize(node); node = null;
             list._length--;
             ret._nodeof_this = null;
             return ret;

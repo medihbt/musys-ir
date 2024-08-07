@@ -72,6 +72,7 @@ namespace Musys.IRUtil {
             }
             if (func.is_extern) {
                 outs.puts(")");
+                _wrap_indent();
                 return;
             }
 
@@ -93,7 +94,7 @@ namespace Musys.IRUtil {
             unowned var    outs = _rt->outs;
             unowned string define = gvar.is_extern   ? "declare":  "define";
             unowned string visibl = gvar.is_internal ? "internal": "dso_local";
-            outs.puts(@"@$(gvar.id) = $define $visibl $(gvar.ptr_type.target)");
+            outs.puts(@"@$(gvar.name) = $define $visibl $(gvar.ptr_type.target)");
             if (gvar.init_content != null) {
                 outs.putchar(' ');
                 _write_by_ref(gvar.init_content);
@@ -162,6 +163,23 @@ namespace Musys.IRUtil {
         }
         public override void visit_inst_jump(IR.JumpSSA inst) {
             _rt->outs.printf("br label %%%d", inst.target.id);
+        }
+        public override void visit_inst_branch(IR.BranchSSA inst)
+        {
+            unowned var  outs = _rt->outs;
+            unowned Type cond_type = inst.condition.value_type;
+            outs.puts(@"br $cond_type ");
+            _write_by_ref(inst.condition);
+            outs.printf(", label %%%d, label %%%d",
+                        inst.if_true.id, inst.if_false.id);
+        }
+        public override void visit_inst_compare(IR.CompareSSA inst)
+        {
+            unowned var  outs = _rt->outs;
+            unowned string operandty = inst.operand_type.name;
+            unowned string opcode = inst.opcode == ICMP ? "icmp": "fcmp";
+            unowned var condition = inst.condition;
+            outs.puts(@"%$(inst.id) = $opcode $condition, $operandty $(inst.lhs.id), $(inst.rhs.id)");
         }
 
         private void _write_by_ref(IR.Value value)

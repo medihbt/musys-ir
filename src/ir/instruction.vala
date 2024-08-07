@@ -58,6 +58,15 @@ namespace Musys.IR {
             base.C1(tid, type);
             _opcode = opcode;
         }
+        ~Instruction() {
+            if (_nodeof_this != null) {
+                unowned string iklass = get_class().get_name();
+                unowned string opcode = opcode.to_string();
+                crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                    "Instruction %p(id %d, opcode %s, class %s) still connected to list",
+                    this, id, opcode, iklass);
+            }
+        }
         class construct { _istype[TID.INSTRUCTION] = true; }
     }
 

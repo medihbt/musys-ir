@@ -1,9 +1,11 @@
 public class Musys.IR.UnreachableSSA: Instruction, IBasicBlockTerminator {
-    public override void on_parent_finalize () {
-        _nodeof_this = null;
+    public override void on_parent_finalize() {
+        set_as_usee.clear();
+        base._deep_clean();
     }
-    public override void on_function_finalize () {
-        _nodeof_this = null;
+    public override void on_function_finalize() {
+        set_as_usee.clear();
+        base._fast_clean();
     }
     public override void accept (IValueVisitor visitor) {
         visitor.visit_inst_unreachable(this);
