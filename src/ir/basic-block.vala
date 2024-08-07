@@ -22,7 +22,6 @@ public class Musys.IR.BasicBlock: Value {
             crash("DO NOT plug this basic block if it's already plugged (to %p, function %s)"
                  .printf(_list, _list.parent.name));
         }
-        unowned var list = before._list;
         if (before._list == null) {
             crash("DO NOT plug this basic block (%p) after/before an UNCONNECTED block (%p)"
                  .printf(this, before));

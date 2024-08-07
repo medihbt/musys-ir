@@ -1,254 +1,252 @@
-namespace Musys.IR {
-    public errordomain InstructionListErr {
-        INST_ATTACHED
+public errordomain Musys.IR.InstructionListErr {
+    INST_ATTACHED, INST_UNATTACHED
+}
+
+public class Musys.IR.InstructionList {
+    internal Node _node_begin;
+    internal Node _node_end;
+
+    internal unowned BasicBlock _parent;
+    public BasicBlock parent {
+        get { return _parent;  }
+        set { _parent = value; }
     }
 
-    public class InstructionList {
-        internal Node _node_begin;
-        internal Node _node_end;
+    public size_t length{get;}
 
-        internal unowned BasicBlock _parent;
-        public BasicBlock parent {
-            get { return _parent;  }
-            set { _parent = value; }
-        }
+    public bool is_empty() {
+        return _node_begin._next == &_node_end;
+    }
+    public unowned Instruction front() {
+        if (is_empty())
+        crash("Instruction List %p is empty".printf(this));
+        return _node_begin._next->item;
+    }
+    public unowned Instruction back() {
+        if (is_empty())
+        crash("Instruction List %p is empty".printf(this));
+        return _node_begin._prev->item;
+    }
+    public Iterator iterator() { return {&_node_begin}; }
 
-        public size_t length{get;}
+    public void append(Instruction inst)
+    {
+        try {
+            Modifier() { node = _node_end._prev }.append(inst);
+        } catch (InstructionListErr e) {
+            crash("%s.%s msg %s"
+                .printf(e.domain.to_string(),
+                        e.code.to_string(),
+                        e.message));
+        }
+    }
+    public void prepend(Instruction inst)
+    {
+        try {
+            Modifier() { node = _node_begin._next }.prepend(inst);
+        } catch (InstructionListErr e) {
+            crash("%s.%s msg %s"
+                .printf(e.domain.to_string(),
+                        e.code.to_string(),
+                        e.message));
+        }
+    }
+    public void clean()
+    {
+        if (is_empty())
+            return;
+        Node *cur  = _node_begin._next;
+        while (cur != &_node_end) {
+            Node *cached = cur;
+            cur = cur->_next;
+            delete cached;
+        }
+        _node_begin._next = &_node_end;
+        _node_end._prev   = &_node_begin;
+    }
 
-        public bool is_empty() {
-            return _node_begin._next == &_node_end;
+    public InstructionList.empty(BasicBlock parent) { _init_empty(parent); }
+    public InstructionList.move(InstructionList another)
+    {
+        if (another.is_empty()) {
+            _init_empty(another.parent);
+            return;
         }
-        public unowned Instruction front() {
-            if (is_empty())
-            crash("Instruction List %p is empty".printf(this));
-            return _node_begin._next->item;
-        }
-        public unowned Instruction back() {
-            if (is_empty())
-            crash("Instruction List %p is empty".printf(this));
-            return _node_begin._prev->item;
-        }
-        public Iterator iterator() { return {&_node_begin}; }
+        Node *node_front = another._node_begin._next;
+        Node *node_back  = another._node_end._prev;
+        this._node_begin = Node() {
+            _list = this, item  = null,
+            _prev = null, _next = node_front,
+        };
+        this._node_end = Node() {
+            _list = this, item  = null,
+            _next = null, _prev = node_back
+        };
+        node_front->_prev = &_node_begin;
+        node_back->_next  = &_node_end;
+    }
+    ~InstructionList() { clean(); }
 
-        public void append(Instruction inst)
+    private void _init_empty(BasicBlock parent)
+    {
+        this._length     = 0;
+        this._node_begin = Node() {
+            _list = this, _prev = null,
+            item  = null, _next = &_node_end
+        };
+        this._node_end   = Node() {
+            _list = this, _prev = &_node_begin,
+            item  = null, _next = null
+        };
+        this._parent = parent;
+    }
+
+    [CCode (has_type_id=false)]
+    public struct Node {
+        unowned InstructionList _list;
+        Node*      _prev;
+        Node*      _next;
+        Instruction item;
+
+        [CCode (cname="Musys_IR_InstructionList_Node_Create")]
+        internal static Node* Create(InstructionList list, Instruction  item,
+                                     Node*    prev = null, Node* next = null)
         {
-            try {
-                Modifier() { node = _node_end._prev }.append(inst);
-            } catch (InstructionListErr e) {
-                crash("%s.%s msg %s"
-                    .printf(e.domain.to_string(),
-                            e.code.to_string(),
-                            e.message));
-            }
+            var ret = (Node*)malloc0(sizeof(Node));
+            ret->_list = list;
+            ret->item  = item;
+            ret->_prev = prev;
+            ret->_next = next;
+            item._nodeof_this = ret;
+            return ret;
         }
-        public void prepend(Instruction inst)
+    }
+
+    public struct Iterator {
+        public   Node*           node;
+        internal InstructionList list {
+            get { return node->_list; }
+        }
+        public Instruction get() { return node->item; }
+        public bool next()
         {
-            try {
-                Modifier() { node = _node_begin._next }.prepend(inst);
-            } catch (InstructionListErr e) {
-                crash("%s.%s msg %s"
-                    .printf(e.domain.to_string(),
-                            e.code.to_string(),
-                            e.message));
+            if (node == null)
+                crash("node is NULL!\n", true, {Log.FILE, Log.METHOD, Log.LINE});
+            if (node->_next == null) {
+                warning("touched end of BasicBlock %p(%d)",
+                        list.parent, list.parent.id);
+                return false;
+            }
+            node = node->_next;
+            if (node->_next == null)
+                return false;
+            return true;
+        }
+    }
+
+    public struct Modifier: Iterator {
+        public bool available {
+            get {
+                return node != null &&
+                        node != &list._node_begin &&
+                        node != &list._node_end;
             }
         }
-        public void clean()
+        public void disable() { node = null; }
+
+        public Modifier append(Instruction inst) throws InstructionListErr
         {
-            if (is_empty())
-                return;
-            Node *cur  = _node_begin._next;
-            while (cur != &_node_end) {
-                Node *cached = cur;
-                cur = cur->_next;
-                delete cached;
-            }
-            _node_begin._next = &_node_end;
-            _node_end._prev   = &_node_begin;
+            BasicBlock block = list._parent;
+            Modifier ret = append_raw(inst);
+            inst.on_plug(block);
+            return ret;
         }
-
-        public InstructionList.empty(BasicBlock parent) { _init_empty(parent); }
-        public InstructionList.move(InstructionList another)
+        public Modifier prepend(Instruction inst) throws InstructionListErr
         {
-            if (another.is_empty()) {
-                _init_empty(another.parent);
-                return;
-            }
-            Node *node_front = another._node_begin._next;
-            Node *node_back  = another._node_end._prev;
-            this._node_begin = Node() {
-                _list = this, item  = null,
-                _prev = null, _next = node_front,
-            };
-            this._node_end = Node() {
-                _list = this, item  = null,
-                _next = null, _prev = node_back
-            };
-            node_front->_prev = &_node_begin;
-            node_back->_next  = &_node_end;
+            BasicBlock block = list._parent;
+            Modifier ret = prepend_raw(inst);
+            inst.on_plug(block);
+            return ret;
         }
-        ~InstructionList() { clean(); }
-
-        private void _init_empty(BasicBlock parent)
+        internal Modifier append_raw(Instruction inst) throws InstructionListErr
         {
-            this._length     = 0;
-            this._node_begin = Node() {
-                _list = this, _prev = null,
-                item  = null, _next = &_node_end
-            };
-            this._node_end   = Node() {
-                _list = this, _prev = &_node_begin,
-                item  = null, _next = null
-            };
-            this._parent = parent;
+            if (!this.available && list._parent == null) {
+                crash("node %p is not available for list %p"
+                        .printf(node, list));
+            }
+            if (inst.is_attached()) {
+                unowned string iklass = inst.get_class().get_name();
+                unowned string opcode = inst.opcode.to_string();
+                throw new InstructionListErr.INST_ATTACHED(
+                    "Requires instruction %p(class %s, opcode %s) not attached, but attached to list %p (this %p)"
+                    .printf(inst, iklass, opcode, inst.modifier.list, list)
+                );
+            }
+            Node* next     = node->_next;
+            Node* new_node = Node.Create(list, inst, node, next);
+            node->_next = new_node;
+            next->_prev = new_node;
+            list._length++;
+            return {new_node};
         }
-
-        [CCode (has_type_id=false)]
-        public struct Node {
-            unowned InstructionList _list;
-            Node*      _prev;
-            Node*      _next;
-            Instruction item;
-
-            [CCode (cname="Musys_IR_InstructionList_Node_Create")]
-            internal static Node* Create(InstructionList list, Instruction  item,
-                                         Node*    prev = null, Node* next = null)
-            {
-                var ret = (Node*)malloc0(sizeof(Node));
-                ret->_list = list;
-                ret->item  = item;
-                ret->_prev = prev;
-                ret->_next = next;
-                item._nodeof_this = ret;
-                return ret;
+        internal Modifier prepend_raw(Instruction inst) throws InstructionListErr
+        {
+            if (!this.available && list._parent == null) {
+                crash("node %p is not available for list %p"
+                        .printf(node, list));
             }
+            if (inst.modifier.available) {
+                throw new InstructionListErr.INST_ATTACHED(
+                    "instruction %p attached to list %p (this %p)"
+                    .printf(inst, inst.modifier.list, list)
+                );
+            }
+            Node* prev     = node->_prev;
+            Node* new_node = Node.Create(list, inst, prev, node);
+            node->_prev = new_node;
+            prev->_next = new_node;
+            list._length++;
+            return {new_node};
         }
-
-        public struct Iterator {
-            public   Node*           node;
-            internal InstructionList list {
-                get { return node->_list; }
-            }
-            public Instruction get() { return node->item; }
-            public bool next()
-            {
-                if (node == null)
-                    crash("node is NULL!\n", true, {Log.FILE, Log.METHOD, Log.LINE});
-                if (node->_next == null) {
-                    warning("touched end of BasicBlock %p(%d)",
-                            list.parent, list.parent.id);
-                    return false;
-                }
-                node = node->_next;
-                if (node->_next == null)
-                    return false;
-                return true;
-            }
-        }
-
-        public struct Modifier: Iterator {
-            public bool available {
-                get {
-                    return node != null &&
-                           node != &list._node_begin &&
-                           node != &list._node_end;
-                }
-            }
-            public void disable() { node = null; }
-
-            public Modifier append(Instruction inst) throws InstructionListErr
-            {
-                BasicBlock block = list._parent;
-                Modifier ret = append_raw(inst);
-                inst.on_plug(block);
-                return ret;
-            }
-            public Modifier prepend(Instruction inst) throws InstructionListErr
-            {
-                BasicBlock block = list._parent;
-                Modifier ret = prepend_raw(inst);
-                inst.on_plug(block);
-                return ret;
-            }
-            internal Modifier append_raw(Instruction inst) throws InstructionListErr
-            {
-                if (!this.available && list._parent == null) {
-                    crash("node %p is not available for list %p"
-                          .printf(node, list));
-                }
-                if (inst.is_attached()) {
-                    unowned string iklass = inst.get_class().get_name();
-                    unowned string opcode = inst.opcode.to_string();
-                    throw new InstructionListErr.INST_ATTACHED(
-                        "Requires instruction %p(class %s, opcode %s) not attached, but attached to list %p (this %p)"
-                        .printf(inst, iklass, opcode, inst.modifier.list, list)
-                    );
-                }
-                Node* next     = node->_next;
-                Node* new_node = Node.Create(list, inst, node, next);
-                node->_next = new_node;
-                next->_prev = new_node;
-                list._length++;
-                return {new_node};
-            }
-            internal Modifier prepend_raw(Instruction inst) throws InstructionListErr
-            {
-                if (!this.available && list._parent == null) {
-                    crash("node %p is not available for list %p"
-                         .printf(node, list));
-                }
-                if (inst.modifier.available) {
-                    throw new InstructionListErr.INST_ATTACHED(
-                        "instruction %p attached to list %p (this %p)"
-                        .printf(inst, inst.modifier.list, list)
-                    );
-                }
-                Node* prev     = node->_prev;
-                Node* new_node = Node.Create(list, inst, prev, node);
-                node->_prev = new_node;
-                prev->_next = new_node;
-                list._length++;
-                return {new_node};
-            }
-            public Instruction replace(Instruction new_item) throws InstructionListErr
-            {
-                Instruction old_item = get();
-                if (new_item == old_item)
-                    return old_item;
-                if (!this.available) {
-                    crash("node %p is not available for list %p"
-                         .printf(node, list));
-                }
-                if (new_item.is_attached()) {
-                    throw new InstructionListErr.INST_ATTACHED(
-                        "instruction %p attached to list %p (this %p)"
-                        .printf(new_item, new_item.modifier.list, list)
-                    );
-                }
-                Node            *original = node;
-                unowned BasicBlock parent = old_item.on_unplug();
-                original->item = new_item;
-                new_item.on_plug(parent);
-                old_item._nodeof_this = null;
+        public Instruction replace(Instruction new_item) throws InstructionListErr
+        {
+            Instruction old_item = get();
+            if (new_item == old_item)
                 return old_item;
+            if (!this.available) {
+                crash("node %p is not available for list %p"
+                        .printf(node, list));
             }
-            public Instruction unplug()
-            {
-                if (!this.available) {
-                    crash("node %p is not available for list %p"
-                         .printf(node, list));
-                }
-                var ret = node->item;
-                unowned var list = this.list;
-                ret.on_unplug();
-                Node *prev = node->_prev;
-                Node *next = node->_next;
-                prev->_next = next;
-                next->_prev = prev;
-                delete node; node = null;
-                list._length--;
-                ret._nodeof_this = null;
-                return ret;
+            if (new_item.is_attached()) {
+                throw new InstructionListErr.INST_ATTACHED(
+                    "instruction %p attached to list %p (this %p)"
+                    .printf(new_item, new_item.modifier.list, list)
+                );
             }
+            Node            *original = node;
+            unowned BasicBlock parent = old_item.on_unplug();
+            original->item = new_item;
+            new_item.on_plug(parent);
+            old_item._nodeof_this = null;
+            return old_item;
+        }
+        public Instruction unplug()
+        {
+            if (!this.available) {
+                crash("node %p is not available for list %p"
+                        .printf(node, list));
+            }
+            var ret = node->item;
+            unowned var list = this.list;
+            ret.on_unplug();
+            Node *prev = node->_prev;
+            Node *next = node->_next;
+            prev->_next = next;
+            next->_prev = prev;
+            delete node; node = null;
+            list._length--;
+            ret._nodeof_this = null;
+            return ret;
         }
     }
 }

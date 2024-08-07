@@ -18,6 +18,7 @@ namespace Musys.IR {
             base.C1(Value.TID.CONST_PTR_NULL, ptr_ty);
         }
         class construct {
+            _istype[TID.ICONST_ZERO]    = true;
             _istype[TID.CONST_PTR_NULL] = true;
             _is_aggregate               = false;
         }
