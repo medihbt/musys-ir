@@ -5,9 +5,9 @@ namespace Musys {
             write_buf(&c, 1);
         }
         public virtual  void   vprintf(string fmt, va_list ap) {
-            write_str(fmt.vprintf(ap));
+            puts(fmt.vprintf(ap));
         }
-        public size_t write_str(string str) {
+        public virtual  size_t puts(string str) {
             return write_buf(str, str.length);
         }
         [PrintfFormat]
@@ -20,6 +20,9 @@ namespace Musys {
         public unowned GLib.FileStream file;
         public size_t write_buf(uint8 *buf, size_t size) {
             return file.write((uint8[])buf, size);
+        }
+        public override size_t puts(string str) {
+            return file.puts(str);
         }
         public override void putchar(char c) { file.putc(c); }
         public override void vprintf(string fmt, va_list ap) {

@@ -1,5 +1,3 @@
-using GLib;
-
 namespace Musys {
     public abstract class Type {
         public enum TID {
@@ -10,8 +8,8 @@ namespace Musys {
             FUNCTION_TYPE,
             COUNT;
         } // enum TID
-        public      TID         tid{get; protected set;}
-        public weak TypeContext type_ctx{get;set;}
+        public TID tid{get; protected set;}
+        public unowned TypeContext type_ctx{get;set;}
 
         protected class stdc.bool _istype[TID.COUNT] = {true, false};
         protected class stdc.bool _is_instantaneous  = true;
@@ -90,5 +88,15 @@ namespace Musys {
         public override size_t hash() { return _TID_HASH[TID.VOID_TYPE]; }
 
         protected override bool _relatively_equals(Type rhs) { return false; }
+    }
+
+    [CCode(cname="_ZN5Musys9type_hashE")]
+    public uint type_hash(Type type) {
+        return (uint)type.hash();
+    }
+    
+    [CCode(cname="_ZN5Musys10type_equalE")]
+    public bool type_equal(Type l, Type r) {
+        return l.equals(r);
     }
 }

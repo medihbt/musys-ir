@@ -11,6 +11,7 @@ namespace Musys.IRUtil.BasicBlock {
                 termi as IR.IBasicBlockTerminator
             );
             new_block.plug_this_after(old);
+            jmpssa.target = new_block;
             return new_block;
         } catch (IR.InstructionListErr e) {
             crash(e.message);

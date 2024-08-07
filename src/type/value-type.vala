@@ -66,10 +66,9 @@ namespace Musys {
 
         public override string name {
             get {
-                if (_name == null) {
-                    char buff[16];
-                    _name = @"f$(Fmt.u32base10(&buff[0], 16, (uint32)_binary_bits))";
-                } return _name;
+                if (_name == null)
+                    _name = @"f$binary_bits";
+                return _name;
             }
         }
         protected override bool _relatively_equals(Type rhs)

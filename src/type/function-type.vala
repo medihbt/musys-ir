@@ -31,44 +31,40 @@ namespace Musys {
         public override size_t instance_align { get { return 0; } }
 
         /** name = ret_ty(arg0, arg1, arg2, ...) */
+        private void _generate_name()
+        {
+            var builder = new StringBuilder(@"$return_type(");
+            uint cnt = 0;
+            foreach (Type ty in _params) {
+                if (cnt != 0)
+                    builder.append(", ");
+                builder.append(ty.name);
+                cnt++;
+            }
+            builder.append_c(')');
+            _name_len = builder.len;
+            _name = builder.free_and_steal();
+        }
         public override string name {
             get {
-                if (_name != null)
-                    return (string)_name;
-                unowned string retty_name = _return_type.name;
-                size_t         retty_len  = retty_name.length;
-
-                const uint sep_length = 2;
-                size_t   total_length = retty_len + 2; // + size of '()'
-                foreach (unowned Type ty in _params)
-                    total_length += ty.name.length + sep_length;
-                total_length -= sep_length;         // ending without ', '
-
-                _name = new char[total_length + 1]; // terminating '\0'
-
-                char *needle = _name;
-                Memory.copy(needle, retty_name, retty_len);
-                needle += retty_len;
-                *needle = '(';
-                needle++;
-
-                foreach (unowned Type ty in _params) {
-                    unowned string argty_name = ty.name;
-                    size_t         argty_len  = argty_name.length;
-                    Memory.copy(needle, argty_name, argty_len);
-                    needle += argty_len;
-                    needle[1] = ','; needle[2] = ' ';
-                    needle += 2;
-                }
-                needle[1] = ')'; needle[2] = '\0';
-                return (string)_name;
+                if (_name == null)
+                    _generate_name();
+                return _name;
+            }
+        }
+        public size_t name_len {
+            get {
+                if (_name == null)
+                    _generate_name();
+                return _name_len;
             }
         }
 
         public Type []params{get;}
         public Type return_type{get;}
         protected size_t _hash_cache;
-        protected char []_name = null;
+        protected string _name = null;
+        protected size_t _name_len = 0;
 
         public FunctionType(Type return_type, Type []params)
         {

@@ -1,12 +1,103 @@
-namespace Musys {
+public errordomain Musys.TypeMismatchErr {
+    MISMATCH, NOT_CHILD_OF,
+    NOT_INSTANTANEOUS;
+}
+
+public class Musys.TypeContext: Object {
+    protected enum InsertResult {
+        OK, HAD_ITEM;
+    }
+
+    public   uint32 machine_word_size{ get; }
+    private  TypeCtxCache _type_cache;
+    internal Gee.HashMap<unowned Type, Type> _types;
+
+    public IntType bool_type{
+        get { return _type_cache.ity_bytes[0]; }
+    }
+    public VoidType void_type {
+        get { return _type_cache.voidty; }
+    }
+    public LabelType label_type {
+        get { return _type_cache.labelty; }
+    }
+    public IntType get_int_type(uint binary_bits) {
+        return _type_cache.new_or_get_int_ty(binary_bits, this);
+    }
+    public FloatType ieee_f32 { get { return _type_cache.ieee_f32; } }
+    public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
+    public ArrayType get_array_type(Type elemty, size_t len) {
+        var ret = new ArrayType(this, elemty, len);
+        return (ArrayType)get_or_register_type(ret);
+    }
+    public PointerType get_ptr_type(Type target) {
+        var ret = new PointerType(this, target);
+        return (PointerType)get_or_register_type(ret);
+    }
+    public FunctionType
+    get_func_type(Type ret_ty, Type []?args_ty) throws TypeMismatchErr
+    {
+        foreach (unowned Type arg_ty in args_ty) {
+            if (!arg_ty.is_instantaneous)
+                throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
+        }
+        FunctionType fty = null;
+        if (args_ty != null)
+            fty = new FunctionType(ret_ty, args_ty);
+        else
+            fty = new FunctionType.move(ret_ty, new Type[0]);
+        return (FunctionType)get_or_register_type(fty);
+    }
+    public FunctionType
+    get_func_type_move(Type ret_ty, owned Type[] args_ty) throws TypeMismatchErr
+    {
+        foreach (unowned Type arg_ty in args_ty) {
+            if (!arg_ty.is_instantaneous)
+                throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
+        }
+        var fty = new FunctionType.move(ret_ty, (owned)args_ty);
+        return (FunctionType)get_or_register_type(fty);
+    }
+
+    /** 用障眼法写的方法, 让代码好看一些罢了 */
+    public bool has_type(Type ty) { return ty.type_ctx == this; }
+
+    private Type get_or_register_type(Type ty)
+    {
+        if (ty.is_int)
+            return _type_cache.new_or_get_int_ty(((IntType)ty).binary_bits, this);
+        if (ty.is_float) {
+            if (ty.equals(_type_cache.ieee_f32))
+                return _type_cache.ieee_f32;
+            return _type_cache.ieee_f64;
+        }
+        if (ty.is_void)
+            return _type_cache.voidty;
+        if (ty.is_label)
+            return _type_cache.labelty;
+        if (_types.has_key(ty))
+            return _types[ty];
+        _types[ty] = ty;
+        return ty;
+    }
+
+    public TypeContext(uint word_size = (uint)sizeof(pointer))
+    {
+        this._machine_word_size = word_size;
+        this._type_cache.init_reg_ty(this);
+        this._types = new Gee.HashMap<unowned Type, Type>(
+            type_hash, type_equal
+        );
+    }
+
     [CCode (has_type_id=false)]
-    internal struct TypeCtxCache {
+    private struct TypeCtxCache {
+        Gee.TreeMap<uint, IntType> int_types;
         IntType   ity_bytes[9];
         VoidType  voidty;
         LabelType labelty;
         FloatType ieee_f32;
         FloatType ieee_f64;
-        Gee.TreeMap<uint, IntType> int_types;
 
         internal IntType new_or_get_int_ty(uint bits, TypeContext tctx)
         {
@@ -48,98 +139,4 @@ namespace Musys {
             int_types = null;
         }
     }
-
-    public errordomain TypeMismatchErr {
-        MISMATCH, NOT_CHILD_OF,
-        NOT_INSTANTANEOUS;
-    }
-
-    public sealed class TypeContext: Object {
-        protected enum InsertResult {
-            OK, HAD_ITEM;
-        }
-
-        public   uint32 machine_word_size{ get; }
-        internal TypeCtxCache _type_cache;
-        internal Gee.HashMap<unowned Type, Type> _types;
-
-        public IntType bool_type{
-            get { return _type_cache.ity_bytes[0]; }
-        }
-        public VoidType void_type {
-            get { return _type_cache.voidty; }
-        }
-        public LabelType label_type {
-            get { return _type_cache.labelty; }
-        }
-        public IntType get_int_type(uint binary_bits) {
-            return _type_cache.new_or_get_int_ty(binary_bits, this);
-        }
-        public FloatType ieee_f32 { get { return _type_cache.ieee_f32; } }
-        public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
-        public ArrayType get_array_type(Type elemty, size_t len) {
-            var ret = new ArrayType(this, elemty, len);
-            return (ArrayType)get_or_register_type(ret);
-        }
-        public PointerType get_ptr_type(Type target) {
-            var ret = new PointerType(this, target);
-            return (PointerType)get_or_register_type(ret);
-        }
-        public FunctionType
-        get_func_type(Type ret_ty, Type []?args_ty) throws TypeMismatchErr
-        {
-            foreach (unowned Type arg_ty in args_ty) {
-                if (!arg_ty.is_instantaneous)
-                    throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
-            }
-            FunctionType fty = null;
-            if (args_ty != null)
-                fty = new FunctionType(ret_ty, args_ty);
-            else
-                fty = new FunctionType.move(ret_ty, new Type[0]);
-            return (FunctionType)get_or_register_type(fty);
-        }
-        public FunctionType
-        get_func_type_move(Type ret_ty, owned Type[] args_ty) throws TypeMismatchErr
-        {
-            foreach (unowned Type arg_ty in args_ty) {
-                if (!arg_ty.is_instantaneous)
-                    throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
-            }
-            var fty = new FunctionType.move(ret_ty, (owned)args_ty);
-            return (FunctionType)get_or_register_type(fty);
-        }
-
-        /** 用障眼法写的方法, 让代码好看一些罢了 */
-        public bool has_type(Type ty) { return ty.type_ctx == this; }
-
-        private Type get_or_register_type(Type ty)
-        {
-            if (ty.is_int)
-                return _type_cache.new_or_get_int_ty(((IntType)ty).binary_bits, this);
-            if (ty.is_float) {
-                if (ty.equals(_type_cache.ieee_f32))
-                    return _type_cache.ieee_f32;
-                return _type_cache.ieee_f64;
-            }
-            if (ty.is_void)
-                return _type_cache.voidty;
-            if (ty.is_label)
-                return _type_cache.labelty;
-            if (_types.has_key(ty))
-                return _types[ty];
-            _types[ty] = ty;
-            return ty;
-        }
-
-        public TypeContext(uint word_size = (uint)sizeof(pointer))
-        {
-            this._machine_word_size = word_size;
-            this._type_cache.init_reg_ty(this);
-            this._types = new Gee.HashMap<unowned Type, Type>(
-                (type) => (uint)type.hash(),
-                (l, r) => l.equals(r)
-            );
-        }
-    } // sealed class TypeContext
-}
+} // class TypeContext

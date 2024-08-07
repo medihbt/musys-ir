@@ -49,6 +49,7 @@ musys_ir_src = files([
     'ir/module.vala',
     'ir-util/value-type-index.vala',
     'ir-util/basicblock.vala',
+    'ir-util/module.vala',
     'ir-util/writer.vala',
 ])
 

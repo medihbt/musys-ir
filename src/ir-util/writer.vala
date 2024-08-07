@@ -23,26 +23,59 @@ namespace Musys.IRUtil {
                 def.value.accept(this);
             _rt.outs.printf("\n;module %s\n", module.name);
         }
+        public override void visit_const_data_zero(IR.ConstDataZero value) {
+            _rt->outs.putchar('0');
+        }
+        public override void visit_ptr_null(IR.ConstPtrNull value) {
+            _rt->outs.puts("null");
+        }
+        public override void visit_const_int(IR.ConstInt value) {
+            _rt->outs.printf("%ld", (long)value.i64_value);
+        }
+        public override void visit_const_float(IR.ConstFloat value) {
+            _rt->outs.printf("%lf", value.f64_value);
+        }
+        public override void visit_undefined(IR.UndefinedValue udef) {
+            unowned var outs = _rt->outs;
+            outs.puts(udef.is_poisonous ? "(poison)": "(undefined)");
+        }
+        public override void visit_array_expr(IR.ArrayExpr value)
+        {
+            unowned var outs = _rt->outs;
+            if (value.is_zero) {
+                outs.puts("[]");
+                return;
+            }
+            outs.puts("[ ");
+            uint cnt = 0;
+            foreach (var elem in value.elems) {
+                if (cnt != 0)
+                    outs.puts(", ");
+                _write_by_ref(elem);
+            }
+            outs.puts(" ]");
+        }
+
         public override void visit_function(IR.Function func)
         {
             unowned var    outs = _rt->outs;
             unowned string define = func.is_extern   ? "declare":  "define";
             unowned string visibl = func.is_internal ? "internal": "dso_local"; 
-            outs.write_str(@"$define $visibl $(func.return_type) @$(func.name) (");
+            outs.puts(@"$define $visibl $(func.return_type) @$(func.name) (");
 
             unowned var args = func.args;
             for (uint i = 0; i < args.length; i++) {
                 if (i != 0)
-                    outs.write_str(", ");
+                    outs.puts(", ");
                 unowned var arg = args[i];
-                outs.write_str(@"$(arg.value_type) %$(arg.id)");
+                outs.puts(@"$(arg.value_type) %$(arg.id)");
             }
             if (func.is_extern) {
-                outs.write_str(")");
+                outs.puts(")");
                 return;
             }
 
-            outs.write_str(") {");
+            outs.puts(") {");
             var entry = func.body.entry;
             _wrap_indent();
             this.visit_basicblock(entry);
@@ -52,7 +85,7 @@ namespace Musys.IRUtil {
                 _wrap_indent();
                 this.visit_basicblock(b);
             }
-            outs.write_str("\n}");
+            outs.puts("\n}");
             _wrap_indent();
         }
         public override void visit_global_variable(IR.GlobalVariable gvar)
@@ -60,7 +93,7 @@ namespace Musys.IRUtil {
             unowned var    outs = _rt->outs;
             unowned string define = gvar.is_extern   ? "declare":  "define";
             unowned string visibl = gvar.is_internal ? "internal": "dso_local";
-            outs.write_str(@"@$(gvar.id) = $define $visibl $(gvar.ptr_type.target)");
+            outs.puts(@"@$(gvar.id) = $define $visibl $(gvar.ptr_type.target)");
             if (gvar.init_content != null) {
                 outs.putchar(' ');
                 _write_by_ref(gvar.init_content);
@@ -74,13 +107,61 @@ namespace Musys.IRUtil {
             _rt->indent_level++;
             foreach (var inst in block.instructions) {
                 _wrap_indent();
-                var id = inst.id;
                 var opcode = inst.opcode;
                 unowned var inst_klass = inst.get_class().get_name();
-                unowned var type = inst.value_type.to_string();
-                outs.write_str(@"inst $id opcode $opcode class $inst_klass type $type");
+                inst.accept(this);
+                outs.puts(@" ;opcode $opcode class $inst_klass");
             }
             _rt->indent_level--;
+        }
+        public override void visit_inst_alloca(IR.AllocaSSA inst)
+        {
+            unowned var outs = _rt->outs;
+            var id = inst.id;
+            var ty = inst.target_type;
+            var align = inst.align;
+            outs.puts(@"%$id = alloca $ty, align $align");
+        }
+        public override void visit_inst_dyn_alloca(IR.DynAllocaSSA inst)
+        {
+            unowned var outs = _rt->outs;
+            var id = inst.id;
+            var ty = inst.target_type;
+            var align = inst.align;
+            var length = inst.length;
+            outs.puts(@"%$id = alloca $ty, $(length.value_type) ");
+            _write_by_ref(length);
+            outs.printf(" align %lu", align);
+        }
+        public override void visit_inst_load(IR.LoadSSA inst)
+        {
+            unowned var outs = _rt->outs;
+            var id = inst.id;
+            var ty = inst.value_type;
+            var align = inst.align;
+            var operand = inst.operand;
+            var operandty = inst.source_type;
+            outs.puts(@"%$id = load $ty, $operandty ");
+            _write_by_ref(operand);
+            outs.printf(", align %lu", align);
+        }
+        public override void visit_inst_return(IR.ReturnSSA inst)
+        {
+            unowned var outs = _rt->outs;
+            var ty = inst.value_type;
+            IR.Value retval = inst.retval;
+            if (ty.is_void) {
+                outs.puts("ret void");
+            } else {
+                outs.puts(@"ret $ty ");
+                _write_by_ref(retval);
+            }
+        }
+        public override void visit_inst_unreachable(IR.UnreachableSSA inst) {
+            _rt->outs.puts("unreachable");
+        }
+        public override void visit_inst_jump(IR.JumpSSA inst) {
+            _rt->outs.printf("br label %%%d", inst.target.id);
         }
 
         private void _write_by_ref(IR.Value value)
@@ -99,7 +180,7 @@ namespace Musys.IRUtil {
             unowned var outs = _rt->outs;
             outs.putchar('\n');
             for (uint i = 0; i < indent_level; i++)
-                outs.write_str(space);
+                outs.puts(space);
         }
 
         public Writer(IR.Module module) {

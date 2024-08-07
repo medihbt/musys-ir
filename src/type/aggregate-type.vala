@@ -29,11 +29,9 @@ namespace Musys {
             _hash_cache = MakeHash(_element_type, _element_number);
             return _hash_cache;
         }
-
-        public override size_t instance_align {
-            get { return element_type.instance_align; }
-        }
-        public override size_t instance_size { get { return 0; } }
+        
+        public override size_t instance_align{ get; }
+        public override size_t instance_size { get; }
         public override string name {
             get {
                 if (_name == null)
@@ -65,6 +63,8 @@ namespace Musys {
             base.C1(tctx, TID.ARRAY_TYPE);
             this._element_type   = elem_type;
             this._element_number = elem_number;
+            this._instance_align = elem_type.instance_align;
+            this._instance_size  = elem_type.instance_size * elem_number;
         }
         class construct { _istype[TID.ARRAY_TYPE] = true; }
 
