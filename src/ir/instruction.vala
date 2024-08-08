@@ -19,6 +19,11 @@ namespace Musys.IR {
         public bool is_int_op()    { return AND  <= this <= UREM; }
         public bool is_float_op()  { return FADD <= this <= FREM; }
         public bool is_binary_op() { return AND  <= this <= FREM; }
+        public unowned string get_name() {
+            return this >= RESERVED_CNT?
+                    "<undefined-opcode>":
+                    _instruction_opcode_names[this];
+        }
     }
 
     public abstract class Instruction: User {
@@ -78,4 +83,18 @@ namespace Musys.IR {
         public abstract void forEachTarget(BasicBlock.ReadFunc fn);
         public abstract void replaceTarget(BasicBlock.ReplaceFunc fn);
     }
+
+    private unowned string _instruction_opcode_names[OpCode.RESERVED_CNT] = {
+        "<undefined>",
+        "and", "or", "xor", "shl",  "lshr", "ashr", 
+        "add", "sub", "mul", "sdiv", "udiv", "srem", "urem",
+        "fadd", "fsub", "fmul", "fdiv", "frem",
+        "br", "br", "switch", "ret", "unreachable",
+        "ineg", "fneg", "not",
+        "sitofp", "uitofp", "fptosi", "zext", "sext", "trunc", "fpext", "fptrunc",
+        "bitcast", "inttoptr", "ptrtoint",
+        "select", "extractelement", "insertelement", "getelementptr",
+        "load", "store", "alloca", "dyn-alloca", "call", "phi",
+        "icmp", "fcmp",  "intrin"
+    };
 }

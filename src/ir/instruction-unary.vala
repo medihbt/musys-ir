@@ -2,6 +2,7 @@ namespace Musys.IR {
     public abstract class UnarySSA: Instruction {
         protected        Value _operand;
         protected unowned Type _operand_type;
+        protected unowned Use  _uoperand;
         public Value operand {
             get { return _operand; }
             set {
@@ -11,7 +12,7 @@ namespace Musys.IR {
                     type_match_or_crash(_operand_type, value.value_type,
                         {Log.FILE, Log.METHOD, Log.LINE});
                 }
-                replace_use(_operand, value, operands.front());
+                replace_use(_operand, value, _uoperand);
                 _operand = value;
             }
         }
@@ -37,7 +38,7 @@ namespace Musys.IR {
         {
             base.C1 (tid, opcode, type);
             this._operand_type = op_type;
-            new UnaryOpUse(this).attach_back(this);
+            this._uoperand = new UnaryOpUse().attach_back(this);
         }
     }
 
@@ -46,10 +47,8 @@ namespace Musys.IR {
             get { return static_cast<UnarySSA>(_user); }
         }
         public override Value? usee {
-            get { return user.operand;  }
-            set { user.operand = value; }
+            get { return user.operand; } set { user.operand = value; }
         }
-        public UnaryOpUse(UnarySSA user) { base.C1(user); }
     }
 
     public sealed class UnaryOpSSA: UnarySSA {
@@ -63,8 +62,8 @@ namespace Musys.IR {
         public UnaryOpSSA.as_neg(Value value) {
             unowned var type = value.value_type;
             OpCode opcode;
-            if    (type.is_float)   opcode = FNEG;
-            else if (type.is_int)   opcode = INEG;
+            if    (type.is_float) opcode = FNEG;
+            else if (type.is_int) opcode = INEG;
             else crash(@"NEG operation requires int/float, but got $type");
 
             this.raw(opcode, type);
@@ -73,7 +72,7 @@ namespace Musys.IR {
         public UnaryOpSSA.as_not(Value value) {
             var type = value_int_or_crash(value);
             this.raw(NOT, type);
-            this.operand = operand;
+            this.operand = value;
         }
     }
 }

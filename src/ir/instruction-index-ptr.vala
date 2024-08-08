@@ -34,22 +34,24 @@ public class Musys.IR.IndexPtrSSA: Instruction {
     public IndexPtrSSA.raw_move(PointerType source_type, PointerType type,
                                 owned IndexUse[] indicies) {
         base.C1(INDEX_PTR_SSA, INDEX_PTR, type);
+        _source_ptr_type = source_type;
         this._usource = new SourceUse().attach_back(this);
         this._indices = (owned)indicies;
         foreach (IndexUse i in _indices)
             i.attach_back(this);
     }
-    public IndexPtrSSA.from(PointerType src_ty, Value[] indicies) throws TypeMismatchErr
+    public IndexPtrSSA.from(PointerType src_ty, Value[] indices) throws TypeMismatchErr
     {
-        int len  = indicies.length;
+        int len  = indices.length;
         var uses = new IndexUse[len];
         Type curty = src_ty;
         try {
             for (int i = 0; i < len; i++) {
                 var use = new IndexUse();
-                curty = IRUtil.type_index(curty, indicies[i]);
+                curty = IRUtil.type_index(curty, indices[i]);
                 use._layer_type = curty;
                 uses[i] = use;
+                use.index = indices[i];
             }
         } catch (RuntimeErr e) {
             crash(e.message);

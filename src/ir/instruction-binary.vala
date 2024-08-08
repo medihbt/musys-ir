@@ -11,10 +11,10 @@ namespace Musys.IR {
             set { set_usee_type_match_self(ref _lhs, value, _ulhs); }
         }
         public Value rhs {
-            get { return _lhs; }
+            get { return _rhs; }
             set {
                 if (!opcode.is_shift_op()) {
-                    set_usee_type_match_self(ref _lhs, value, _ulhs);
+                    set_usee_type_match_self(ref _rhs, value, _urhs);
                     return;
                 }
                 value_int_or_crash(value, "at BinarySSA.rhs::set()");
@@ -44,10 +44,10 @@ namespace Musys.IR {
         }
         public BinarySSA.nocheck(OpCode opcode, Type type, Value lhs, Value rhs) {
             base.C1 (BINARY_SSA, opcode, type);
-            this._lhs = lhs;
-            this._rhs = rhs;
             _ulhs = new BinaryLHSUse(this).attach_back(this);
             _urhs = new BinaryRHSUse(this).attach_back(this);
+            this._lhs = lhs;
+            this._rhs = rhs;
             _lhs.add_use_as_usee(_ulhs);
             _rhs.add_use_as_usee(_urhs);
         }
