@@ -103,7 +103,7 @@ namespace Musys.IR {
             if (spec == null || spec.value_type != typeof(size_t))
                 align = pty.target.instance_align;
             else
-                align = (size_t)ptr_value.get_data<size_t>("align");
+                ptr_value.get("align", &align);
             return align;
         }
 

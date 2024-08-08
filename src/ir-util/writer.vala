@@ -92,9 +92,9 @@ namespace Musys.IRUtil {
         public override void visit_global_variable(IR.GlobalVariable gvar)
         {
             unowned var    outs = _rt->outs;
-            unowned string define = gvar.is_extern   ? "declare":  "define";
-            unowned string visibl = gvar.is_internal ? "internal": "dso_local";
-            outs.puts(@"@$(gvar.name) = $define $visibl $(gvar.ptr_type.target)");
+            unowned string visibl = gvar.visibility.get_display_name();
+            unowned string mutabl = gvar.is_mutable? "global": "constant";
+            outs.puts(@"@$(gvar.name) = $visibl $mutabl $(gvar.ptr_type.target)");
             if (gvar.init_content != null) {
                 outs.putchar(' ');
                 _write_by_ref(gvar.init_content);
@@ -114,6 +114,22 @@ namespace Musys.IRUtil {
                 outs.puts(@" ;opcode $opcode class $inst_klass");
             }
             _rt->indent_level--;
+        }
+        public override void visit_inst_phi(IR.PhiSSA inst)
+        {
+            unowned var outs = _rt->outs;
+            unowned var type = inst.value_type;
+            unowned var id   = inst.id;
+            outs.puts(@"%$id = phi $type ");
+            uint cnt = 0;
+            foreach (var entry in inst.from_map) {
+                IR.Value   operand = entry.value.get_operand();
+                IR.BasicBlock from = entry.key;
+                outs.puts(cnt != 0? ", [ ": "[ ");
+                cnt++;
+                _write_by_ref(operand);
+                outs.printf(",  %%%d ]", from.id);
+            }
         }
         public override void visit_inst_alloca(IR.AllocaSSA inst)
         {
@@ -144,6 +160,20 @@ namespace Musys.IRUtil {
             var operandty = inst.source_type;
             outs.puts(@"%$id = load $ty, $operandty ");
             _write_by_ref(operand);
+            outs.printf(", align %lu", align);
+        }
+        public override void visit_inst_store(IR.StoreSSA inst)
+        {
+            unowned var outs = _rt->outs;
+            var align = inst.align;
+            var srcty = inst.source_type;
+            var dstty = inst.target_type;
+            var src = inst.source;
+            var dst = inst.target;
+            outs.puts(@"store $srcty ");
+            _write_by_ref(src);
+            outs.puts(@", $dstty ");
+            _write_by_ref(dst);
             outs.printf(", align %lu", align);
         }
         public override void visit_inst_return(IR.ReturnSSA inst)
@@ -179,7 +209,10 @@ namespace Musys.IRUtil {
             unowned string operandty = inst.operand_type.name;
             unowned string opcode = inst.opcode == ICMP ? "icmp": "fcmp";
             unowned var condition = inst.condition;
-            outs.puts(@"%$(inst.id) = $opcode $condition, $operandty $(inst.lhs.id), $(inst.rhs.id)");
+            outs.puts(@"%$(inst.id) = $opcode $condition $operandty ");
+            _write_by_ref(inst.lhs);
+            outs.puts(", ");
+            _write_by_ref(inst.rhs);
         }
 
         private void _write_by_ref(IR.Value value)
@@ -187,7 +220,7 @@ namespace Musys.IRUtil {
             if (value.shares_ref)
                 value.accept(this);
             else if (value.isvalue_by_id(GLOBAL_OBJECT))
-                _rt->outs.printf("@%d", value.id);
+                _rt->outs.printf("@%s", static_cast<IR.GlobalObject>(value).name);
             else
                 _rt->outs.printf("%%%d", value.id);
         }

@@ -82,7 +82,7 @@ namespace Musys.IR {
         public ConstInt.from_i64(IntType ity, int64 i64_value)
         {
             base.C1(CONST_INT, ity);
-            this.i64_value = i64_value;
+            this._apint_value = APInt.from_i64(i64_value, (uint8)ity.binary_bits);
         }
         class construct { _istype[TID.CONST_INT] = true; }
     }

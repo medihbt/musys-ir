@@ -19,13 +19,13 @@ namespace Musys.IRUtil.BasicBlock {
     }
     public void replace_phi_from_in_succ(IR.BasicBlock oldblk, IR.BasicBlock newblk)
     {
-        var termi = oldblk.terminator;
+        var termi = newblk.terminator;
         if (termi.isvalue_by_id(RET_SSA) ||
             termi.isvalue_by_id(UNREACHABLE_SSA))
             return;
         termi.forEachTarget((block) => {
             foreach (var inst in block.instructions) {
-                if (!inst.isvalue_by_id(PHI_SSA))
+                if (!(inst is IR.PhiSSA))
                     continue;
                 var phi = static_cast<IR.PhiSSA>(inst);
                 if (!phi.has_from(oldblk))

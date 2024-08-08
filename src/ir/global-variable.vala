@@ -28,12 +28,15 @@ namespace Musys.IR {
 
         public GlobalVariable.extern(PointerType type, string name) {
             base.C1(GLOBAL_VARIABLE, type, name, false);
+            _is_mutable = true;
             _init_content = null;
         }
         public GlobalVariable.define(PointerType type, string name, bool is_internal = false)
         {
             base.C1(GLOBAL_VARIABLE, type, name, false);
+            _is_mutable = true;
             try {
+                align         = type.target.instance_align;
                 _init_content = create_const_zero(type.target);
             } catch (TypeMismatchErr.NOT_INSTANTANEOUS e) {
                 _init_content = new UndefinedValue(type.target, false);
