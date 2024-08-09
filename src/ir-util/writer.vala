@@ -48,8 +48,8 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         outs.puts("[ ");
         uint cnt = 0;
         foreach (var elem in value.elems) {
-            if (cnt != 0)
-                outs.puts(", ");
+            outs.puts(cnt == 0? @"$(elem.value_type) " :@", $(elem.value_type) ");
+            cnt++;
             _write_by_ref(elem);
         }
         outs.puts(" ]");
@@ -156,21 +156,33 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         outs.puts(@"%$(inst.id) = $opcode_name $type ");
         _write_by_ref(inst.operand);
     }
-    public override void visit_inst_phi(IR.PhiSSA inst)
+    public override void visit_inst_cast(IR.CastSSA inst)
     {
         unowned var outs = _rt->outs;
-        unowned var type = inst.value_type;
-        int id = inst.id;
-        outs.puts(@"%$id = phi $type ");
+        unowned var srcty = inst.source_type;
+        unowned var dstty = inst.value_type;
+        var opcode = inst.opcode;
+        unowned string opcode_name = opcode.get_name();
+        outs.puts(@"%$(inst.id) = $opcode_name $srcty ");
+        _write_by_ref(inst.source);
+        outs.puts(@" to $dstty");
+    }
+    public override void visit_inst_call(IR.CallSSA inst)
+    {
+        unowned var outs = _rt->outs;
+        unowned var calleety = inst.callee_fn_type;
+        unowned var retty = calleety.return_type;
+        outs.puts((retty is VoidType) ? "call void ": @"%$(inst.id) = call $retty ");
+        outs.printf("@%s (", inst.fn_callee.name);
         uint cnt = 0;
-        foreach (var entry in inst.from_map) {
-            IR.Value   operand = entry.value.get_operand();
-            IR.BasicBlock from = entry.key;
-            outs.puts(cnt != 0? ", [ ": "[ ");
+        foreach (var arg in inst.args) {
+            if (cnt != 0)
+                outs.puts(", ");
             cnt++;
-            _write_by_ref(operand);
-            outs.printf(",  %%%d ]", from.id);
+            outs.printf("%s ", calleety.params[cnt].name);
+            _write_by_ref(arg.arg);
         }
+        outs.putchar(')');
     }
     public override void visit_inst_alloca(IR.AllocaSSA inst)
     {
@@ -190,19 +202,6 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         outs.puts(@"%$id = alloca $ty, $(length.value_type) ");
         _write_by_ref(length);
         outs.printf(" align %lu", align);
-    }
-    public override void visit_inst_index_ptr(IR.IndexPtrSSA inst)
-    {
-        unowned var outs = _rt->outs;
-        var id = inst.id;
-        var ity = inst.source_ptr_type.target;
-        var pty = inst.source_ptr_type;
-        outs.puts(@"%$id = getelementptr inbounds $ity, $pty ");
-        _write_by_ref(inst.source);
-        foreach (var idx in inst.indices) {
-            outs.puts(@", $(idx.index.value_type) ");
-            _write_by_ref(idx.index);
-        }
     }
     public override void visit_inst_load(IR.LoadSSA inst)
     {
@@ -256,6 +255,60 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         _write_by_ref(inst.condition);
         outs.printf(", label %%%d, label %%%d",
                     inst.if_true.id, inst.if_false.id);
+    }
+    public override void visit_inst_phi(IR.PhiSSA inst)
+    {
+        unowned var outs = _rt->outs;
+        unowned var type = inst.value_type;
+        int id = inst.id;
+        outs.puts(@"%$id = phi $type ");
+        uint cnt = 0;
+        foreach (var entry in inst.from_map) {
+            IR.Value   operand = entry.value.get_operand();
+            IR.BasicBlock from = entry.key;
+            outs.puts(cnt != 0? ", [ ": "[ ");
+            cnt++;
+            _write_by_ref(operand);
+            outs.printf(",  %%%d ]", from.id);
+        }
+    }
+    public override void visit_inst_index_ptr(IR.IndexPtrSSA inst)
+    {
+        unowned var outs = _rt->outs;
+        var id = inst.id;
+        var ity = inst.source_ptr_type.target;
+        var pty = inst.source_ptr_type;
+        outs.puts(@"%$id = getelementptr inbounds $ity, $pty ");
+        _write_by_ref(inst.source);
+        foreach (var idx in inst.indices) {
+            outs.puts(@", $(idx.index.value_type) ");
+            _write_by_ref(idx.index);
+        }
+    }
+    public override void visit_inst_index_extract(IR.IndexExtractSSA inst)
+    {
+        unowned var outs = _rt->outs;
+        var id = inst.id;
+        var srcty = inst.array_type;
+        var dstty = inst.index.value_type;
+        outs.puts(@"%$id = extractelement $srcty ");
+        _write_by_ref(inst.array);
+        outs.puts(@", $dstty ");
+        _write_by_ref(inst.index);
+    }
+    public override void visit_inst_index_insert(IR.IndexInsertSSA inst)
+    {
+        unowned var outs = _rt->outs;
+        var id = inst.id;
+        var srcty = inst.array_type;
+        var dstty = inst.index.value_type;
+        var elmty = inst.element_type;
+        outs.puts(@"%$id = insertelement $elmty ");
+        _write_by_ref(inst.element);
+        outs.puts(@", $srcty ");
+        _write_by_ref(inst.array);
+        outs.puts(@", $dstty ");
+        _write_by_ref(inst.index);
     }
 
     private void _write_by_ref(IR.Value value)

@@ -11,6 +11,8 @@ namespace Musys.IR {
                 if (_elems != null)
                     return _elems;
                 _elems = new Constant[array_type.element_number];
+                for (int i = 0; i < _elems.length; i++)
+                    _elems[i] = create_zero_or_undefined(array_type.element_type);
                 return _elems;
             }
         }
@@ -31,6 +33,7 @@ namespace Musys.IR {
         }
 
         public ArrayExpr.empty(ArrayType arr_ty) {
+            base.C1 (ARRAY_EXPR, arr_ty);
             this._value_type = arr_ty;
             this._elems      = null;
         }
