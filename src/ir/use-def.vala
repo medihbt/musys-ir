@@ -133,6 +133,9 @@ namespace Musys.IR {
     }
 
     public abstract class Use {
+        [CCode(cname="_ZN5Musys2IR3Use11ReplaceFuncE")]
+        public delegate Value? ReplaceFunc(Use self);
+
         protected unowned OperandList _op_list;
         protected unowned User _user;
         internal  unowned Use  _prev;

@@ -14,9 +14,9 @@ namespace Musys.IRUtil {
         if (index == null) throw new RuntimeErr.NULL_PTR(
             @"$(Log.METHOD)::index cannot be null while type $type is not array-like"
         );
-        if (index.isvalue_by_id(ICONST_ZERO))
+        if (index is IR.IConstZero)
             return aty.get_element_type_at(0);
-        if (index.isvalue_by_id(CONST_INT))
+        if (index is IR.ConstInt)
             return aty.get_element_type_at((size_t)static_cast<IR.ConstInt>(index).u64_value);
         crash(@"$(Log.METHOD)::index should be compile-time constant while type $type is not array-like");
     }

@@ -47,10 +47,12 @@ musys_ir_src = files([
     'ir/instruction-call.vala',
     'ir/ivalue-visitor.vala',
     'ir/module.vala',
+    'ir-util/value.vala',
     'ir-util/value-type-index.vala',
     'ir-util/basicblock.vala',
     'ir-util/module.vala',
     'ir-util/writer.vala',
+    'optimize/ipass.vala',
 ])
 
 musys_ir_deps = [
