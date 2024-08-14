@@ -201,7 +201,7 @@ namespace Musys.IR {
         INDEX_OVERFLOW
     }
 
-    [Compact][CCode (has_type_id=false)]
+    [Compact, CCode (has_type_id=false)]
     public class OperandList {
         [CCode (has_type_id=false)]
         public struct Iterator {
@@ -213,9 +213,11 @@ namespace Musys.IR {
             public unowned Use get() { return use; }
             public bool next()
             {
-                if (use == operand_list._tail)
+                if (use._next == null)
                     return false;
                 use = use._next;
+                if (use._next == null)
+                    return false;
                 return true;
             }
         }
@@ -230,11 +232,10 @@ namespace Musys.IR {
             set { _head.user = value; _tail.user = value; }
         }
 
-        public Iterator iterator() { return { _head._next }; }
+        public Iterator iterator() { return { _head }; }
+        public Iterator begin()    { return { _head._next }; }
         public Iterator end()      { return { _tail }; }
-        public unowned Use front() {
-            return _head._next;
-        }
+        public unowned Use front() { return _head._next; }
         public unowned Use at(uint index)
                requires(index < length)
         {
