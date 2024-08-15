@@ -100,6 +100,13 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         }
         outs.printf(", align %lu\n", gvar.align);
     }
+    public override void visit_global_alias(IR.GlobalAlias galias)
+    {
+        unowned var    outs = _rt->outs;
+        unowned string visibl = galias.visibility.get_display_name();
+        unowned PointerType type = galias.ptr_type;
+        outs.puts(@"@$(galias.name) = $visibl alias $(type.target), $type @$(galias.direct_aliasee.name)");
+    }
     public override void visit_basicblock(IR.BasicBlock block)
     {
         unowned var outs = _rt->outs;

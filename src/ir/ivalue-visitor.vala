@@ -6,6 +6,7 @@ public interface Musys.IR.IValueVisitor {
     public virtual void visit_ptr_null        (ConstPtrNull  value) {}
     public virtual void visit_undefined       (UndefinedValue udef) {}
     public virtual void visit_global_variable (GlobalVariable gvar) {}
+    public virtual void visit_global_alias    (GlobalAlias  galias) {}
     public virtual void visit_function        (Function       func) {}
     public virtual void visit_argument        (FuncArg        farg) {}
     public virtual void visit_basicblock      (BasicBlock    block) {}

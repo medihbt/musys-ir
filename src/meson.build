@@ -22,6 +22,7 @@ musys_ir_src = files([
     'ir/const-ptr-null.vala',
     'ir/global-object.vala',
     'ir/global-variable.vala',
+    'ir/global-alias.vala',
     'ir/function.vala',
     'ir/basic-block.vala',
     'ir/instruction-list.vala',
