@@ -17,7 +17,7 @@ namespace Musys.IR {
                      throws TypeMismatchErr
     {
         if (type.is_array)
-            return new ArrayExpr.empty (static_cast<ArrayType>(type));
+            return new ArrayExpr.empty(static_cast<ArrayType>(type));
         throw new TypeMismatchErr.NOT_CHILD_OF(@"Type $type is not array type");
     }
 }

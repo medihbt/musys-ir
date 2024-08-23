@@ -53,6 +53,7 @@ musys_ir_src = files([
     'ir-util/basicblock.vala',
     'ir-util/module.vala',
     'ir-util/writer.vala',
+    'ir-util/valueref-compress.vala',
     'optimize/ipass.vala',
 ])
 
