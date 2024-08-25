@@ -81,8 +81,19 @@ public class Musys.IR.BasicBlock: Value {
             catch (Error e) { crash(e.message); }
         }
     }
-    public InstructionList.Iterator append(Instruction inst) throws InstructionListErr
+    public InstructionList.Iterator get_1st_nonphi()
     {
+        foreach (Instruction inst in instructions) {
+            if (!(inst is PhiSSA))
+                return inst.modifier;
+        }
+        return {&instructions._node_end};
+    }
+    public InstructionList.Iterator append(Instruction inst)
+                                    throws InstructionListErr
+    {
+        if (inst is PhiSSA)
+            return append_phi(static_cast<PhiSSA>(inst));
         if (inst is IBasicBlockTerminator) {
             var opcode = inst.opcode;
             unowned var iklass = inst.get_class();
@@ -91,6 +102,11 @@ public class Musys.IR.BasicBlock: Value {
         }
         terminator.modifier.prepend(inst);
         return inst.modifier;
+    }
+    public InstructionList.Iterator append_phi(PhiSSA phi)
+                                    throws InstructionListErr {
+        InstructionList.Modifier m = get_1st_nonphi();
+        return m.prepend(phi);
     }
 
     public override void accept(IValueVisitor visitor) {

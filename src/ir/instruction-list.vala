@@ -133,10 +133,8 @@ public class Musys.IR.InstructionList {
     }
 
     public struct Iterator {
-        public   Node*           node;
-        internal InstructionList list {
-            get { return node->_list; }
-        }
+        public Node*           node;
+        public InstructionList list { get { return node->_list; } }
         public Instruction get() { return node->item; }
         public bool next()
         {
@@ -152,18 +150,18 @@ public class Musys.IR.InstructionList {
                 return false;
             return true;
         }
+        public Iterator get_prev() { return {node->_prev}; }
+        public Iterator get_next() { return {node->_next}; }
+        public bool is_available() {
+            return node != null && node->item != null;
+        }
+        public void disable() { node = null; }
+        public bool ends() {
+            return node == null || node->_next == null;
+        }
     }
 
     public struct Modifier: Iterator {
-        public bool available {
-            get {
-                return node != null &&
-                        node != &list._node_begin &&
-                        node != &list._node_end;
-            }
-        }
-        public void disable() { node = null; }
-
         public Modifier append(Instruction inst) throws InstructionListErr
         {
             BasicBlock block = list._parent;
@@ -181,7 +179,7 @@ public class Musys.IR.InstructionList {
         internal Modifier append_raw(Instruction inst) throws InstructionListErr
         {
             unowned var list = this.list;
-            if (!this.available && list._parent == null) {
+            if (!this.is_available() && list._parent == null) {
                 crash("node %p is not available for list %p"
                         .printf(node, list));
             }
@@ -203,11 +201,11 @@ public class Musys.IR.InstructionList {
         }
         internal Modifier prepend_raw(Instruction inst) throws InstructionListErr
         {
-            if (!this.available && list._parent == null) {
+            if (!this.is_available() && list._parent == null) {
                 crash("node %p is not available for list %p"
                         .printf(node, list));
             }
-            if (inst.modifier.available) {
+            if (inst.modifier.is_available()) {
                 throw new InstructionListErr.INST_ATTACHED(
                     "instruction %p attached to list %p (this %p)"
                     .printf(inst, inst.modifier.list, list)
@@ -226,7 +224,7 @@ public class Musys.IR.InstructionList {
             Instruction old_item = get();
             if (new_item == old_item)
                 return old_item;
-            if (!this.available) {
+            if (!this.is_available()) {
                 crash("node %p is not available for list %p"
                         .printf(node, list));
             }
@@ -246,7 +244,7 @@ public class Musys.IR.InstructionList {
         }
         public Instruction unplug()
         {
-            if (!this.available) {
+            if (!this.is_available()) {
                 crash("node %p is not available for list %p"
                         .printf(node, list));
             }

@@ -1,6 +1,6 @@
 public class Musys.IRUtil.Writer: IR.IValueVisitor {
-    private Runtime  *_rt;
-    public  IR.Module module;
+    protected Runtime*  _rt;
+    public    IR.Module module;
 
     public void write_stream(IOutputStream stream)
     {

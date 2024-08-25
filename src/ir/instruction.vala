@@ -40,7 +40,7 @@ namespace Musys.IR {
         public   InstructionList.Modifier  modifier {
             get { return {_nodeof_this}; }
         }
-        public bool is_attached() { return modifier.available; }
+        public bool is_attached() { return modifier.is_available(); }
 
         public virtual void on_plug(BasicBlock parent) {
             _parent = parent;
