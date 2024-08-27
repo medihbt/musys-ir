@@ -179,7 +179,7 @@ namespace Musys.IRUtil.BasicBlock {
     }
 
     public class RawSplitter: AbstractSplitter {
-#   if MUSYS_DEBUG_OUTPUT_SPLIT
+#   if MUSYS_DEBUG_OUTPUT_BB_SPLIT
         protected override void on_complete()
         {
             var termi = new_bb.terminator;
