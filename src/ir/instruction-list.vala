@@ -18,13 +18,17 @@ public class Musys.IR.InstructionList {
         return _node_begin._next == &_node_end;
     }
     public unowned Instruction front() {
-        if (is_empty())
-        crash("Instruction List %p is empty".printf(this));
+        if (is_empty()) {
+            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                      "Instruction List %p is empty", this);
+        }
         return _node_begin._next->item;
     }
     public unowned Instruction back() {
-        if (is_empty())
-        crash("Instruction List %p is empty".printf(this));
+        if (is_empty()) {
+            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                      "Instruction List %p is empty", this);
+        }
         return _node_end._prev->item;
     }
     public Iterator iterator() { return {&_node_begin}; }
@@ -34,10 +38,11 @@ public class Musys.IR.InstructionList {
         try {
             Modifier() { node = _node_end._prev }.append(inst);
         } catch (InstructionListErr e) {
-            crash("%s.%s msg %s"
-                .printf(e.domain.to_string(),
-                        e.code.to_string(),
-                        e.message));
+            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                      "%s.%s msg %s",
+                      e.domain.to_string(),
+                      e.code.to_string(),
+                      e.message);
         }
     }
     public void prepend(Instruction inst)

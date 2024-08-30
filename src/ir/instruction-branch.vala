@@ -35,6 +35,8 @@ namespace Musys.IR {
             if (replaced == null)     return;
             if (replaced != if_true)  this.if_true  = replaced;
         }
+        protected override int64 do_get_n_targets() { return 2; }
+
         public override void on_parent_finalize ()
         {
             if_false = null; if_true = null;

@@ -13,6 +13,7 @@ public class Musys.IR.JumpSSA: JumpBase {
             return;
         default_target = target;
     }
+    protected override int64 do_get_n_targets() { return 1; }
     public override void on_parent_finalize() {
         _default_target = null;
         base._deep_clean();

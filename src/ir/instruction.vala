@@ -75,10 +75,21 @@ namespace Musys.IR {
         class construct { _istype[TID.INSTRUCTION] = true; }
     }
 
+    /**
+     * 基本块终止子. 只有实现该接口的指令类才能放在基本块末尾.
+     * @see BasicBlock
+     */
     public interface IBasicBlockTerminator: Instruction {
         public virtual BasicBlock? default_target {
             get { return null; } set {}
         }
+
+        /** ntargets -- 这条指令的跳转目标个数. 对于重复的跳转目标, 重复几次
+         * 就算几次, 不合并计算.
+         * - `ntargets > 0` 表示该指令存在跳转目标且为 ntargets 个.
+         * - `ntargets = 0` 表示该指令**没有跳转目标**.
+         * - `ntargets < 0` 表示该指令的跳转目标**数量不固定**, 或者遇到其他错误. */
+        public virtual int64 ntargets{ get { return 0; } }
 
         public abstract void forEachTarget(BasicBlock.ReadFunc fn);
         public abstract void replaceTarget(BasicBlock.ReplaceFunc fn);

@@ -71,14 +71,29 @@ public class Musys.IR.BasicBlock: Value {
     public   InstructionList  instructions {
         get { return _instructions; }
     }
-    public unowned IBasicBlockTerminator terminator {
-        get { return static_cast<IBasicBlockTerminator>(_instructions.back()); }
+    public bool has_terminator() {
+        return instructions.length != 0 &&
+               instructions.back().isvalue_by_id(IBASIC_BLOCK_TERMINATOR);
+    }
+    public unowned IBasicBlockTerminator? terminator {
+        get {
+            return (!has_terminator()) ? null:
+                static_cast<IBasicBlockTerminator>(_instructions.back());
+        }
         set {
             assert_nonnull(value);
-            if (value == _instructions.back())
-                return;
-            try { _instructions.back().modifier.replace(value); }
-            catch (Error e) { crash(e.message); }
+            try {
+                if (!has_terminator()) {
+                    InstructionList.Modifier modif = _instructions.iterator();
+                    modif.append(value);
+                    return;
+                }
+                if (value == _instructions.back())
+                    return;
+                _instructions.back().modifier.replace(value);
+            } catch (Error e) {
+                crash(e.message);
+            }
         }
     }
     public InstructionList.Iterator get_1st_nonphi()
