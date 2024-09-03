@@ -1,6 +1,14 @@
 #pragma once
+#include <stddef.h>
+#include <stdbool.h>
 
-/** @addtogroup Musys */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** @defgroup Musys
+ * @{
+ * @addtogroup Musys */
 #define musys_static_cast(elem) ((gpointer)(elem))
 
 /** @addtogroup Musys.Fmt */
@@ -62,3 +70,20 @@ musys_fmt_u32Base16(char *buf, unsigned length, unsigned number)
     }
     return ret;
 }
+
+/** @addtogroup Musys */
+static inline bool musys_is_power_of_2(size_t value) {
+    return value && (value & value - 1);
+}
+
+/** @addtogroup Musys */
+static inline size_t musys_fill_to(size_t x, size_t mod) {
+    size_t xmod = x % mod;
+    return xmod == 0? x: x - xmod + mod;
+}
+
+/** @} */
+
+#ifdef __cplusplus
+}
+#endif

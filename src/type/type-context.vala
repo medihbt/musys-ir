@@ -11,6 +11,7 @@ public class Musys.TypeContext: Object {
     public   uint32 machine_word_size{ get; }
     private  TypeCtxCache _type_cache;
     internal Gee.HashMap<unowned Type, Type> _types;
+    internal Gee.HashMap<string, StructType> _symbolled_struct_types;
 
     public IntType bool_type{
         get { return _type_cache.ity_bytes[0]; }
@@ -58,6 +59,34 @@ public class Musys.TypeContext: Object {
         var fty = new FunctionType.move(ret_ty, (owned)args_ty);
         return (FunctionType)get_or_register_type(fty);
     }
+    public StructType? get_struct_type_readonly(StructType type)
+    {
+        if (type.kind.has_name()) {
+            unowned string name = type.symbol_name;
+            if (_symbolled_struct_types.has_key(name))
+                return _symbolled_struct_types[name];
+            return null;
+        }
+        if (_types.has_key(type))
+            return _types[type] as StructType;
+        return null;
+    }
+    public StructType get_struct_type_or_add(StructType type)
+    {
+        /* 对于有名称的结构体 */
+        if (type.kind.has_name()) {
+            unowned string name = type.symbol_name;
+            if (!_symbolled_struct_types.has_key(name)) {
+                // ...
+            }
+        } else if (_types.has_key(type)) {
+            return _types[type] as StructType;
+        } else {
+            _types[type] = type;
+            return type;
+        }
+        assert_not_reached();
+    }
 
     /** 用障眼法写的方法, 让代码好看一些罢了 */
     public bool has_type(Type ty) { return ty.type_ctx == this; }
@@ -87,6 +116,11 @@ public class Musys.TypeContext: Object {
         this._type_cache.init_reg_ty(this);
         this._types = new Gee.HashMap<unowned Type, Type>(
             type_hash, type_equal
+        );
+        this._symbolled_struct_types = new Gee.HashMap<string, StructType>(
+            (Gee.HashDataFunc)str_hash,
+            (Gee.EqualDataFunc)str_equal,
+            null
         );
     }
 

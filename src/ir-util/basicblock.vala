@@ -78,7 +78,7 @@ namespace Musys.IRUtil.BasicBlock {
         return after;
     }
 
-    public abstract class AbstractSplitter {
+    public abstract class AbstractSplitter: Object {
         public IR.BasicBlock old_bb;
         public IR.BasicBlock new_bb;
 

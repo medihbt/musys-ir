@@ -1,16 +1,22 @@
 namespace Musys {
     public abstract class AggregateType: Type {
+        /**
+         * 获取集合类型第 index 个元素类型. 当范围超限时返回 void 类型.
+         * @param index 要获取的元素在集合类型中的位置.
+         */
         public abstract Type   get_element_type_at(size_t index = 0);
+        
+        /** 集合元素个数 */
         public abstract size_t element_number {get;}
 
-        public bool  always_has_same_type {
-            get { return _always_contain_same_type; }
+        public bool  element_always_consist {
+            get { return _element_type_always_consist; }
         }
-        public virtual bool has_same_type {
-            get { return always_has_same_type; }
+        public virtual bool element_consist {
+            get { return element_always_consist; }
         }
 
-        protected class stdc.bool _always_contain_same_type = true;
+        protected class stdc.bool _element_type_always_consist = true;
         protected string _name;
         protected size_t _hash_cache;
 

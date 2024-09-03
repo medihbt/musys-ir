@@ -9,7 +9,7 @@ namespace Musys.IRUtil {
             @"Indexable type should be pointer or aggregate, but got $type"
         );
         var aty = static_cast<AggregateType>(type);
-        if (aty.always_has_same_type)
+        if (aty.element_always_consist)
             return aty.get_element_type_at(0);
         if (index == null) throw new RuntimeErr.NULL_PTR(
             @"$(Log.METHOD)::index cannot be null while type $type is not array-like"

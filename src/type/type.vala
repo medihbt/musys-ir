@@ -1,4 +1,8 @@
 namespace Musys {
+    public errordomain AlignErr {
+        ALIGN_NOT_PWR_OF_2;
+    }
+
     public abstract class Type {
         public enum TID {
             TYPE,       VOID_TYPE,
@@ -48,9 +52,9 @@ namespace Musys {
          * However, the converse is not true. */
         public abstract size_t instance_size{get;}
 
-        /** ### Property: `is_instantaneous`
-         *
-         * 表示该类型是否可实例化. Shows whether this type can make `Value` instances. */
+        /** 
+         * 表示该类型是否可实例化.
+         * Shows whether this type can make `Value` instances. */
         public bool is_instantaneous { get { return instance_size > 0; } }
 
         public abstract size_t instance_align{get;}
@@ -67,6 +71,13 @@ namespace Musys {
         protected Type.C1(TID tid, TypeContext type_ctx) {
             this._tid      = tid;
             this._type_ctx = type_ctx;
+        }
+
+        public static void CheckPowerOf2(size_t align)
+                           throws AlignErr {
+            if (is_power_of_2(align))
+                return;
+            throw new AlignErr.ALIGN_NOT_PWR_OF_2("align %lu", align);
         }
     } // class Type
 
