@@ -24,7 +24,7 @@ public class Musys.StructType: AggregateType {
      * 结构体的分类. 不同类型的结构体各不相同.  
      * @see Kind
      */
-    public Kind kind{get;}
+    public Kind kind { get; internal set; }
 
     /**
      * 结构体的字段表. 当 `fields == null` 时表示它是一个**不透明结构体**.
@@ -33,7 +33,7 @@ public class Musys.StructType: AggregateType {
      *
      * @see _fields
      */
-    public Type[]? fields { get; }
+    public Type[]? fields { get; internal set; }
 
     /**
      * 表示该结构体是不是**不透明的**.
@@ -132,6 +132,24 @@ public class Musys.StructType: AggregateType {
             _name = "%" + value;
         }
     }
+    private string _typestr_cache = null;
+    public override unowned string to_string()
+    {
+        if (_name != null)
+            return _name;
+        if (_typestr_cache == null) {
+            unowned Type[] fields = this.fields;
+            var nameb = new StringBuilder("{ ");
+            for (uint index = 0; index <= fields.length; index++) {
+                if (index != 0)
+                    nameb.append_c(',');
+                nameb.append(fields[index].to_string());
+            }
+            nameb.append_c('}');
+            _typestr_cache = nameb.free_and_steal();
+        }
+        return _typestr_cache;
+    }
 
     private int8 _element_consist = 0;
     public override bool element_consist {
@@ -158,7 +176,7 @@ public class Musys.StructType: AggregateType {
         this._fields = new Type[nfields];
         this._kind   = ANOMYMOUS;
     }
-    public StructType.anomumous_copy(TypeContext tctx, Type[] fields) {
+    public StructType.anomymous_copy(TypeContext tctx, Type[] fields) {
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
         _update_size_align();
@@ -218,6 +236,14 @@ public class Musys.StructType: AggregateType {
             foreach (unowned Type ty in fields)
                 ret = hash_combine2(ret, ty.hash());
         }
+        return ret;
+    }
+    [CCode(cname="_ZN5Musys10StructType17MakeAnomymousHashE")]
+    public static size_t MakeAnomymousHash(Type[] fields)
+    {
+        size_t ret = hash_combine2(TID.STRUCT_TYPE, Kind.ANOMYMOUS);
+        foreach (unowned Type ty in fields)
+            ret = hash_combine2(ret, ty.hash());
         return ret;
     }
 

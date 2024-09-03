@@ -13,7 +13,7 @@ public class Musys.TypeContext: Object {
     internal Gee.HashMap<unowned Type, Type> _types;
     internal Gee.HashMap<string, StructType> _symbolled_struct_types;
 
-    public IntType bool_type{
+    public IntType bool_type {
         get { return _type_cache.ity_bytes[0]; }
     }
     public VoidType void_type {
@@ -73,19 +73,27 @@ public class Musys.TypeContext: Object {
     }
     public StructType get_struct_type_or_add(StructType type)
     {
-        /* 对于有名称的结构体 */
-        if (type.kind.has_name()) {
-            unowned string name = type.symbol_name;
-            if (!_symbolled_struct_types.has_key(name)) {
-                // ...
-            }
-        } else if (_types.has_key(type)) {
-            return _types[type] as StructType;
-        } else {
+        /* 匿名结构体, 字段相同即类型相等 */
+        if (type.kind == ANOMYMOUS) {
+            if (!_types.has_key(type))
+                return _types[type] as StructType;
             _types[type] = type;
             return type;
         }
-        assert_not_reached();
+
+        /* 具名结构体, 名称相同即类型相等 */
+        unowned string name = type.symbol_name;
+        unowned var sst = _symbolled_struct_types;
+        if (!sst.has_key(name)) {
+            sst[name] = type;
+            return type;
+        }
+        StructType sty = sst[name];
+        if (sty.is_opaque && !type.is_opaque) {
+            sst[name] = type;
+            return type;
+        }
+        return sty;
     }
 
     /** 用障眼法写的方法, 让代码好看一些罢了 */
@@ -122,6 +130,18 @@ public class Musys.TypeContext: Object {
             (Gee.EqualDataFunc)str_equal,
             null
         );
+    }
+    ~TypeContext() {
+        foreach (var entry in _types) {
+            if (entry.value is StructType) {
+                var sty = static_cast<StructType>(entry.value);
+                sty.fields = null;
+            }
+        }
+        foreach (var entry in _symbolled_struct_types) {
+            StructType sty = entry.value;
+            sty.fields = null;
+        }
     }
 
     [CCode (has_type_id=false)]

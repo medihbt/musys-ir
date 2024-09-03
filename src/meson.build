@@ -10,6 +10,7 @@ musys_ir_src = files([
     'type/value-type.vala',
     'type/aggregate-type.vala',
     'type/struct-type.vala',
+    'type/vector-type.vala',
     'type/ref-type.vala',
     'type/function-type.vala',
     'type/type-context.vala',

@@ -1,6 +1,6 @@
 namespace Musys {
     public abstract class RefType: Type {
-        public Type target{ get { return _target; } }
+        public unowned Type target{ get { return _target; } }
 
         public override size_t instance_align {
             get { return type_ctx.machine_word_size; }
@@ -17,7 +17,7 @@ namespace Musys {
         }
 
         protected string _name;
-        protected Type _target;
+        protected unowned Type _target;
         protected RefType.C1(TypeContext tctx, TID tid, Type target) {
             base.C1(tid, tctx);
             this._target = target;

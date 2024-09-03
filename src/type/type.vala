@@ -66,7 +66,9 @@ namespace Musys {
         protected abstract bool _relatively_equals(Type rhs);
 
         public abstract unowned string name{get;}
-        public unowned string to_string() { return name; }
+        public virtual  unowned string to_string() {
+            return name;
+        }
 
         protected Type.C1(TID tid, TypeContext type_ctx) {
             this._tid      = tid;

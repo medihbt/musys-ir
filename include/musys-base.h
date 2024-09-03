@@ -73,7 +73,10 @@ musys_fmt_u32Base16(char *buf, unsigned length, unsigned number)
 
 /** @addtogroup Musys */
 static inline bool musys_is_power_of_2(size_t value) {
-    return value && (value & value - 1);
+    return value & value - 1;
+}
+static inline bool musys_is_power_of_2_nonzero(size_t value) {
+    return value != 0 && (value & (value - 1));
 }
 
 /** @addtogroup Musys */

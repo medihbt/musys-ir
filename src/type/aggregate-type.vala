@@ -4,7 +4,7 @@ namespace Musys {
          * 获取集合类型第 index 个元素类型. 当范围超限时返回 void 类型.
          * @param index 要获取的元素在集合类型中的位置.
          */
-        public abstract Type   get_element_type_at(size_t index = 0);
+        public abstract Type get_element_type_at(size_t index = 0);
         
         /** 集合元素个数 */
         public abstract size_t element_number {get;}
@@ -46,7 +46,7 @@ namespace Musys {
             }
         }
 
-        public Type element_type{get;}
+        public unowned Type element_type{get;}
 
         public override Type get_element_type_at(size_t index) {
             return element_type;

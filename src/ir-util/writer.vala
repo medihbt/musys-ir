@@ -146,7 +146,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     public override void visit_inst_compare(IR.CompareSSA inst)
     {
         unowned var  outs = _rt->outs;
-        unowned string operandty = inst.operand_type.name;
+        unowned string operandty = inst.operand_type.to_string();
         unowned string opcode = inst.opcode == ICMP ? "icmp": "fcmp";
         unowned var condition = inst.condition;
         outs.puts(@"%$(inst.id) = $opcode $condition $operandty ");
