@@ -18,6 +18,10 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     }
 
     private void visit_module() {
+        foreach (var ste in module.type_ctx._symbolled_struct_types) {
+            StructType sty = ste.value;
+            _rt.outs.puts(@"$sty = $(sty.fields_to_string())\n");
+        }
         foreach (var def in module.global_def)
             def.value.accept(this);
         _rt.outs.printf("\n;module %s\n", module.name);

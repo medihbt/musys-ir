@@ -103,7 +103,7 @@ public class Musys.TypeContext: Object {
         if (_symbolled_struct_types.has_key(name))
             return _symbolled_struct_types[name];
         var ret = fields == null?
-            new StructType.symbolled_copy(this, fields, name):
+            new StructType.symbolled_copy(fields, name):
             new StructType.opaque(this, name);
         _symbolled_struct_types[name] = ret;
         return ret;
@@ -118,6 +118,10 @@ public class Musys.TypeContext: Object {
             );
         }
         var vec_ty = new VectorType.fixed(element_type, length);
+        return get_reg_vec_type(vec_ty);
+    }
+    public VectorType get_reg_vec_type(VectorType vec_ty)
+    {
         if (!_types.has_key(vec_ty)) {
             _types[vec_ty] = vec_ty;
             return vec_ty;

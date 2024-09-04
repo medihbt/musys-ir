@@ -35,6 +35,9 @@ public class Musys.StructType: AggregateType {
      */
     public Type[]? fields { get; internal set; }
 
+    /** 结构体字段的数量. 不透明结构体的字段数量是 0. */
+    public size_t nfields { get { return _fields.length; } }
+
     /**
      * 表示该结构体是不是**不透明的**.
      * 一个不透明结构体的内部字段成员全部不可见, 不能使用 getelementptr 之类
@@ -43,8 +46,10 @@ public class Musys.StructType: AggregateType {
         get { return kind == OPAQUE || _fields == null; }
     }
 
-    /** 结构体字段的数量. 不透明结构体的字段数量是 0. */
-    public size_t nfields { get { return _fields.length; } }
+    /** 表示该结构体是不是**匿名的**. */
+    public bool is_anomymous {
+        get { return kind == ANOMYMOUS || _name == null; }
+    }
 
     /**
      * {@inheritDoc}
@@ -132,23 +137,27 @@ public class Musys.StructType: AggregateType {
             _name = "%" + value;
         }
     }
-    private string _typestr_cache = null;
+    private string _fields_str = null;
+    public unowned string fields_to_string()
+                          requires(!is_opaque) {
+        if (_fields_str != null)
+            return _fields_str;
+        unowned Type[] fields = this.fields;
+        var nameb = new StringBuilder("{ ");
+        for (uint index = 0; index <= fields.length; index++) {
+            if (index != 0)
+                nameb.append_c(',');
+            nameb.append(fields[index].to_string());
+        }
+        nameb.append_c('}');
+        _fields_str = nameb.free_and_steal();
+        return _fields_str;
+    }
     public override unowned string to_string()
     {
         if (_name != null)
             return _name;
-        if (_typestr_cache == null) {
-            unowned Type[] fields = this.fields;
-            var nameb = new StringBuilder("{ ");
-            for (uint index = 0; index <= fields.length; index++) {
-                if (index != 0)
-                    nameb.append_c(',');
-                nameb.append(fields[index].to_string());
-            }
-            nameb.append_c('}');
-            _typestr_cache = nameb.free_and_steal();
-        }
-        return _typestr_cache;
+        return fields_to_string();
     }
 
     private int8 _element_consist = 0;
@@ -176,13 +185,15 @@ public class Musys.StructType: AggregateType {
         this._fields = new Type[nfields];
         this._kind   = ANOMYMOUS;
     }
-    public StructType.anomymous_copy(TypeContext tctx, Type[] fields) {
+    public StructType.anomymous_copy(Type[] fields) {
+        TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
         _update_size_align();
         this._kind = ANOMYMOUS;
     }
-    public StructType.anomymous_move(TypeContext tctx, owned Type[] fields) {
+    public StructType.anomymous_move(owned Type[] fields) {
+        TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = (owned)fields;
         _update_size_align();
@@ -195,14 +206,16 @@ public class Musys.StructType: AggregateType {
         this.symbol_name = name;
         this._kind = SYMBOLLED;
     }
-    public StructType.symbolled_copy(TypeContext tctx, Type[] fields, string name) {
+    public StructType.symbolled_copy(Type[] fields, string name) {
+        TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
         this.symbol_name = name;
         _update_size_align();
         this._kind = SYMBOLLED;
     }
-    public StructType.symbolled_move(TypeContext tctx, owned Type[] fields, string name) {
+    public StructType.symbolled_move(owned Type[] fields, string name) {
+        TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = (owned)fields;
         this.symbol_name = name;

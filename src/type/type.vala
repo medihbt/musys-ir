@@ -113,7 +113,7 @@ namespace Musys {
     public uint type_hash(Type type) {
         return (uint)type.hash();
     }
-    
+
     [CCode(cname="_ZN5Musys10type_equalE")]
     public bool type_equal(Type l, Type r) {
         return l.equals(r);
