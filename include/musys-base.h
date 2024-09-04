@@ -85,6 +85,19 @@ static inline size_t musys_fill_to(size_t x, size_t mod) {
     return xmod == 0? x: x - xmod + mod;
 }
 
+/** @addtogroup Musys */
+static inline size_t musys_fill_to_pwr_of_2(size_t x)
+{
+    if (musys_is_power_of_2(x))
+        return x;
+    x |= x >> 0x01; x |= x >> 0x02;
+    x |= x >> 0x04; x |= x >> 0x08;
+    x |= x >> 0x10;
+    if (sizeof(size_t) > 4)
+        x |= x >> 0x20;
+    return x + 1;
+}
+
 /** @} */
 
 #ifdef __cplusplus

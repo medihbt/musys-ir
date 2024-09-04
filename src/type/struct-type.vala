@@ -224,7 +224,7 @@ public class Musys.StructType: AggregateType {
     [CCode(cname="_ZN5Musys10StructType8MakeHashE")]
     public static size_t MakeHash(Kind kind, string? name, Type[]? fields)
     {
-        size_t ret = hash_combine2(TID.STRUCT_TYPE, kind);
+        size_t ret = hash_combine2(_TID_HASH[TID.STRUCT_TYPE], kind);
         if (kind.has_name()) {
             if (unlikely(name == null))
                 crash(@"Struct name connot be null while kind is $kind");
@@ -241,7 +241,7 @@ public class Musys.StructType: AggregateType {
     [CCode(cname="_ZN5Musys10StructType17MakeAnomymousHashE")]
     public static size_t MakeAnomymousHash(Type[] fields)
     {
-        size_t ret = hash_combine2(TID.STRUCT_TYPE, Kind.ANOMYMOUS);
+        size_t ret = hash_combine2(_TID_HASH[TID.STRUCT_TYPE], Kind.ANOMYMOUS);
         foreach (unowned Type ty in fields)
             ret = hash_combine2(ret, ty.hash());
         return ret;

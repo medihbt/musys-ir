@@ -10,4 +10,7 @@ namespace Musys {
 
     [CCode (cheader_filename="musys-base.h")]
     public extern size_t fill_to(size_t x, size_t mod);
+
+    [CCode (cheader_filename="musys-base.h")]
+    public extern size_t fill_to_pwr_of_2(size_t x);
 }

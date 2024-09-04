@@ -17,14 +17,16 @@ namespace Musys {
 
         protected class stdc.bool _istype[TID.COUNT] = {true, false};
         protected class stdc.bool _is_instantaneous  = true;
-        protected const uint16 _TID_HASH[32] = {
+        protected const uint8 _TID_HASH[32] = {
             2,  3,  5,  7,  11, 13, 17, 19,
             23, 29, 31, 37, 41, 43, 47, 53,
             59, 61, 67, 71, 73, 79, 83, 89,
             97, 101,103,107,109,113,127,131
         };
 
-        public bool istype(TID tid) { return _istype[tid]; }
+        public bool istype_by_id(TID tid) {
+            return this._tid == tid || _istype[tid];
+        }
         public bool is_void       { get { return _istype[TID.VOID_TYPE]; }  }
 
         public bool is_valuetype  { get { return _istype[TID.VALUE_TYPE]; } }
@@ -42,8 +44,7 @@ namespace Musys {
 
         public bool is_function   { get { return _istype[TID.FUNCTION_TYPE]; } }
 
-        /** ### Property: `Instance Size`
-         *
+        /**
          * 表示类型实例的大小.  
          * Represents the instance of this type.
          *
@@ -55,11 +56,16 @@ namespace Musys {
         /** 
          * 表示该类型是否可实例化.
          * Shows whether this type can make `Value` instances. */
-        public bool is_instantaneous { get { return instance_size > 0; } }
+        public virtual bool is_instantaneous {
+            get { return instance_size > 0; }
+        }
 
         public abstract size_t instance_align{get;}
 
+        /** 类型的哈希值, 用于 TypeContext 验证类型的唯一性. */
         public abstract size_t hash();
+
+        /** 类型判等, 用于 TypeContext 验证类型的唯一性. */
         public bool equals(Type rhs) {
             return this == rhs || _relatively_equals(rhs);
         }

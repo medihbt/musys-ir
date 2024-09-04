@@ -56,7 +56,7 @@ namespace Musys {
 
         protected override bool _relatively_equals(Type rhs)
         {
-            if (!rhs.is_array)
+            if (rhs.tid != ARRAY_TYPE)
                 return false;
             var arhs = (ArrayType)rhs;
             return arhs._element_number == _element_number &&

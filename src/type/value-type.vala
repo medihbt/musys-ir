@@ -46,9 +46,10 @@ namespace Musys {
             return _TID_HASH[TID.INT_TYPE] + _binary_bits * 257;
         }
         protected override bool _relatively_equals(Type rhs) {
-            if (!rhs.is_int)
+            if (rhs.tid != INT_TYPE)
                 return false;
-            return ((IntType)rhs)._binary_bits == binary_bits;
+            unowned IntType irhs = static_cast<IntType>(rhs);
+            return irhs._binary_bits == _binary_bits;
         }
 
         public IntType(TypeContext tctx, uint32 binary_bits) {
@@ -64,16 +65,10 @@ namespace Musys {
             return hash_combine2(_TID_HASH[TID.FLOAT_TYPE], uid);
         }
 
-        public override string name {
-            get {
-                if (_name == null)
-                    _name = @"f$binary_bits";
-                return _name;
-            }
-        }
+        public override string name { get { return _name; } }
         protected override bool _relatively_equals(Type rhs)
         {
-            if (!rhs.is_float)
+            if (rhs.tid != FLOAT_TYPE)
                 return false;
             var frhs = (FloatType)rhs;
             return frhs._tail_bits == _tail_bits  &&

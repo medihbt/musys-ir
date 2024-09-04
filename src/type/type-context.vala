@@ -95,6 +95,35 @@ public class Musys.TypeContext: Object {
         }
         return sty;
     }
+    public StructType? get_named_struct_type(string name) {
+        return _symbolled_struct_types[name];
+    }
+    public StructType get_reg_named_struct_type(string name, Type[]? fields)
+    {
+        if (_symbolled_struct_types.has_key(name))
+            return _symbolled_struct_types[name];
+        var ret = fields == null?
+            new StructType.symbolled_copy(this, fields, name):
+            new StructType.opaque(this, name);
+        _symbolled_struct_types[name] = ret;
+        return ret;
+    }
+    public VectorType get_vec_type(Type element_type, size_t length)
+    {
+        if (!is_power_of_2_nonzero(length)) {
+            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                "in TypeContext %p: fixed VectorType requires length" +
+                " to be power of 2 and nonzero, but got %lu\n",
+                this, length
+            );
+        }
+        var vec_ty = new VectorType.fixed(element_type, length);
+        if (!_types.has_key(vec_ty)) {
+            _types[vec_ty] = vec_ty;
+            return vec_ty;
+        }
+        return _types[vec_ty] as VectorType;
+    }
 
     /** 用障眼法写的方法, 让代码好看一些罢了 */
     public bool has_type(Type ty) { return ty.type_ctx == this; }
