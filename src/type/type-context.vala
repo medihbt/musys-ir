@@ -3,6 +3,14 @@ public errordomain Musys.TypeMismatchErr {
     NOT_INSTANTANEOUS;
 }
 
+/**
+ * **类型上下文** -- 存储、注册、获取类型对象, 保证类型唯一性的类
+ *
+ * 注意, 大多数类型类一般不直接通过 new 创建实例, 需要通过 `TypeContext`
+ * 中转一下。
+ *
+ * @see Musys.Type
+ */
 public class Musys.TypeContext: Object {
     protected enum InsertResult {
         OK, HAD_ITEM;
@@ -27,21 +35,28 @@ public class Musys.TypeContext: Object {
     }
     public FloatType ieee_f32 { get { return _type_cache.ieee_f32; } }
     public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
+
+    /** 获取元素类型为 elemty, 长度为 len 的数组类型 */
     public ArrayType get_array_type(Type elemty, size_t len) {
         var ret = new ArrayType(this, elemty, len);
         return (ArrayType)get_or_register_type(ret);
     }
+
+    /** 获取目标类型为 elemty 的指针类型. 目前 Musys 不支持不透明指针. */
     public PointerType get_ptr_type(Type target) {
         var ret = new PointerType(this, target);
         return (PointerType)get_or_register_type(ret);
     }
-    public FunctionType
-    get_func_type(Type ret_ty, Type []?args_ty) throws TypeMismatchErr
+
+    /**
+     * 获取返回类型为 `ret_ty`, 参数类型为 `args_ty` 的函数类型.
+     *
+     * @param ret_ty 返回值类型.
+     *
+     * @param args_ty 参数类型. 为空时表示该函数没有参数. 目前 Musys 不支持变长参数.
+     */
+    public FunctionType get_func_type(Type ret_ty, Type []?args_ty)
     {
-        foreach (unowned Type arg_ty in args_ty) {
-            if (!arg_ty.is_instantaneous)
-                throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
-        }
         FunctionType fty = null;
         if (args_ty != null)
             fty = new FunctionType(ret_ty, args_ty);
@@ -49,16 +64,22 @@ public class Musys.TypeContext: Object {
             fty = new FunctionType.move(ret_ty, new Type[0]);
         return (FunctionType)get_or_register_type(fty);
     }
-    public FunctionType
-    get_func_type_move(Type ret_ty, owned Type[] args_ty) throws TypeMismatchErr
+    /**
+     * 获取返回类型为 `ret_ty`, 参数类型为 `args_ty` 的函数类型. 该函数会夺取参数类型的所有权.
+     *
+     * @param ret_ty 返回值类型.
+     *
+     * @param args_ty 参数类型. 为空时表示该函数没有参数. 目前 Musys 不支持变长参数.
+     */
+    public FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty)
     {
-        foreach (unowned Type arg_ty in args_ty) {
-            if (!arg_ty.is_instantaneous)
-                throw new TypeMismatchErr.NOT_INSTANTANEOUS(arg_ty.to_string());
-        }
         var fty = new FunctionType.move(ret_ty, (owned)args_ty);
         return (FunctionType)get_or_register_type(fty);
     }
+
+    /**
+     * 获取结构体类型. 当该类型的结构体在此类型上下文中不存在时, 返回 null.
+     */
     public StructType? get_struct_type_readonly(StructType type)
     {
         if (type.kind.has_name()) {
@@ -214,8 +235,8 @@ public class Musys.TypeContext: Object {
         {
             voidty   = new VoidType(tctx);
             labelty  = new LabelType(tctx);
-            ieee_f32 = FloatType.CreateIeee32(tctx);
-            ieee_f64 = FloatType.CreateIeee64(tctx);
+            ieee_f32 = new FloatType.ieee_fp32(tctx);
+            ieee_f64 = new FloatType.ieee_fp64(tctx);
             ity_bytes[0] = new IntType(tctx, 1);
             ity_bytes[1] = new IntType(tctx, 8);
             ity_bytes[2] = new IntType(tctx, 16);

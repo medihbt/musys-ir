@@ -1,9 +1,30 @@
 namespace Musys {
-    public errordomain AlignErr {
-        ALIGN_NOT_PWR_OF_2;
+    /** 表示大小的整数值出现了错误 */
+    public errordomain SizeErr {
+        /** 大小不是 2 的次方. */
+        NOT_PWR_OF_2;
     }
 
+    /**
+     * Musys IR 数值和 Musys MIR 寄存器的类型. 包括数值、集合、函数、指针等等。
+     *
+     * Musys 类型类的所有子类都必须在此软件包内, 外部代码不允许继承 Type 类或者
+     * 其子类.
+     *
+     * 每个 Musys 类型对象都要注册在一个叫“类型上下文(`TypeContext`)”的对象中,
+     * 以保证类型对象实例的唯一性. 因此, 在大多数情况下, 除非特殊说明, 你不能直接
+     * new 一个类型对象然后使用之. 你需要通过 TypeContext 特定的方法获取这些类型.
+     *
+     * 类型都是''不可变的''. 一个类型对象一旦完成构造、注册在类型上下文中, 你就
+     * 不允许写它的各种属性. 为了保证灵活性, Musys 没有提供关于不可变性的检查工具,
+     * 因此, 倘若你修改了某个类型对象的信息, 系统可能不会报错, 但会产生一些难以
+     * 预料的后果.
+     */
     public abstract class Type {
+        /**
+         * TID 枚举, 每个类型类都对应一个枚举值.
+         * @see tid
+         */
         public enum TID {
             TYPE,       VOID_TYPE,
             VALUE_TYPE, INT_TYPE,   FLOAT_TYPE,
@@ -12,7 +33,16 @@ namespace Musys {
             FUNCTION_TYPE,
             COUNT;
         } // enum TID
+
+        /**
+         * @see Musys.Type.TID
+         */
         public TID tid{get; protected set;}
+
+        /**
+         * 该类型所属的类型上下文. 当一个类型与其他类型发生关联时(例如, 此类型是一个数组,
+         * 被关联的那个类型是此类型的元素), 这几个类型的类型上下文需要全部相等.
+         */
         public unowned TypeContext type_ctx{get;set;}
 
         protected class stdc.bool _istype[TID.COUNT] = {true, false};
@@ -24,6 +54,7 @@ namespace Musys {
             97, 101,103,107,109,113,127,131
         };
 
+        /** 这个类型对象是否是 TID 所属的类型类的对象. */
         public bool istype_by_id(TID tid) {
             return this._tid == tid || _istype[tid];
         }
@@ -50,16 +81,19 @@ namespace Musys {
          *
          * 倘若该类型不可实例化, 则大小为 0. 反之不成立.  
          * If instance size is 0, the type cannot be instantiated.
-         * However, the converse is not true. */
+         * However, the converse is not true.
+         */
         public abstract size_t instance_size{get;}
 
         /** 
          * 表示该类型是否可实例化.
-         * Shows whether this type can make `Value` instances. */
+         * Shows whether this type can make `Value` instances.
+         */
         public virtual bool is_instantaneous {
             get { return instance_size > 0; }
         }
 
+        /** 表示该类型的内存对齐字节大小. */
         public abstract size_t instance_align{get;}
 
         /** 类型的哈希值, 用于 TypeContext 验证类型的唯一性. */
@@ -71,7 +105,14 @@ namespace Musys {
         }
         protected abstract bool _relatively_equals(Type rhs);
 
+        /**
+         * 类型的名称.
+         * - 对于一般的类型, 名称就是与这种类型等价的字符串形式.
+         * - 对于可以自定义名称标识符的类型 (如不匿名的结构体), 名称就是这个类型的标识符.
+         */
         public abstract unowned string name{get;}
+
+        /** 返回该类型对应的字符串形式. 你可以理解成“名称”. */
         public virtual  unowned string to_string() {
             return name;
         }
@@ -80,15 +121,28 @@ namespace Musys {
             this._tid      = tid;
             this._type_ctx = type_ctx;
         }
+        class construct { _istype[TID.TYPE] = true; }
 
-        public static void CheckPowerOf2(size_t align)
-                           throws AlignErr {
-            if (is_power_of_2(align))
+        /**
+         * 检查整数 size 是不是 2 的次方。倘若不是, 就抛 SizeErr 异常。
+         *
+         * @throws SizeErr
+         */
+        public static void CheckPowerOf2(size_t size)
+                           throws SizeErr {
+            if (is_power_of_2(size))
                 return;
-            throw new AlignErr.ALIGN_NOT_PWR_OF_2("align %lu", align);
+            throw new SizeErr.NOT_PWR_OF_2("align %lu", size);
         }
     } // class Type
 
+    /**
+     * 空类型, `null` 的占位符. 一般情况下, VoidType 不允许产生值或者寄存器实例.
+     *
+     * 想通过 TypeContext 创建一个 VoidType 实例, 你需要读取 `TypeContext.void_type` 属性.
+     *
+     * @see Musys.Type
+     */
     public sealed class VoidType: Type {
         public VoidType(TypeContext tctx) {
             base.C1(TID.VOID_TYPE, tctx);

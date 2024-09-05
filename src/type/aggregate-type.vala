@@ -1,4 +1,5 @@
 namespace Musys {
+    /** 集合类型: 存放元素、可以索引的类型. */
     public abstract class AggregateType: Type {
         /**
          * 获取集合类型第 index 个元素类型. 当范围超限时返回 void 类型.
@@ -9,9 +10,11 @@ namespace Musys {
         /** 集合元素个数 */
         public abstract size_t element_number {get;}
 
+        /** 这个类型类的所有类型对象中, 元素类型都是相同的. */
         public bool  element_always_consist {
             get { return _element_type_always_consist; }
         }
+        /** 这个类型对象中, 元素类型都是相同的. */
         public virtual bool element_consist {
             get { return element_always_consist; }
         }
