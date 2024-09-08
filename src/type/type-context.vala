@@ -33,6 +33,9 @@ public class Musys.TypeContext: Object {
     public IntType get_int_type(uint binary_bits) {
         return _type_cache.new_or_get_int_ty(binary_bits, this);
     }
+    public IntType get_intptr_type() {
+        return get_int_type(machine_word_size * 8);
+    }
     public FloatType ieee_f32 { get { return _type_cache.ieee_f32; } }
     public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
 
@@ -55,13 +58,13 @@ public class Musys.TypeContext: Object {
      *
      * @param args_ty 参数类型. 为空时表示该函数没有参数. 目前 Musys 不支持变长参数.
      */
-    public FunctionType get_func_type(Type ret_ty, Type []?args_ty)
+    public FunctionType get_func_type(Type ret_ty, Type []?args_ty, bool is_varargs = false)
     {
         FunctionType fty = null;
         if (args_ty != null)
-            fty = new FunctionType(ret_ty, args_ty);
+            fty = new FunctionType(ret_ty, args_ty, is_varargs);
         else
-            fty = new FunctionType.move(ret_ty, new Type[0]);
+            fty = new FunctionType.move(ret_ty, new Type[0], is_varargs);
         return (FunctionType)get_or_register_type(fty);
     }
     /**
@@ -71,9 +74,9 @@ public class Musys.TypeContext: Object {
      *
      * @param args_ty 参数类型. 为空时表示该函数没有参数. 目前 Musys 不支持变长参数.
      */
-    public FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty)
+    public FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty, bool is_varargs = false)
     {
-        var fty = new FunctionType.move(ret_ty, (owned)args_ty);
+        var fty = new FunctionType.move(ret_ty, (owned)args_ty, is_varargs);
         return (FunctionType)get_or_register_type(fty);
     }
 

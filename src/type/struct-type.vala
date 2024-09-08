@@ -78,6 +78,31 @@ public class Musys.StructType: AggregateType {
             return false;
         return true;
     }
+    /** 两个结构体的内容是否相等. 遇到两个不透明结构体, 只有是同一个实例时返回 true. */
+    public bool fields_equals(StructType rhs)
+    {
+        if (this == rhs)
+            return true;
+        if (this.is_opaque || rhs.is_opaque)
+            return false;
+        if (this.fields.length != rhs.fields.length)
+            return false;
+        return array_nequals(this.fields, rhs.fields, this.fields.length);
+    }
+    /** 两个结构体的内容是否完全相等. */
+    public bool fields_equals_full(StructType rhs)
+    {
+        if (this == rhs)
+            return true;
+        if (this.is_opaque || rhs.is_opaque)
+            return false;
+        if (this.fields.length != rhs.fields.length)
+            return false;
+        return array_nequals_full(
+            this.fields, rhs.fields,
+            this.fields.length
+        );
+    }
 
     /**
      * {@inheritDoc}

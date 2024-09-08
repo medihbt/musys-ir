@@ -7,7 +7,7 @@ Musys 有两个含义:
 
 该项目源于 [MYGL-v](https://gitee.com/mygl-v) 小组的 MYGL-C 编译器，精简了一部分架构，并换用语法更简单的 Vala 实现.
 
-本仓库是 Musys 编译器的底层中间语言 (Musys-IR) 部分, 是整个项目最核心的部分. 其他部分参见:
+本仓库是 Musys 编译器的底层中间语言 (Musys-IR) 部分. 其他部分参见:
 
 - \[[Musys Lang](https://github.com/medihbt/musys-lang)\] Musys 编译器的前端部分. 为节省开发时间, 该项目使用 Vala 编译器 (libvala) 作为前端, 并根据 SysY 的语法做了大量限制.
 

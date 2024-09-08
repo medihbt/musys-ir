@@ -66,6 +66,12 @@ namespace Musys.IR {
             value_ptr_or_crash(source, "as CastSSA.as_ptoi()::source");
             this.nocheck(PTR_TO_INT, target_type, source);
         }
+        public CastSSA.as_ptoi_auto(Value source) {
+            value_ptr_or_crash(source, "as CastSSA.as_ptoi()::source");
+            unowned var type_ctx = source.value_type.type_ctx;
+            this.nocheck(PTR_TO_INT,
+                type_ctx.get_intptr_type(), source);
+        }
 
         class construct { _istype[TID.CAST_SSA] = true; }
     }

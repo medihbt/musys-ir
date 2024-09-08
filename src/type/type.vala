@@ -134,6 +134,30 @@ namespace Musys {
                 return;
             throw new SizeErr.NOT_PWR_OF_2("align %lu", size);
         }
+
+
+        /**
+         * 检查类型数组 lhs 和 rhs 在区间 [0, n) 之间是否相等.
+         */
+        public static bool array_nequals(
+                            [CCode (array_length = false)]Type[] lhs,
+                            [CCode (array_length = false)]Type[] rhs,
+                            size_t n)
+        {
+            for (size_t i = 0; i < n; i++) {
+                if (!lhs[i].equals(rhs[i]))
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool array_nequals_full(
+                            [CCode (array_length = false)]Type[] lhs,
+                            [CCode (array_length = false)]Type[] rhs,
+                            size_t n) {
+            return lhs == rhs ||
+                Memory.cmp(lhs, rhs, n * sizeof(pointer)) == 0;
+        }
     } // class Type
 
     /**
