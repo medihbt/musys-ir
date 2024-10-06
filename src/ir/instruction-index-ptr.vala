@@ -1,93 +1,255 @@
-public class Musys.IR.IndexPtrSSA: Instruction {
-    private         Value       _source;
-    private unowned Use         _usource;
-    public  unowned PointerType source_ptr_type{get;}
-    public PointerType target_type {
-        get { return static_cast<PointerType>(_value_type); }
-    }
-    public Value source {
-        get { return _source; }
-        set { set_usee_type_match(_source_ptr_type, ref _source, value, _usource); }
-    }
-
-    public IndexUse[] indices{get;}
-    private void _clean_indicies() {
-        foreach (IndexUse i in indices)
-            i.index = null;
-        _indices = null;
-    }
-
-    public override void on_function_finalize() {
-        value_fast_clean(ref _source, _usource);
-        _clean_indicies();
-        base._fast_clean();
-    }
-    public override void on_parent_finalize() {
-        value_deep_clean(ref _source, _usource);
-        _clean_indicies();
-        base._deep_clean();
-    }
-    public override void accept(IValueVisitor visitor) {
-        visitor.visit_inst_index_ptr(this);
-    }
-
-    public IndexPtrSSA.raw_move(PointerType source_type, PointerType type,
-                                owned IndexUse[] indicies) {
-        base.C1(INDEX_PTR_SSA, INDEX_PTR, type);
-        _source_ptr_type = source_type;
-        this._usource = new SourceUse().attach_back(this);
-        this._indices = (owned)indicies;
-        foreach (IndexUse i in _indices)
-            i.attach_back(this);
-    }
-    public IndexPtrSSA.from(PointerType src_ty, Value[] indices) throws TypeMismatchErr
-    {
-        int len  = indices.length;
-        var uses = new IndexUse[len];
-        Type curty = src_ty;
-        try {
-            for (int i = 0; i < len; i++) {
-                var use = new IndexUse();
-                curty = IRUtil.type_index(curty, indices[i]);
-                use._layer_type = curty;
-                uses[i] = use;
-                use.index = indices[i];
-            }
-        } catch (RuntimeErr e) {
-            crash(e.message);
-        }
-        this.raw_move(src_ty, IRUtil.get_ptr_type(curty), (owned)uses);
-    }
-
-    class construct { _istype[TID.INDEX_PTR_SSA] = true; }
-
-    public class IndexUse: Use {
-        private uint         _layer;
-        private Value        _index;
-        internal unowned Type _layer_type;
-        public new IndexPtrSSA user {
-            get { return static_cast<IndexPtrSSA>(_user); }
-        }
-        public Value index {
-            get { return _index; }
+namespace Musys.IR {
+    /**
+     * === 指针取索引指令 ===
+     *
+     * 把传入的指针 `source` 看作类型为 `collection_type[]` 数组, 按照
+     * `indicies[]` 数组所示的多级索引找到需要取的元素.
+     *
+     * 该指令表示指向这个元素的指针. 为展示所得指针指向的类型, 该指令实现了
+     * IPointerStorage 接口.
+     *
+     * ==== 指令信息 ====
+     *
+     * ''操作数'':
+     * - `[0] = source`: 等待索引的源操作数指针
+     * - `[1:] = indicies[]`: 索引列表
+     *
+     * ''文法(Musys-IR)''
+     *
+     * {{{
+     * %<id> = indexptr <primary-target-type>, ptr <source>, (<idx-type[i]> index[i])...
+     * }}}
+     *
+     * - `primary-target-type`: 应当把 source 视为指向什么类型的指针.
+     * - `source`: 源操作数指针
+     * - `idx-type[0], index[0]`: 初始索引, 这时是把 source 当成 `primary-target-type[]` 数组指针.
+     * - `idx-type[...], index[...]`: 后续分层索引. idx-type 必须是整数类型. 每层解索引之前的类型必须
+     *   是数组、结构体或向量, 倘若是结构体的话则 index 必须是编译期常量.
+     */
+    public class IndexPtrSSA: Instruction, IPointerStorage {
+        private SourceUse _usource;
+        private Value     _source;
+        /** 源操作数. 必须是指针类型的. */
+        public  Value  source {
+            get { return _source; }
             set {
-                if (value == _index)
+                if (value == _source)
                     return;
-                if (value != null && !value.value_type.is_int)
-                    crash(@"Type mismatch: requires int in index[$_layer], but got $(value.value_type)");
-                User.replace_use(_index, value, this);
-                _index = value;
+                value_ptr_or_crash(value, "at IndexPtrSSA::source::set()");
+                User.set_usee_always(ref _source, value, _usource);
             }
         }
-        public override Value? usee { get { return _index; } set { index = value; } }
+
+        /** 初始被索引类型 */
+        public unowned Type primary_target_type { get; internal set; }
+
+        internal IndexUse[] _indices;
+        /** 索引列表. 其中 indices[0] 是初始索引. */
+        public   IndexUse[]  indices { get { return _indices; } }
+
+        public Value get_index_at(uint layer) throws RuntimeErr
+        {
+            if (layer >= indices.length)
+                throw new RuntimeErr.INDEX_OVERFLOW("IndexPtrSSA(%d)[%u] overflow", id, layer);
+            return indices[layer].index;
+        }
+        public void set_index_at(uint layer, Value? value)
+                    throws RuntimeErr, Error
+        {
+            if (layer >= indices.length)
+                throw new RuntimeErr.INDEX_OVERFLOW("IndexPtrSSA(%d)[%u] overflow", id, layer);
+            IndexUse uindex = indices[layer];
+            uindex.set_usee_throws(value);
+        }
+
+        public Type get_ptr_target() {
+            return indices[indices.length - 1].type_after_extract;
+        }
+        public override void accept(IValueVisitor visitor) {
+            visitor.visit_inst_index_ptr(this);
+        }
+
+        /* 析构过程 */
+        private void _delete_indicies()
+        {
+            foreach (IndexUse u in indices)
+                u.index = null;
+            _indices = null;
+        }
+        public override void on_function_finalize() {
+            value_fast_clean(ref _source, _usource);
+            _delete_indicies();
+            base._fast_clean();
+        }
+        public override void on_parent_finalize() {
+            value_deep_clean(ref _source, _usource);
+            _delete_indicies();
+            base._deep_clean();
+        }
+
+        public IndexPtrSSA.move_nocheck(Type primary_target, owned IndexUse[] indices)
+        {
+            base.C1(INDEX_PTR_SSA, INDEX_PTR,
+                    primary_target.type_ctx.get_opaque_ptr());
+            this.primary_target_type = primary_target;
+
+            this._usource = new SourceUse();
+            this._usource.attach_back(this);
+
+            this._indices = (owned)indices;
+            foreach (IndexUse i in _indices)
+                i.attach_back(this);
+        }
+        public IndexPtrSSA.move(Type primary_target, owned IndexUse[] indices)
+        {
+            uint layer = 0;
+            Type curr  = primary_target;
+            foreach (IndexUse u in indices) {
+                u.layer = layer;
+                if (_check_index_stepu(u, curr))
+                    break;
+                curr = u.type_after_extract; layer++;
+            }
+            this.move_nocheck(primary_target, (owned)indices);
+        }
+        public IndexPtrSSA.from_values(Type primary_target, Gee.List<Value> indices)
+                    throws TypeMismatchErr, IndexPtrErr
+        {
+            uint layer_idx = 0;
+            Type curr = primary_target;
+            var uses = new IndexUse[indices.size];
+            foreach (Value? index in indices) {
+                if (check_type_index_step(index, layer_idx, curr, out curr)) {
+                    crash_fmt(Musys.SourceLocation.current(),
+                        "Iteration (%u / %d) terminates too early",
+                        layer_idx, uses.length);
+                }
+                uses[layer_idx] = new IndexUse() {
+                    user  = this,
+                    layer = layer_idx,
+                    type_after_extract = curr
+                };
+                layer_idx++;
+            }
+            this.move_nocheck(primary_target, (owned)uses);
+        }
+        public IndexPtrSSA.from_value_array(Type primary_target, Value[] indices)
+                    throws TypeMismatchErr, IndexPtrErr {
+            this.from_values(primary_target, new GeeArraySlice<Value>.from(indices));
+        }
+
+        class construct {
+            _istype[TID.IPOINTER_STORAGE] = true;
+            _istype[TID.INDEX_PTR_SSA]    = true;
+        }
+
+        /**
+         * 迭代函数: 检查传入的 index 是否匹配解包前的类型 before_extracted
+         *
+         * @return 迭代函数返回值, true 表示终止迭代, false 表示继续迭代.
+         */
+        private static bool _check_index_stepu(IndexUse u, Type before_extracted)
+        {
+            try {
+                Type after_extarcted = null;
+                bool ret = check_type_index_step(u.index, u.layer,
+                        before_extracted, out after_extarcted);
+                u.type_after_extract = after_extarcted;
+                return ret;
+            } catch (Error e) {
+                crash(e.message);
+            }
+        }
+
+        /** 表示源操作数的使用关系 */
+        public class SourceUse: Use {
+            public new IndexPtrSSA user {
+                get { return static_cast<IndexPtrSSA>(_user); }
+            }
+            public override Value? usee {
+                get { return user._source; } set { user.source = value; }
+            }
+        }
+
+        /** 表示索引操作数的使用关系 */
+        public class IndexUse: Use {
+            /** 索引层, 从 0 计数. */
+            public uint layer { get; internal set; }
+
+            /** 本层取索引前的类型 */
+            public unowned Type type_before_extract {
+                get {
+                    if (layer == 0)
+                        return user.primary_target_type;
+                    return user.indices[layer - 1].type_after_extract;
+                }
+            }
+            /** 本层取索引后的类型 */
+            public unowned Type type_after_extract { get; internal set; }
+
+            public new IndexPtrSSA user {
+                get { return static_cast<IndexPtrSSA>(_user); }
+                set { _user = value; }
+            }
+
+            internal Value _index;
+            /** 本层索引. 当未解包的类型是结构体时, 本层索引不可变. */
+            public Value index {
+                get { return _index; }
+                set {
+                    if (value == _index)
+                        return;
+                    if (value != null && !value.value_type.is_int) {
+                        crash_fmt(Musys.SourceLocation.current(),
+                            "IndexPtrSSA(%d)::IndexUse(layer %u).index requires int type, " +
+                            "but got %s",
+                            user.id, layer, value.value_type.name);
+                    }
+                    User.replace_use(_index, value, this);
+                    _index = value;
+                }
+            }
+            /**
+             * 本层索引是否可变.
+             * 倘若该方法返回 true, 那 index 一定是常数, 否则该指令不是完备的.
+             */
+            public bool index_mutable()
+            {
+                Type before_extract = type_before_extract;
+                if (!before_extract.is_aggregate)
+                    return false;
+                return ((AggregateType)before_extract).element_always_consist;
+            }
+            public override Value? usee {
+                get { return _index; }
+                set {
+                    index = value;
+                    if (error != null)
+                        return;
+                }
+            }
+
+            public IndexUse.auto_attach(IndexPtrSSA user, uint layer, Type after_extracted) {
+                this.user  = user;
+                this.layer = layer;
+                this.type_after_extract = after_extracted;
+                this.attach_back(user);
+            }
+        }
     }
-    public class SourceUse: Use {
-        public new IndexPtrSSA user {
-            get { return static_cast<IndexPtrSSA>(_user); }
-        }
-        public override Value? usee {
-            get { return user._source; }
-            set { user.source = value; }
-        }
+
+    /**
+     * 在 `IndexPtrSSA` 中遇到的各种问题.
+     * @see Musys.IR.IndexPtrSSA
+     */
+    public errordomain IndexPtrErr {
+        /** 索引是常量值, 但是溢出了 */
+        INDEX_OVERFLOW,
+
+        /** 索引是用来解包结构体的, 但你传入的却不是整数常量值 */
+        INDEX_NOT_CONSTANT,
+
+        /** 索引是用来解包结构体的, 但你却要改变它 */
+        SET_IMMUTABLE_INDEX;
     }
 }

@@ -1,16 +1,30 @@
 public abstract class Musys.IR.IndexSSABase: Instruction {
-    protected         Value    _array;
-    protected         Value    _index;
-    protected unowned Use      _usrc;
-    protected unowned Use      _uindex;
-    public    unowned ArrayType array_type{get; protected set;}
-    public    unowned Type    element_type{
-        get { return array_type.element_type; }
+    protected       Value _aggregate;
+    protected       Value _index;
+    protected unowned Use _usrc;
+    protected unowned Use _uindex;
+    internal unowned AggregateType _aggregate_type;
+    public   unowned AggregateType  aggregate_type
+    {
+        get { return _aggregate_type; }
+        internal set {
+            if (!(value.element_consist)) {
+                crash_fmt(Musys.SourceLocation.current(),
+                    "IndexSSABase::aggregate_type requires consistant aggregate " +
+                    "type, but got %s",
+                    value.to_string()
+                );
+            }
+            _aggregate_type = value;
+        }
+    }
+    public Type element_type{
+        owned get { return aggregate_type.get_element_type_at(0); }
     }
 
-    public Value array {
-        get { return _array; }
-        set { set_usee_type_match(array_type, ref _array, value, _usrc); }
+    public Value aggregate {
+        get { return _aggregate; }
+        set { set_usee_type_match(aggregate_type, ref _aggregate, value, _usrc); }
     }
     public Value index {
         get { return _index; }
@@ -28,19 +42,20 @@ public abstract class Musys.IR.IndexSSABase: Instruction {
     protected new void _deep_clean()
     {
         this.index = null;
-        this.array = null;
+        this.aggregate = null;
         base._deep_clean();
     }
     protected new void _fast_clean() {
         this._index = null;
-        this._array = null;
+        this._aggregate = null;
         base._fast_clean();
     }
-    protected IndexSSABase.C1(Value.TID tid,    OpCode opcode,
-                              ArrayType array_type, Type type)
+    protected IndexSSABase.C1(Value.TID tid, OpCode opcode,
+                              AggregateType aggregate_type,
+                              Type type)
     {
         base.C1(tid, opcode, type);
-        this._array_type = array_type;
+        this.aggregate_type = aggregate_type;
         this._usrc   = new ArrayUse().attach_back(this);
         this._uindex = new IndexUse().attach_back(this);
     }
@@ -51,7 +66,7 @@ public abstract class Musys.IR.IndexSSABase: Instruction {
             get { return static_cast<IndexSSABase>(_user); }
         }
         public override Value? usee {
-            get { return user.array; } set { user.array = value; }
+            get { return user.aggregate; } set { user.aggregate = value; }
         }
     }
     private sealed class IndexUse: Use {

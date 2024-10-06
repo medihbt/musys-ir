@@ -1,8 +1,16 @@
 namespace Musys.IR {
+    /**
+     * === 单操作数指令(基类) ===
+     *
+     * 只有一个操作数的指令, 包括取反、取负、存储单元加载等.
+     * 把这些指令合并到一个基类里是为了减少 Use 的工作量.
+     */
     public abstract class UnarySSA: Instruction {
         protected        Value _operand;
         protected unowned Type _operand_type;
-        protected unowned Use  _uoperand;
+        protected UnaryOpUse   _uoperand;
+
+        protected virtual void _check_operand(Value? operand) {}
         public Value operand {
             get { return _operand; }
             set {
@@ -38,22 +46,46 @@ namespace Musys.IR {
         {
             base.C1 (tid, opcode, type);
             this._operand_type = op_type;
-            this._uoperand = new UnaryOpUse().attach_back(this);
+            this._uoperand = new UnaryOpUse();
+            this._uoperand.attach_back(this);
+        }
+        class construct {
+            _istype[TID.UNARY_SSA] = true;
+        }
+
+        protected sealed class UnaryOpUse: Use {
+            public new UnarySSA user {
+                get { return static_cast<UnarySSA>(_user); }
+            }
+            public override Value? usee {
+                get { return user.operand; }
+                set { user.operand = value; }
+            }
         }
     }
 
-    private sealed class UnaryOpUse: Use {
-        public new UnarySSA user {
-            get { return static_cast<UnarySSA>(_user); }
-        }
-        public override Value? usee {
-            get { return user.operand; } set { user.operand = value; }
-        }
-    }
-
+    /**
+     * === 单操作数指令 ===
+     *
+     * 包含取负、取反等一系列操作.
+     *
+     * ''语法'': `%<id> = <opcode> <value_type>, <operand_type> <operand>`
+     * - ``opcode``: 操作码 not, ineg 或 fneg
+     *
+     * 操作数:
+     * - `[0] = operand` 源操作数
+     */
     public sealed class UnaryOpSSA: UnarySSA {
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_unary(this);
+        }
+        protected override void _check_operand(Value? value)
+        {
+            if (value == null)
+                return;
+            type_match_or_crash(this.value_type,
+                                value.value_type,
+                                Musys.SourceLocation.current());
         }
 
         public UnaryOpSSA.raw(OpCode opcode, Type type) {
@@ -74,5 +106,24 @@ namespace Musys.IR {
             this.raw(NOT, type);
             this.operand = value;
         }
+
+#if false
+        private static void _check_operand_by_opcode(UnaryOpSSA self, Value? value)
+        {
+            var opcode = self.opcode;
+            switch (opcode) {
+            case OpCode.NOT: case OpCode.INEG:
+                value_int_or_crash(value,
+                    opcode == INEG? "for this being an INEG instruction"
+                                  : "for this being a NOT instruction");
+                break;
+            case OpCode.FNEG:
+                value_float_or_crash(value, "for this being a FNEG instruction");
+                break;
+            default:
+                assert_not_reached();
+            }
+        }
+#endif
     }
 }

@@ -108,8 +108,8 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     {
         unowned var    outs = _rt->outs;
         unowned string visibl = galias.visibility.get_display_name();
-        unowned PointerType type = galias.ptr_type;
-        outs.puts(@"@$(galias.name) = $visibl alias $(type.target), $type @$(galias.direct_aliasee.name)");
+        var content_type = galias.content_type;
+        outs.puts(@"@$(galias.name) = $visibl alias $content_type, ptr @$(galias.direct_aliasee.name)");
     }
     public override void visit_basicblock(IR.BasicBlock block)
     {
@@ -186,12 +186,13 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         outs.puts((retty is VoidType) ? "call void ": @"%$(inst.id) = call $retty ");
         outs.printf("@%s (", inst.fn_callee.name);
         uint cnt = 0;
-        foreach (var arg in inst.args) {
+        foreach (var arg in inst.uargs) {
             if (cnt != 0)
                 outs.puts(", ");
             cnt++;
-            outs.printf("%s ", calleety.params[cnt].name);
-            _write_by_ref(arg.arg);
+            unowned var varg = arg.get_arg();
+            outs.printf("%s ", varg.value_type.to_string());
+            _write_by_ref(varg);
         }
         outs.putchar(')');
     }
@@ -287,8 +288,8 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     {
         unowned var outs = _rt->outs;
         var id = inst.id;
-        var ity = inst.source_ptr_type.target;
-        var pty = inst.source_ptr_type;
+        var ity = inst.primary_target_type;
+        var pty = inst.source.value_type;
         outs.puts(@"%$id = getelementptr inbounds $ity, $pty ");
         _write_by_ref(inst.source);
         foreach (var idx in inst.indices) {
@@ -300,10 +301,10 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     {
         unowned var outs = _rt->outs;
         var id = inst.id;
-        var srcty = inst.array_type;
+        var srcty = inst.aggregate_type;
         var dstty = inst.index.value_type;
         outs.puts(@"%$id = extractelement $srcty ");
-        _write_by_ref(inst.array);
+        _write_by_ref(inst.aggregate);
         outs.puts(@", $dstty ");
         _write_by_ref(inst.index);
     }
@@ -311,13 +312,13 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     {
         unowned var outs = _rt->outs;
         var id = inst.id;
-        var srcty = inst.array_type;
+        var srcty = inst.aggregate_type;
         var dstty = inst.index.value_type;
         var elmty = inst.element_type;
         outs.puts(@"%$id = insertelement $elmty ");
         _write_by_ref(inst.element);
         outs.puts(@", $srcty ");
-        _write_by_ref(inst.array);
+        _write_by_ref(inst.aggregate);
         outs.puts(@", $dstty ");
         _write_by_ref(inst.index);
     }

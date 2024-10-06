@@ -11,7 +11,7 @@ public class Musys.IR.StoreSSA: Instruction {
         get { return _target; }
         set { set_usee_type_match(_dstty, ref _target, value, _udst); }
     }
-    
+
     private unowned Type        _srcty;
     private unowned PointerType _dstty;
     public Type        source_type { get { return _srcty; } }
@@ -34,26 +34,30 @@ public class Musys.IR.StoreSSA: Instruction {
         visitor.visit_inst_store(this);
     }
 
-    public StoreSSA.raw(PointerType target_type, size_t align) {
-        unowned var tctx = target_type.type_ctx;
+    public StoreSSA.raw(PointerType storage_type, Type source_type, size_t align) {
+        unowned var tctx = storage_type.type_ctx;
         unowned var voidty = tctx.void_type;
         base.C1(STORE_SSA, STORE, voidty);
-        _srcty = target_type.target;
-        _dstty = target_type;
+        _srcty = source_type;
+        _dstty = storage_type;
         _usrc = new SrcUse(this).attach_back(this);
         _udst = new DstUse(this).attach_back(this);
         this.align = align;
     }
     public StoreSSA.from(Value src, Value dst, size_t align = 0) {
         PointerType pty = value_ptr_or_crash(dst, "at StoreSSA()::dst");
+        Type     src_ty = src.value_type;
+        if (!PointerType.IsLegalPointee(src_ty)) {
+            crash_fmt(Musys.SourceLocation.current(), "StoreSSA requires ");
+        }
         if (align == 0)
             align = User.get_ptr_value_align(dst);
-        this.raw(pty, align);
+        this.raw(pty, src_ty, align);
         this.target = dst;
         this.source = src;
     }
     public StoreSSA.from_load(Value src, LoadSSA dst) {
-        this.raw(dst.source_type, dst.align);
+        this.raw(dst.source_type, dst.target_type, dst.align);
         this.target = dst;
         this.source = src;
     }

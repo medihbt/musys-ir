@@ -26,10 +26,10 @@ namespace Musys {
          * @see tid
          */
         public enum TID {
-            TYPE,       VOID_TYPE,
-            VALUE_TYPE, INT_TYPE,   FLOAT_TYPE,
+            TYPE, VOID_TYPE,
+            PRIMITIVE_TYPE, INT_TYPE, FLOAT_TYPE,
             AGGR_TYPE,  ARRAY_TYPE, VEC_TYPE, STRUCT_TYPE,
-            REF_TYPE,   PTR_TYPE,   LABEL_TYPE,
+            REF_TYPE,   NAMED_PTR_TYPE, OPAQUE_PTR_TYPE, LABEL_TYPE,
             FUNCTION_TYPE,
             COUNT;
         } // enum TID
@@ -60,7 +60,7 @@ namespace Musys {
         }
         public bool is_void       { get { return _istype[TID.VOID_TYPE]; }  }
 
-        public bool is_valuetype  { get { return _istype[TID.VALUE_TYPE]; } }
+        public bool is_valuetype  { get { return _istype[TID.PRIMITIVE_TYPE]; } }
         public bool is_int        { get { return _istype[TID.INT_TYPE]; }   }
         public bool is_float      { get { return _istype[TID.FLOAT_TYPE];}  }
 
@@ -70,7 +70,7 @@ namespace Musys {
         public bool is_struct     { get { return _istype[TID.STRUCT_TYPE];} }
 
         public bool is_ref        { get { return _istype[TID.REF_TYPE]; } }
-        public bool is_pointer    { get { return _istype[TID.PTR_TYPE]; } }
+        public bool is_pointer    { get { return _istype[TID.OPAQUE_PTR_TYPE]; } }
         public bool is_label      { get { return _istype[TID.LABEL_TYPE]; } }
 
         public bool is_function   { get { return _istype[TID.FUNCTION_TYPE]; } }

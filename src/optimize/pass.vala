@@ -4,11 +4,29 @@ namespace Musys.IROpt {
         public enum Kind {
             OPTIMIZE_PASS, ANALYSIS_PASS;
         }
+
+        public    size_t class_id { get { return _class_id; } }
+        protected class  size_t _class_id = 0;
+        protected static size_t _max_id   = 0;
+        protected static Mutex  _max_id_mutex = Mutex();
+
+        public string class_description {
+            get { return _class_description ?? "<unnamed pass>"; }
+        }
+        protected class string _class_description;
+
         public Kind kind{get;set;}
         public abstract void clear_context();
 
         protected Pass.C1(Kind kind) {
             this.kind = kind;
+        }
+        class construct { _klass_init_id(); }
+        class void _klass_init_id() {
+            _max_id_mutex.lock();
+            _max_id++;
+            _class_id = _max_id;
+            _max_id_mutex.unlock();
         }
     }
 

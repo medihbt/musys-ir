@@ -7,10 +7,6 @@ namespace GLibC {
 
     [CCode (cname="backtrace_symbols_fd", cheader_filename="execinfo.h")]
     public extern void backtrace_symbols_fd(pointer *stack_buffer, int len, int fd);
-
-    [NoReturn]
-    [CCode (cname="abort", cheader_filename="unistd.h")]
-    public extern void abort();
 }
 
 namespace Musys {
@@ -40,6 +36,8 @@ namespace Musys {
         INFO, DEBUG, WARNING, CRITICAL, FATAL;
     }
     public errordomain RuntimeErr {
+        /** 数组下标越界 */
+        INDEX_OVERFLOW,
         NULL_PTR;
     }
 
@@ -60,6 +58,19 @@ namespace Musys {
         stderr.puts  ("-----------------< 栈回溯 >-----------------\n");
         print_backtrace();
     }
+
+    /**
+     * 打印栈回溯, 然后报错崩溃. 一般与 critical() 函数配合使用.
+     */
+    [NoReturn]
+    public void traced_abort()
+    {
+        stderr.printf("|================ [进程 %d 已崩溃] ================|\n",
+                      stdc.getpid());
+        print_backtrace();
+        Process.abort();
+    }
+
     [NoReturn]
     public void crash(string msg, bool pauses = true, SourceLocation loc = SourceLocation.current())
     {
@@ -70,7 +81,7 @@ namespace Musys {
             stderr.puts("请按回车键继续...");
             stdin.getc();
         }
-        GLibC.abort();
+        Process.abort();
     }
     [NoReturn]
     public inline void crash_vfmt(SourceLocation loc, string fmt, va_list ap)
@@ -80,7 +91,7 @@ namespace Musys {
         stderr.vprintf(fmt, ap);
         stderr.puts("\n请按回车键继续...");
         stdin.getc();
-        GLibC.abort();
+        Process.abort();
     }
     [NoReturn, PrintfFormat]
     public void crash_fmt(SourceLocation loc, string fmt, ...) {

@@ -1,5 +1,16 @@
 public errordomain Musys.TypeMismatchErr {
-    MISMATCH, NOT_CHILD_OF,
+    /** 就是简单的 mismatch, 找不到别的原因 */
+    MISMATCH,
+    /** 具体的类型不匹配 */
+    NOT_INT, NOT_FLOAT,
+    NOT_AGGREGATE, NOT_ARRAY, NOT_VECTOR, NOT_STRUCT,
+    NOT_POINTER, NOT_LABEL,
+    NOT_FUNCTION,
+    /** 具体类型的细分错误 */
+    STRUCT_OPAQUE,
+    /** 不是要求类型的子类型 */
+    NOT_CHILD_OF,
+    /** 不能实例化 */
     NOT_INSTANTANEOUS;
 }
 
@@ -16,7 +27,10 @@ public class Musys.TypeContext: Object {
         OK, HAD_ITEM;
     }
 
+    /** 目标机器字长, 单位是字节. Musys 只支持一字节 8 位的系统. */
     public   uint32 machine_word_size{ get; }
+
+    /** 类型缓存. 这部分缓存可以加快整数等类型的存取. */
     private  TypeCtxCache _type_cache;
     internal Gee.HashMap<unowned Type, Type> _types;
     internal Gee.HashMap<string, StructType> _symbolled_struct_types;
@@ -45,10 +59,10 @@ public class Musys.TypeContext: Object {
         return (ArrayType)get_or_register_type(ret);
     }
 
-    /** 获取目标类型为 elemty 的指针类型. 目前 Musys 不支持不透明指针. */
-    public PointerType get_ptr_type(Type target) {
-        var ret = new PointerType(this, target);
-        return (PointerType)get_or_register_type(ret);
+    public PointerType get_opaque_ptr() {
+        if (_type_cache.opaque_ptr_type == null)
+            _type_cache.opaque_ptr_type = new PointerType.opaque(this);
+        return _type_cache.opaque_ptr_type;
     }
 
     /**
@@ -114,8 +128,8 @@ public class Musys.TypeContext: Object {
         }
         StructType sty = sst[name];
         if (sty.is_opaque && !type.is_opaque) {
-            sst[name] = type;
-            return type;
+            sty.swap_fields_with(type);
+            return sty;
         }
         return sty;
     }
@@ -209,6 +223,7 @@ public class Musys.TypeContext: Object {
         LabelType labelty;
         FloatType ieee_f32;
         FloatType ieee_f64;
+        PointerType opaque_ptr_type;
 
         internal IntType new_or_get_int_ty(uint bits, TypeContext tctx)
         {
@@ -238,6 +253,7 @@ public class Musys.TypeContext: Object {
         {
             voidty   = new VoidType(tctx);
             labelty  = new LabelType(tctx);
+            opaque_ptr_type = new PointerType.opaque(tctx);
             ieee_f32 = new FloatType.ieee_fp32(tctx);
             ieee_f64 = new FloatType.ieee_fp64(tctx);
             ity_bytes[0] = new IntType(tctx, 1);

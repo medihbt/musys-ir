@@ -26,14 +26,67 @@ public class Musys.StructType: AggregateType {
      */
     public Kind kind { get; internal set; }
 
+    internal (unowned Type)[]? _fields;
     /**
      * 结构体的字段表. 当 `fields == null` 时表示它是一个**不透明结构体**.
+     *
+     * 有时为了做循环引用, 创建一个结构体以后才会设置它的字段. 因此开放 fields
+     * 的 set 属性.
      * 
      * @see is_opaque
      *
      * @see _fields
      */
-    public Type[]? fields { get; internal set; }
+    public (unowned Type)[]? fields {
+        get { return _fields; }
+        /* 把带所有权的放进去以提高效率 */
+        owned set {
+            if (_fields == value)
+                return;
+            _fields = (owned)value;
+
+            /* 清空字段和哈希缓存, 否则会出问题的 */
+            _fields_str = null;
+            _hash_cache = 0;
+        }
+    }
+
+    /**
+     * ==== 换一个新的字段表. ====
+     *
+     * 因为 Vala 的 "属性" 不支持直接换出带所有权的独占所有权对象, 故写此方法以执行
+     * 类似 C++ 移动语义的操作.
+     */
+    public (unowned Type)[]? swapout_fields(owned (unowned Type)[]? new_fields)
+    {
+        if (new_fields == fields)
+            return null;
+        var ret = (owned)_fields;
+        _fields = (owned)new_fields;
+
+        /* 清零字段名称和哈希缓存, 否则会出问题的 */
+        _fields_str = null; _hash_cache = 0;
+        return ret;
+    }
+    public void swap_fields_with(StructType rhs)
+    {
+        if (rhs == this)
+            return;
+        /** 字段交换 */
+        var mid_fields = (owned)rhs._fields;
+        rhs._fields = (owned)this._fields;
+        this._fields = (owned)mid_fields;
+
+        /** 字段名称缓存交换 */
+        string? mid_fieldstr = (owned)_fields_str;
+        _fields_str = (owned)rhs._fields_str;
+        rhs._fields_str = (owned)mid_fieldstr;
+
+        /** 哈希缓存交换 */
+        size_t mid_hash = _hash_cache;
+        _hash_cache = rhs._hash_cache;
+        rhs._hash_cache = mid_hash;
+    }
 
     /** 结构体字段的数量. 不透明结构体的字段数量是 0. */
     public size_t nfields { get { return _fields.length; } }

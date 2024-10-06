@@ -1,20 +1,42 @@
-public abstract class Musys.IR.GlobalObject: Constant {
+/**
+ * **全局对象**: 程序静态数据的抽象, 表示存储全局变量、全局常量和函数的存储单元.
+ *
+ * 因为是存储单元, 全局对象的类型都是指针类型. 由于 Musys 的指针都是不透明的,
+ * 因此 `GlobalObject` 实现了 `IPointerValue` 接口以传达自己能存放的数据类型.
+ */
+public abstract class Musys.IR.GlobalObject: Constant, IPointerStorage {
+    /** 全局对象的可见性. */
     public enum Visibility {
-        INTERNAL, DSO_LOCAL, EXTERNAL,
+        /** 仅内部可见 */
+        INTERNAL,
+        /** 内外部都可见, 并且对内暴露实现 */
+        DSO_LOCAL,
+        /** 内外部都可见, 不对内暴露实现 */
+        EXTERNAL,
         RESERVED_COUNT;
-        public unowned string get_display_name() {
+
+        public unowned string get_display_name()
+        {
             if (this >= RESERVED_COUNT)
                 return "<undefined>";
             return _gobj_visibl_name_map[this];
         }
     }
 
+    /** 自己的类型, 实际是个指针. */
     public PointerType ptr_type {
         get { return static_cast<PointerType>(_value_type); }
     }
-    public Type content_type { get { return ptr_type.target; } }
+    /** 内含元素类型. */
+    public Type content_type { get; internal set; }
+
+    /** (实现 IPointerValue 接口) */
+    public Type get_ptr_target() { return content_type; }
+
+    /** 自己的名称. GlobalObject 是极少数有字符串名称的 Value 子类之一. */
     public string name{get;set;}
 
+    /** 表示自己的实现是不是外部的. */
     public abstract bool is_extern {get;}
     [CCode(notify=false)]
     public abstract bool is_mutable{get;set;}
@@ -38,13 +60,16 @@ public abstract class Musys.IR.GlobalObject: Constant {
 
     public override bool is_zero { get { return false; } }
 
-    protected GlobalObject.C1(Value.TID tid, PointerType type, string name, bool is_internal) {
-        base.C1 (tid, type);
+    protected GlobalObject.C1(Value.TID tid, Type content_type, string name, bool is_internal) {
+        var tctx = content_type.type_ctx;
+        base.C1(tid, tctx.get_opaque_ptr());
+        this.content_type = content_type;
         this._is_internal = is_internal;
         this._name = name;
     }
     class construct {
-        _istype[TID.GLOBAL_OBJECT] = true;
+        _istype[TID.GLOBAL_OBJECT]  = true;
+        _istype[TID.IPOINTER_STORAGE] = true;
         _shares_ref               = false;
     }
 }

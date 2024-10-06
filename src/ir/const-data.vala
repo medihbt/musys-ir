@@ -11,11 +11,11 @@ namespace Musys.IR {
         [CCode(notify=false)]
         public abstract double f64_value{get;set;}
 
-        public new ValueType value_type {
-            get { return static_cast<ValueType>(value_type); }
+        public new PrimitiveType value_type {
+            get { return static_cast<PrimitiveType>(value_type); }
         }
 
-        protected ConstData.C1(Value.TID tid, ValueType type) {
+        protected ConstData.C1(Value.TID tid, PrimitiveType type) {
             base.C1(tid, type);
         }
         class construct {
@@ -45,7 +45,7 @@ namespace Musys.IR {
             visitor.visit_const_data_zero(this);
         }
 
-        public ConstDataZero(ValueType value_type) {
+        public ConstDataZero(PrimitiveType value_type) {
             base.C1(Value.TID.CONST_DATA_ZERO, value_type);
         }
         class construct {

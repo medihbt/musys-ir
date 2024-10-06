@@ -26,12 +26,12 @@ namespace Musys.IR {
             visitor.visit_global_variable(this);
         }
 
-        public GlobalVariable.extern(PointerType type, string name) {
+        public GlobalVariable.extern(NamedPointerType type, string name) {
             base.C1(GLOBAL_VARIABLE, type, name, false);
             _is_mutable = true;
             _init_content = null;
         }
-        public GlobalVariable.define(PointerType type, string name, bool is_internal = false)
+        public GlobalVariable.define(NamedPointerType type, string name, bool is_internal = false)
         {
             base.C1(GLOBAL_VARIABLE, type, name, false);
             _is_mutable = true;

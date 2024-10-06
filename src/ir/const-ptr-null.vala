@@ -11,11 +11,14 @@ namespace Musys.IR {
             return new ConstInt.from_i64(ity, 0);
         }
         public PointerType ptr_type {
-            get { return static_cast<PointerType>(_value_type); }
+            get { return static_cast<PointerType>(value_type); }
         }
 
         public ConstPtrNull(PointerType ptr_ty) {
             base.C1(Value.TID.CONST_PTR_NULL, ptr_ty);
+        }
+        public ConstPtrNull.from_type_ctx(TypeContext tctx) {
+            base.C1(Value.TID.CONST_PTR_NULL, tctx.get_opaque_ptr());
         }
         class construct {
             _istype[TID.ICONST_ZERO]    = true;

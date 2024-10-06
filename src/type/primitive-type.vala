@@ -25,7 +25,7 @@ namespace Musys {
      *
      * 标量类型的大小是按位算的, 其属性 `binary_bits` 就是该类型所占的二进制位数.
      */
-    public abstract class ValueType: Type {
+    public abstract class PrimitiveType: Type {
         protected uint32 _binary_bits;
         /** 该类型所占的二进制位大小. 例如 i32 占 32 位, double 占 64 位. */
         public    uint32  binary_bits{
@@ -52,13 +52,13 @@ namespace Musys {
         /** 名称缓存. */
         protected string _name = null;
 
-        protected ValueType.C1(TypeContext tctx, TID tid, uint32 binary_bits)
+        protected PrimitiveType.C1(TypeContext tctx, TID tid, uint32 binary_bits)
         {
             base.C1(tid, tctx);
             this._binary_bits = binary_bits;
         }
         class construct {
-            _istype[TID.VALUE_TYPE] = true;
+            _istype[TID.PRIMITIVE_TYPE] = true;
         }
     }
 
@@ -76,7 +76,7 @@ namespace Musys {
      *
      * 在 TypeContext 中, 调用 `TypeContext.get_int_type(bit)` 方法可以获取二进制位为 bit 的整数.
      */
-    public sealed class IntType: ValueType {
+    public sealed class IntType: PrimitiveType {
         public override string name {
             get {
                 if (_name == null)
@@ -107,7 +107,7 @@ namespace Musys {
      *
      * 受限于 FloatType 的表达能力, Musys 不支持十进制浮点类型.
      */
-    public sealed class FloatType: ValueType {
+    public sealed class FloatType: PrimitiveType {
         public override size_t hash() {
             uint32 uid = ((uint32)_is_signed << 31) |
                          (_index_bits << 16) | (_tail_bits);

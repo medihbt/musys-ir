@@ -142,7 +142,7 @@ namespace Musys.IR {
         public BinaryRHSUse(BinarySSA user) { base.C1(user); }
     }
 
-    private unowned ValueType _valuetype_same_or_crash(Value lhs, Value rhs)
+    private unowned PrimitiveType _valuetype_same_or_crash(Value lhs, Value rhs)
     {
         unowned var lty = lhs.value_type;
         unowned var rty = rhs.value_type;
@@ -154,7 +154,7 @@ namespace Musys.IR {
             crash(@"Add instruction requires LHS and RHS type be the same, but\nlhs is $(lty)\nrhs is $(rty)"
                   , true, {Log.FILE, Log.METHOD, Log.LINE});
         }
-        return static_cast<ValueType>(lty);
+        return static_cast<PrimitiveType>(lty);
     }
     private unowned Type _all_int_or_crash(Value lhs, Value rhs)
     {

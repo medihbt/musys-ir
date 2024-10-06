@@ -2,7 +2,10 @@ public errordomain Musys.IR.GlobalAliasErr {
     STEP_OVERFLOW;
 }
 
-public class Musys.IR.GlobalAlias: GlobalObject {
+/**
+ * 全局符号别名. 该值接受一个操作数 "aliasee", 相当于给 aliasee 赋予一个新的名称.
+ */
+public class Musys.IR.GlobalAlias: GlobalObject, IPointerStorage {
     private GlobalObject _aliasee;
     private unowned Use _ualiasee;
     public GlobalObject direct_aliasee {
@@ -35,27 +38,37 @@ public class Musys.IR.GlobalAlias: GlobalObject {
     public override bool enable_impl()  { return false; }
     public override bool disable_impl() { return false; }
     public override bool is_extern { get { return false; } }
+
+    /** "设置全局别名的可变性" 语义不清晰, 不予通过. */
     public override bool is_mutable {
         get {
             try { return get_final_aliasee().is_mutable; }
             catch (Error e) { crash(e.message); }
-        } set {}
+        }
+        set {
+            warning("Blocked: try to make global alias {@%s} mutable. "+
+                    "Cannot understand what it means to make a global alias mutable or immutable.",
+                    name);
+        }
     }
+
     public override void accept(IValueVisitor visitor) {
         visitor.visit_global_alias(this);
     }
 
-    public GlobalAlias.raw(PointerType target_type, string name, bool is_internal = false) {
-        base.C1(GLOBAL_ALIAS, target_type, name, is_internal);
+    public GlobalAlias.raw(Type content_type, string name, bool is_internal = false) {
+        base.C1(GLOBAL_ALIAS, content_type, name, is_internal);
         this._ualiasee = new AliaseeUse().attach_back(this);
     }
     public GlobalAlias.from(GlobalObject aliasee, string name, bool is_internal = false) {
-        this.raw(aliasee.ptr_type, name, is_internal);
+        this.raw(aliasee.content_type, name, is_internal);
         this.direct_aliasee = aliasee;
     }
     class construct { _istype[TID.GLOBAL_ALIAS] = true; }
 
     public static uint aliasee_search_limit = 8;
+
+    /** 被 GlobalAlias 指向的 Aliasee. */
     private sealed class AliaseeUse: Use {
         public new GlobalAlias user {
             get { return static_cast<GlobalAlias>(_user); }

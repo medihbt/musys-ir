@@ -1,6 +1,6 @@
 public class Musys.IR.IndexInsertSSA: IndexSSABase {
-    private         Value _element;
-    private unowned Use  _uelement;
+    private       Value _element;
+    private unowned Use _uelement;
     public Value element {
         get { return _element; }
         set { set_usee_type_match(element_type, ref _element, value, _uelement); }
@@ -17,8 +17,8 @@ public class Musys.IR.IndexInsertSSA: IndexSSABase {
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_index_insert(this);
     }
-    public IndexInsertSSA.raw(ArrayType array_type) {
-        base.C1(INDEX_INSERT_SSA, INDEX_INSERT, array_type, array_type);
+    public IndexInsertSSA.raw(AggregateType aggregate_type) {
+        base.C1(INDEX_INSERT_SSA, INDEX_INSERT, aggregate_type, aggregate_type);
         this._uelement = new ElemUse().attach_back(this);
     }
     class construct { _istype[TID.INDEX_INSERT_SSA] = true; }
@@ -29,7 +29,7 @@ public class Musys.IR.IndexInsertSSA: IndexSSABase {
         }
         public override Value? usee {
             get { return user._element; }
-            set { user.element = value;}
+            set { user.element = value; }
         }
     }
 }

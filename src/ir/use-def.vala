@@ -1,7 +1,7 @@
 namespace Musys.IR {
     public abstract class Value: Object {
         public enum TID {
-            VALUE, USER,
+            VALUE, USER, IPOINTER_STORAGE,
             CONSTANT,   ICONST_ZERO,
             CONST_DATA, CONST_INT,  CONST_FLOAT, CONST_DATA_ZERO,
             UNDEFINED_VALUE,
@@ -96,14 +96,17 @@ namespace Musys.IR {
 
         public static size_t get_ptr_value_align(Value ptr_value)
         {
-            size_t align = 0;
-            PointerType pty = value_ptr_or_crash(ptr_value);
             unowned var pvclass = ptr_value.get_class();
+            size_t align = 0;
             var spec = pvclass.find_property("align");
-            if (spec == null || spec.value_type != typeof(size_t))
-                align = pty.target.instance_align;
-            else
+            if (spec != null && spec.value_type == typeof(size_t)) {
                 ptr_value.get("align", &align);
+            } else {
+                Type? ty = IPointerStorage.GetDirectTarget(ptr_value);
+                if (ty == null || ty.is_void)
+                    return 0;
+                align = ty.instance_align;
+            }
             return align;
         }
 
@@ -112,6 +115,12 @@ namespace Musys.IR {
             if (to == from)  return;
             if (from != null)
                 type_match_or_crash(type, from.value_type);
+            User.replace_use(to, from, use);
+            to = from;
+        }
+        protected static void set_usee_always(ref Value? to, Value? from, Use use)
+        {
+            if (to == from)  return;
             User.replace_use(to, from, use);
             to = from;
         }
@@ -142,13 +151,26 @@ namespace Musys.IR {
         internal          Use  _next;
         public           Error error;
 
-        public  abstract Value? usee{get;set;}
+        /** 操作数. 不同类型、不同位置的操作数, 读写时会做不同的检查. */
+        public  abstract Value? usee{ get; set; }
+
+        public void set_usee_throws(Value? value)
+                    throws Error {
+            usee = value;
+            if (error != null)
+                throw (owned)error;
+        }
+
+        /** 自己所属的操作数列表. */
         internal OperandList op_list{ get { return _op_list; } }
+
+        /** 自己所属的使用者, 一般也是指令. */
         internal User        user {
             get { return  _user; }
             set { _user = value; }
         }
 
+        /** 把自己插入使用者 user 操作数列表的末尾. */
         public unowned Use attach_back(User user)
         {
             unowned var operands = user.operands;

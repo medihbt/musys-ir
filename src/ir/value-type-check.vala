@@ -1,5 +1,5 @@
 namespace Musys.IR {
-    public IntType?   value_int_or_crash(Value? value, string msg = "")
+    public IntType? value_int_or_crash(Value? value, string msg = "")
     {
         if (value == null)
             return null;
@@ -9,6 +9,18 @@ namespace Musys.IR {
             return static_cast<IntType>(t);
         crash(@"Value type mismatch: requires int, but got $(t)\nadditional: $(msg)",
               true, {Log.FILE, Log.METHOD, Log.LINE});
+    }
+    [PrintfFormat]
+    public IntType? value_int_or_crash_fmt(Value? value, string fmt, ...)
+    {
+        if (value == null)
+            return null;
+        unowned Value v = value;
+        unowned Type  t = v.value_type;
+        if (t.is_int)
+            return static_cast<IntType>(t);
+        critical("Value type mismatch: requires int, but got %s.", t.to_string());
+        crash_vfmt(Musys.SourceLocation.current(), fmt, va_list());
     }
     public unowned IntType value_bool_or_crash(Value value, string msg = "")
     {
@@ -91,8 +103,8 @@ namespace Musys.IR {
             return true;
         size_t lbit = 0, rbit = 0;
         if (l.is_valuetype && r.is_valuetype) {
-            lbit = static_cast<ValueType>(l).binary_bits;
-            rbit = static_cast<ValueType>(r).binary_bits;
+            lbit = static_cast<PrimitiveType>(l).binary_bits;
+            rbit = static_cast<PrimitiveType>(r).binary_bits;
             if (lbit == rbit)
                 return true;
         } else {
@@ -110,8 +122,8 @@ namespace Musys.IR {
             return;
         size_t lbit = 0, rbit = 0;
         if (l.is_valuetype && r.is_valuetype) {
-            lbit = static_cast<ValueType>(l).binary_bits;
-            rbit = static_cast<ValueType>(r).binary_bits;
+            lbit = static_cast<PrimitiveType>(l).binary_bits;
+            rbit = static_cast<PrimitiveType>(r).binary_bits;
             if (lbit == rbit)
                 return;
         } else {
@@ -130,5 +142,60 @@ namespace Musys.IR {
         if (type.is_int && static_cast<IntType>(type).binary_bits == 1)
             return static_cast<IntType>(type);
         return type.type_ctx.bool_type;
+    }
+
+    /**
+     * ''迭代函数'': 检查传入的 `index` 是否匹配解包前的类型 `before_extracted`
+     *
+     * 因为这是个迭代函数, 所以返回值 `true` 表示终止迭代, `false` 表示继续迭代.
+     *
+     * @return 迭代函数返回值, `true` 表示终止迭代, `false` 表示继续迭代.
+     */
+    public bool check_type_index_step(Value index, uint layer,
+                    Type before_extracted, out Type after_extracted)
+                throws TypeMismatchErr, IndexPtrErr
+    {
+        if (!before_extracted.is_aggregate) {
+            throw new TypeMismatchErr.NOT_AGGREGATE(
+                "IndexPtrSSA layer %u (type %s) requires aggregate type to extract",
+                layer, before_extracted.to_string()
+            );
+        }
+        var aggr_bex = static_cast<AggregateType>(before_extracted);
+
+        /* 对于数组、向量这种元素统一的类型, 直接返回即可. 结构体才要做 extract. */
+        if (aggr_bex.element_always_consist) {
+            after_extracted = aggr_bex.get_element_type_at(0);
+            return false;
+        }
+
+        /* 不透明结构体不可索引. */
+        if (aggr_bex.is_struct && static_cast<StructType>(aggr_bex).is_opaque) {
+            throw new TypeMismatchErr.STRUCT_OPAQUE(
+                "IndexPtrSSA layer %u (type %s) is opqaue structure, which means it cannot be extracted",
+                layer, before_extracted.to_string()
+            );
+        }
+
+        /* 结构体的索引必须是常量 */
+        if (unlikely(index == null || !index.isvalue_by_id(CONST_INT))) {
+            throw new IndexPtrErr.INDEX_NOT_CONSTANT(
+                "IndexPtrSSA layer %u (type %s) is not array or vector, "+
+                "while it received an unexpected non-constant index %s",
+                layer, before_extracted.to_string(),
+                index == null? "(null)": index.get_type().name()
+            );
+        }
+        /* 结构体索引不能超限 */
+        var iconst_index = static_cast<ConstInt>(index);
+        after_extracted = aggr_bex.get_element_type_at((size_t)iconst_index.i64_value);
+        if (unlikely(after_extracted.is_void)) {
+            throw new IndexPtrErr.INDEX_OVERFLOW(
+                "IndexPtrSSA layer %u (type {%s}) index[%l] overflow",
+                layer, before_extracted.to_string(),
+                iconst_index.i64_value
+            );
+        }
+        return false;
     }
 }
