@@ -1,15 +1,29 @@
 namespace Musys.IR {
-    delegate void OperandCheckFunc(Value operand);
-
+    /**
+     * === 双操作数指令 ===
+     *
+     * 顾名思义. 双操作数指令要么是算术运算指令，要么是逻辑运算指令.
+     *
+     * ==== 操作数表 ====
+     * - `[0] = lhs`: 左操作数
+     * - `[1] = rhs`: 右操作数
+     *
+     * ==== 文本格式 ====
+     * - 整数加/减/乘指令: `%<id> = <opcode> <nsw|nuw> <type> <lhs>, <rhs>`, 其中 opcode = add, sub, mul
+     * - 其他算术指令: `%<id> = <opcode> <type> <lhs>, <rhs>`, 其中 opcode = fadd,...,frem;sdiv,udiv,srem,urem
+     * - 其他指令: `%<id> = <opcode> <type> <lhs>, <type> <rhs>`, 其中 opcode = and,or,...,ashr
+     */
     public class BinarySSA: Instruction {
         private Value _lhs;
         private Value _rhs;
         private unowned Use _ulhs;
         private unowned Use _urhs;
+        /** 左操作数 ([0] = lhs) */
         public Value lhs {
             get { return _lhs; }
             set { set_usee_type_match_self(ref _lhs, value, _ulhs); }
         }
+        /** 右操作数 ([1] = rhs) */
         public Value rhs {
             get { return _rhs; }
             set {
@@ -23,6 +37,12 @@ namespace Musys.IR {
             }
         }
 
+        /**
+         * 是否把操作数视为有符号的.
+         *
+         * 在算术二元表达式中, 这个 is_signed 会作用于全体操作数. 在移位表达式中,
+         * is_signed 会作用于被移位的操作数.
+         */
         public bool is_signed{get;}
 
         public override void on_parent_finalize () {
@@ -122,6 +142,7 @@ namespace Musys.IR {
         class construct { _istype[TID.BINARY_SSA] = true; }
     }
 
+    /** BinarySSA 的左操作数. */
     private sealed class BinaryLHSUse: Use {
         public new BinarySSA user {
             get { return static_cast<BinarySSA>(_user); }
@@ -132,6 +153,7 @@ namespace Musys.IR {
         public BinaryLHSUse(BinarySSA user) { base.C1(user); }
     }
 
+    /** BinarySSA 的右操作数. */
     private sealed class BinaryRHSUse: Use {
         public new BinarySSA user {
             get { return static_cast<BinarySSA>(_user); }

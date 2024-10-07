@@ -15,6 +15,7 @@ public interface Musys.IR.IValueVisitor {
     public virtual void visit_inst_unary      (UnaryOpSSA     inst) {}
     public virtual void visit_inst_cast       (CastSSA        inst) {}
     public virtual void visit_inst_call       (CallSSA        inst) {}
+    public virtual void visit_inst_dyn_call   (DynCallSSA     inst) {}
     public virtual void visit_inst_alloca     (AllocaSSA      inst) {}
     public virtual void visit_inst_dyn_alloca (DynAllocaSSA   inst) {}
     public virtual void visit_inst_load       (LoadSSA        inst) {}

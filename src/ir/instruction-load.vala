@@ -39,4 +39,13 @@ public class Musys.IR.LoadSSA: UnarySSA {
         this.raw(target_type, align);
         this.operand = ptr_value;
     }
+    public LoadSSA.from_storage(IPointerStorage storage, size_t align = 0)
+    {
+        if (align == 0)
+            align = User.get_ptr_value_align(storage);
+        if (align == 0)
+            align = storage.get_ptr_target().instance_align;
+        this.raw(storage.get_ptr_target(), align);
+        this.operand = storage;
+    }
 }

@@ -1,12 +1,25 @@
 namespace Musys {
+    /**
+     * === 函数类型 ===
+     *
+     * 修饰能被调用的值. 一般不直接出现, 而是作为函数指针的目标.
+     *
+     * ''类型名称'': `<return type>([arg0[, arg*...]])`
+     *
+     * - 返回值类型: 可以被实例化的类型或者 `void`. 当返回 `void` 时表示不携带任何返回值.
+     * - 参数类型: 长度大于或等于 0 的类型数组. ''要求每个类型都能实例化''. 鉴于 C-ABI
+     *   的那种变长参数是既不安全也不跨平台的坏文明, 因此在 Musys-IR 中不论函数类型还是
+     *   函数调用语句都''不支持变长参数''.
+     */
     public sealed class FunctionType: Type {
+        protected size_t _hash_cache;
         public override size_t hash()
         {
             if (_hash_cache != 0)
                 return _hash_cache;
             size_t ret = _TID_HASH[TID.FUNCTION_TYPE];
             ret = hash_combine2(ret, _return_type.hash());
-            foreach (unowned Type t in params)
+            foreach (Type t in params)
                 ret = hash_combine2(ret, t.hash());
             _hash_cache = ret;
             return ret;
@@ -20,9 +33,6 @@ namespace Musys {
                 return false;
             if (!_return_type.equals(frhs._return_type))
                 return false;
-            if (_is_var_args != frhs._is_var_args)
-                return false;
-
             for (uint i = 0; i < _params.length; i++) {
                 if (!_params[i].equals(frhs._params[i]))
                     return false;
@@ -43,12 +53,13 @@ namespace Musys {
                 builder.append(ty.name);
                 cnt++;
             }
-            if (is_var_args)
-                builder.append(", ...");
             builder.append_c(')');
             _name_len = builder.len;
             _name = builder.free_and_steal();
         }
+
+        protected string _name = null;
+        protected size_t _name_len = 0;
         public override string name {
             get {
                 if (_name == null)
@@ -64,39 +75,20 @@ namespace Musys {
             }
         }
 
-        /** 用于函数调用类指令. 判断当被调用的函数是自己时, 调用者所表示的函数类型合不合法. */
-        public bool fits_function(FunctionType type)
-        {
-            if (!is_var_args)
-                return equals(type);
-            if (!return_type.equals(type.return_type))
-                return false;
-            unowned Type[] lparams = @params, rparams = type.params;
-            if (rparams.length < lparams.length)
-                return false;
-            return array_nequals(lparams, rparams, lparams.length);
-        }
+        public Type[]   @params{ get; }
+        public Type return_type{ get; }
 
-        public Type []@params{get;}
-        public Type return_type{get;}
-        public bool is_var_args{get;}
-        protected size_t _hash_cache;
-        protected string _name = null;
-        protected size_t _name_len = 0;
-
-        public FunctionType(Type return_type, Type []params, bool is_varargs = false)
+        public FunctionType(Type return_type, Type []params)
         {
             _hash_cache = 0;
             this._return_type = return_type;
             this._params      = params;
-            this._is_var_args = is_varargs;
         }
-        public FunctionType.move(Type return_type, owned Type []params, bool is_varargs = false)
+        public FunctionType.move(Type return_type, owned Type []params)
         {
             _hash_cache = 0;
             this._return_type = return_type;
             this._params = (owned)params;
-            this._is_var_args = is_varargs;
         }
         class construct {
             _istype[TID.FUNCTION_TYPE] = true;

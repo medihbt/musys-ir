@@ -69,28 +69,24 @@ public class Musys.TypeContext: Object {
      * 获取返回类型为 `ret_ty`, 参数类型为 `args_ty` 的函数类型.
      *
      * @param ret_ty 返回值类型.
-     *
-     * @param args_ty 参数类型. 为空时表示该函数没有参数. 目前 Musys 不支持变长参数.
      */
-    public FunctionType get_func_type(Type ret_ty, Type []?args_ty, bool is_varargs = false)
+    public FunctionType get_func_type(Type ret_ty, Type []?args_ty)
     {
         FunctionType fty = null;
         if (args_ty != null)
-            fty = new FunctionType(ret_ty, args_ty, is_varargs);
+            fty = new FunctionType(ret_ty, args_ty);
         else
-            fty = new FunctionType.move(ret_ty, new Type[0], is_varargs);
+            fty = new FunctionType.move(ret_ty, new Type[0]);
         return (FunctionType)get_or_register_type(fty);
     }
     /**
      * 获取返回类型为 `ret_ty`, 参数类型为 `args_ty` 的函数类型. 该函数会夺取参数类型的所有权.
      *
      * @param ret_ty 返回值类型.
-     *
-     * @param args_ty 参数类型. 为空时表示该函数没有参数. 目前 Musys 不支持变长参数.
      */
-    public FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty, bool is_varargs = false)
+    public FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty)
     {
-        var fty = new FunctionType.move(ret_ty, (owned)args_ty, is_varargs);
+        var fty = new FunctionType.move(ret_ty, (owned)args_ty);
         return (FunctionType)get_or_register_type(fty);
     }
 
@@ -140,7 +136,7 @@ public class Musys.TypeContext: Object {
     {
         if (_symbolled_struct_types.has_key(name))
             return _symbolled_struct_types[name];
-        var ret = fields == null?
+        var ret = fields != null?
             new StructType.symbolled_copy(fields, name):
             new StructType.opaque(this, name);
         _symbolled_struct_types[name] = ret;

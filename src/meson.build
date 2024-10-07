@@ -65,6 +65,9 @@ musys_ir_deps = [
     dependency('gee-0.8')
 ]
 
+add_project_arguments('--enable-mem-profiler', language: 'vala')
+add_project_arguments('--enable-gobject-tracing', language: 'vala')
+
 musys_lib = shared_library(
     'musys',
     sources: musys_ir_src,

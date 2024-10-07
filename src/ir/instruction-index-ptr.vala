@@ -3,16 +3,16 @@ namespace Musys.IR {
      * === 指针取索引指令 ===
      *
      * 把传入的指针 `source` 看作类型为 `collection_type[]` 数组, 按照
-     * `indicies[]` 数组所示的多级索引找到需要取的元素.
+     * `indices[]` 数组所示的多级索引找到需要取的元素.
      *
      * 该指令表示指向这个元素的指针. 为展示所得指针指向的类型, 该指令实现了
      * IPointerStorage 接口.
      *
      * ==== 指令信息 ====
      *
-     * ''操作数'':
+     * ''操作数表'':
      * - `[0] = source`: 等待索引的源操作数指针
-     * - `[1:] = indicies[]`: 索引列表
+     * - `[1:] = indices[]`: 索引列表
      *
      * ''文法(Musys-IR)''
      *
@@ -93,9 +93,11 @@ namespace Musys.IR {
                     primary_target.type_ctx.get_opaque_ptr());
             this.primary_target_type = primary_target;
 
+            /* `[0] = source` */
             this._usource = new SourceUse();
             this._usource.attach_back(this);
 
+            /* `[1:] = indices[]` */
             this._indices = (owned)indices;
             foreach (IndexUse i in _indices)
                 i.attach_back(this);

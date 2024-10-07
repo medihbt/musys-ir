@@ -1,4 +1,11 @@
 namespace Musys.IR {
+    /**
+     * === 跳转类指令 ===
+     *
+     * 位于基本块结尾，负责决定执行流的下一个基本块在哪里的指令.
+     * 由于跳转类指令的跳转目标集合不会随着数据流改变，也不会混入数据流里作为操作数,
+     * 因此 JumpBase 里所有的静态跳转目标都不是操作数, 不需要分配 Use 子类.
+     */
     public abstract class JumpBase: Instruction, IBasicBlockTerminator {
         protected unowned BasicBlock _default_target;
         public override unowned BasicBlock? default_target {
@@ -25,24 +32,5 @@ namespace Musys.IR {
             _istype[TID.JUMP_BASE]               = true;
             _istype[TID.IBASIC_BLOCK_TERMINATOR] = true;
         }
-    }
-
-#if BASICBLOCK_AS_VALUE
-    private sealed class JumpDefaultTargetUse: Use {
-        public new JumpBase user {
-            get { return static_cast<JumpBase>(_user); }
-        }
-        public override Value? usee {
-            get { return user.default_target; }
-            set {
-                if (value == null)
-                    user.default_target = null;
-                var bvalue = value as BasicBlock;
-                if (bvalue == null)
-                    crash(@"JumpBase.default_target requires `BasicBlock`, but got `$(value.get_class().get_name())`");
-                user.default_target = bvalue;
-            }
-        }
-    }
-#endif
+    } // abstract class JumpBase
 }

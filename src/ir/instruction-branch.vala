@@ -1,8 +1,29 @@
 namespace Musys.IR {
+    /**
+     * === 分支跳转指令 ===
+     *
+     * 判断布尔条件 `condition` 是否为真. 若是, 则跳转到基本块 `if_true`;
+     * 否则跳转到 `if_false`(也就是 `default_target`).
+     *
+     * Musys 显式区分有条件跳转和无条件跳转. 想要无条件跳转的话, 请使用
+     * `JumpSSA` 类 (jump 指令).
+     *
+     * ==== 操作数表 ====
+     * - `[0] = condition` 跳转条件
+     *
+     * ==== 文本格式 ====
+     * {{{
+     * br i1 <condition>, label <if true>, label <if false>
+     * }}}
+     *
+     * @see Musys.IR.JumpSSA
+     */
     public class BranchSSA: JumpBase {
         private Value        _condition;
         private unowned IntType _boolty;
         private unowned Use _ucondition;
+
+        /** 决定分支向哪里的条件操作数. 必须是布尔类型的. */
         public Value condition {
             get { return _condition; }
             set {

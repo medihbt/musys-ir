@@ -7,7 +7,7 @@ namespace Musys {
         public unowned ElemT[] array;
         public int begin;
         public int end;
-                                
+
         public int size { get { return end - begin; } }
         public Gee.Iterator<ElemT> iterator() {
             return new Iterator<ElemT>.slice_begin(this);

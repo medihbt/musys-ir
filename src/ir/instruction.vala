@@ -10,7 +10,7 @@ namespace Musys.IR {
         BITCAST, INT_TO_PTR, PTR_TO_INT,
         SELECT, INDEX_EXTRACT, INDEX_INSERT, INDEX_PTR,
         LOAD, STORE, ALLOCA, DYN_ALLOCA,
-        CALL, PHI,
+        CALL, DYN_CALL, PHI,
         ICMP, FCMP,
         INTRIN, RESERVED_CNT;
 

@@ -190,7 +190,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
             if (cnt != 0)
                 outs.puts(", ");
             cnt++;
-            unowned var varg = arg.get_arg();
+            unowned var varg = arg.arg;
             outs.printf("%s ", varg.value_type.to_string());
             _write_by_ref(varg);
         }

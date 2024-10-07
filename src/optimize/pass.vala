@@ -1,4 +1,4 @@
-namespace Musys.IROpt {
+namespace Musys.IROptimize {
     /** `Pass` - 优化器基类 */
     public abstract class Pass: Object {
         public enum Kind {

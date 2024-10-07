@@ -2,6 +2,8 @@ public errordomain Musys.IR.PhiError {
     NO_INCOMING_BLOCK;
 }
 
+/**
+ */
 public class Musys.IR.PhiSSA: Instruction {
     public Gee.HashMap<unowned BasicBlock, FromUse> from_map{get;}
 

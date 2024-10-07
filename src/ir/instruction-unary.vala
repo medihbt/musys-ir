@@ -106,24 +106,5 @@ namespace Musys.IR {
             this.raw(NOT, type);
             this.operand = value;
         }
-
-#if false
-        private static void _check_operand_by_opcode(UnaryOpSSA self, Value? value)
-        {
-            var opcode = self.opcode;
-            switch (opcode) {
-            case OpCode.NOT: case OpCode.INEG:
-                value_int_or_crash(value,
-                    opcode == INEG? "for this being an INEG instruction"
-                                  : "for this being a NOT instruction");
-                break;
-            case OpCode.FNEG:
-                value_float_or_crash(value, "for this being a FNEG instruction");
-                break;
-            default:
-                assert_not_reached();
-            }
-        }
-#endif
     }
 }
