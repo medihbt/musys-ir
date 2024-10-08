@@ -1,15 +1,11 @@
 namespace Musys {
-    public class GeeArraySlice<ElemT>: Object,
-                                       Gee.List<ElemT>,
-                                       Gee.Iterable<ElemT>,
-                                       Gee.Traversable<ElemT>,
-                                       Gee.Collection<ElemT> {
+    public class GeeArraySlice<ElemT>: Gee.AbstractCollection<ElemT>, Gee.List<ElemT> {
         public unowned ElemT[] array;
         public int begin;
         public int end;
 
-        public int size { get { return end - begin; } }
-        public Gee.Iterator<ElemT> iterator() {
+        public override int size { get { return end - begin; } }
+        public override Gee.Iterator<ElemT> iterator() {
             return new Iterator<ElemT>.slice_begin(this);
         }
         public new Gee.ListIterator<ElemT> list_iterator() {
@@ -41,13 +37,13 @@ namespace Musys {
                 if (i == item) return i;
             return -1;
         }
-        public bool contains(ElemT item) { return index_of(item) != -1; }
+        public override bool contains(ElemT item) { return index_of(item) != -1; }
 
-        public bool read_only { get { return true; } }
+        public override bool read_only { get { return true; } }
         public new void @set(int index, ElemT item) { }
-        public bool add(ElemT item) { return false; }
-        public void clear() {}
-        public bool remove(ElemT item) { return false; }
+        public override bool add(ElemT item) { return false; }
+        public override void clear() {}
+        public override bool remove(ElemT item) { return false; }
         public void insert(int index, ElemT item) {}
         public ElemT remove_at(int index) { return null; }
 

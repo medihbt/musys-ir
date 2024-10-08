@@ -29,6 +29,7 @@ public class Musys.IR.LoadSSA: UnarySSA {
                 target_type.type_ctx.get_opaque_ptr());
         if (align == 0)
             align = target_type.instance_align;
+        this.align = align;
     }
     public LoadSSA.from_ptr(Value ptr_value, Type target_type, size_t align = 0) {
         value_ptr_or_crash(ptr_value, "as LoadSSA::from_ptr()::value");

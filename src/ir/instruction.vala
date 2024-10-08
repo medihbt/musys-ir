@@ -19,6 +19,9 @@ namespace Musys.IR {
         public bool is_int_op()    { return AND  <= this <= UREM; }
         public bool is_float_op()  { return FADD <= this <= FREM; }
         public bool is_binary_op() { return AND  <= this <= FREM; }
+        public bool is_divrem_op() {
+            return SDIV <= this <= UREM || this == FREM || this == FDIV;
+        }
         public unowned string get_name() {
             return this >= RESERVED_CNT?
                     "<undefined-opcode>":

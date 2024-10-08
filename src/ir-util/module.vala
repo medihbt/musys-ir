@@ -1,3 +1,4 @@
+[CCode(gir_namespace="Musys", gir_version="0.0.1")]
 namespace Musys.IRUtil {
     public void number_module(IR.Module module)
     {

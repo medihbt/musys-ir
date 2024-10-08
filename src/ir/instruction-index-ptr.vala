@@ -40,8 +40,19 @@ namespace Musys.IR {
             }
         }
 
-        /** 初始被索引类型 */
-        public unowned Type primary_target_type { get; internal set; }
+        /** 初始被索引类型, 也就是被 index[0] 解包以后的类型. */
+        public Type primary_target_type {
+            get { return arr0_primary_target.element_type; }
+            internal set {
+                if (_arr0_primary_target != null &&
+                    _arr0_primary_target.element_type == (!)value)
+                    return;
+                arr0_primary_target = value_type.type_ctx.get_array_type(value, 0);
+            }
+        }
+
+        /** 隐藏的 0 长度数组类型, 这个类型加进去以后就不用担心 Use 要做额外检查的问题了. */
+        public ArrayType arr0_primary_target { get; internal set; }
 
         internal IndexUse[] _indices;
         /** 索引列表. 其中 indices[0] 是初始索引. */
@@ -87,12 +98,14 @@ namespace Musys.IR {
             base._deep_clean();
         }
 
-        public IndexPtrSSA.move_nocheck(Type primary_target, owned IndexUse[] indices)
+        private IndexPtrSSA._full_empty(ArrayType arr0_primary_target)
         {
             base.C1(INDEX_PTR_SSA, INDEX_PTR,
-                    primary_target.type_ctx.get_opaque_ptr());
-            this.primary_target_type = primary_target;
-
+                    arr0_primary_target.type_ctx.get_opaque_ptr());
+            this.arr0_primary_target = arr0_primary_target;
+        }
+        private void _init_uses(owned IndexUse[] indices)
+        {
             /* `[0] = source` */
             this._usource = new SourceUse();
             this._usource.attach_back(this);
@@ -102,24 +115,41 @@ namespace Musys.IR {
             foreach (IndexUse i in _indices)
                 i.attach_back(this);
         }
+        public IndexPtrSSA.move_nocheck(Type primary_target, owned IndexUse[] indices)
+        {
+            base.C1(INDEX_PTR_SSA, INDEX_PTR,
+                    primary_target.type_ctx.get_opaque_ptr());
+            this.primary_target_type = primary_target;
+            this._init_uses((owned)indices);
+        }
         public IndexPtrSSA.move(Type primary_target, owned IndexUse[] indices)
         {
+            ArrayType arr0 = primary_target
+                            .type_ctx
+                            .get_array_type(primary_target, 0);
+            this._full_empty(arr0);
+
             uint layer = 0;
-            Type curr  = primary_target;
+            Type curr  = arr0;
             foreach (IndexUse u in indices) {
                 u.layer = layer;
                 if (_check_index_stepu(u, curr))
                     break;
                 curr = u.type_after_extract; layer++;
             }
-            this.move_nocheck(primary_target, (owned)indices);
+            this._init_uses((owned)indices);
         }
         public IndexPtrSSA.from_values(Type primary_target, Gee.List<Value> indices)
                     throws TypeMismatchErr, IndexPtrErr
         {
+            ArrayType arr0 = primary_target
+                            .type_ctx
+                            .get_array_type(primary_target, 0);
+            this._full_empty(arr0);
+
+            var  uses = new IndexUse[indices.size];
             uint layer_idx = 0;
-            Type curr = primary_target;
-            var uses = new IndexUse[indices.size];
+            Type curr = arr0;
             foreach (Value? index in indices) {
                 if (check_type_index_step(index, layer_idx, curr, out curr)) {
                     crash_fmt(Musys.SourceLocation.current(),
@@ -129,15 +159,17 @@ namespace Musys.IR {
                 uses[layer_idx] = new IndexUse() {
                     user  = this,
                     layer = layer_idx,
-                    type_after_extract = curr
+                    type_after_extract = curr,
+                    usee  = index
                 };
                 layer_idx++;
             }
-            this.move_nocheck(primary_target, (owned)uses);
+            _init_uses((owned)uses);
         }
-        public IndexPtrSSA.from_value_array(Type primary_target, Value[] indices)
+        public IndexPtrSSA.from_value_array(Type primary_target, Value source, Value[] indices)
                     throws TypeMismatchErr, IndexPtrErr {
             this.from_values(primary_target, new GeeArraySlice<Value>.from(indices));
+            this.source = source;
         }
 
         class construct {
@@ -182,7 +214,7 @@ namespace Musys.IR {
             public unowned Type type_before_extract {
                 get {
                     if (layer == 0)
-                        return user.primary_target_type;
+                        return user.arr0_primary_target;
                     return user.indices[layer - 1].type_after_extract;
                 }
             }
@@ -217,6 +249,8 @@ namespace Musys.IR {
              */
             public bool index_mutable()
             {
+                if (layer == 0)
+                    return true;
                 Type before_extract = type_before_extract;
                 if (!before_extract.is_aggregate)
                     return false;

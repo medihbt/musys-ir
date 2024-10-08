@@ -1,4 +1,4 @@
-namespace GLibC {
+namespace Musys.GLibC {
     [CCode (cname="backtrace", cheader_filename="execinfo.h")]
     public extern int backtrace(pointer []stack_buffer);
 

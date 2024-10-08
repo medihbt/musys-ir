@@ -35,6 +35,7 @@ namespace Musys.IR {
         }
         public CallSSA.with_args(Function callee, Gee.List<Value> args) {
             base.C1_with_args(CALL_SSA, CALL, callee.function_type, args);
+            this.callee = callee;
         }
         class construct { _istype[TID.CALL_SSA] = true; }
     }

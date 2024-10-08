@@ -30,6 +30,8 @@ namespace Musys.IR {
         protected AllocaBase.C1(Value.TID tid,  OpCode opcode,
                                 Type target_type, size_t align) {
             base.C1 (tid, opcode, target_type.type_ctx.get_opaque_ptr());
+            this.target_type = target_type;
+            this.align       = align;
         }
         class construct {
             _istype[TID.ALLOCA_BASE]    = true;

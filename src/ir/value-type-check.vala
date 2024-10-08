@@ -149,10 +149,13 @@ namespace Musys.IR {
      *
      * 因为这是个迭代函数, 所以返回值 `true` 表示终止迭代, `false` 表示继续迭代.
      *
+     * 注意, 因为 IndexPtrSSA 有对 0 长度数组做解包的情况, 所以 IR 内不要对数组
+     * 是否越界做任何检查.
+     *
      * @return 迭代函数返回值, `true` 表示终止迭代, `false` 表示继续迭代.
      */
     public bool check_type_index_step(Value index, uint layer,
-                    Type before_extracted, out Type after_extracted)
+                    Type? before_extracted, out Type after_extracted)
                 throws TypeMismatchErr, IndexPtrErr
     {
         if (!before_extracted.is_aggregate) {
@@ -163,7 +166,9 @@ namespace Musys.IR {
         }
         var aggr_bex = static_cast<AggregateType>(before_extracted);
 
-        /* 对于数组、向量这种元素统一的类型, 直接返回即可. 结构体才要做 extract. */
+        /* 对于数组、向量这种元素统一的类型, 直接返回即可. 结构体才要做 extract.
+         * 注意, 因为 IndexPtrSSA 有对 0 长度数组做解包的情况, 所以 IR 内不要对数组
+         * 是否越界做任何检查. */
         if (aggr_bex.element_always_consist) {
             after_extracted = aggr_bex.get_element_type_at(0);
             return false;

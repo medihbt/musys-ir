@@ -52,6 +52,8 @@ public class Musys.IR.StoreSSA: Instruction {
         }
         if (align == 0)
             align = User.get_ptr_value_align(dst);
+        if (align == 0)
+            align = src_ty.instance_align;
         this.raw(pty, src_ty, align);
         this.target = dst;
         this.source = src;

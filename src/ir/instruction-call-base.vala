@@ -79,7 +79,7 @@ public abstract class Musys.IR.CallBase: Instruction {
             uarg.arg = null;
             uarg.remove_this();
         }
-        delete _uargs;
+        _uargs = null;
     }
     public override void on_parent_finalize()
     {
@@ -96,9 +96,9 @@ public abstract class Musys.IR.CallBase: Instruction {
 
     protected CallBase.C1(Value.TID tid, OpCode opcode, FunctionType callee_type)
     {
-        base.C1(tid, opcode, callee_fn_type.return_type);
-        this._callee_fn_type = callee_fn_type;
-        int arg_length = callee_fn_type.params.length;
+        base.C1(tid, opcode, callee_type.return_type);
+        this._callee_fn_type = callee_type;
+        int arg_length = callee_type.params.length;
 
         /* [0] = callee */
         this._ucallee = new CalleeUse();

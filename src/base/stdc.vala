@@ -1,4 +1,4 @@
-namespace stdc {
+namespace Musys.stdc {
     [SimpleType]
     [CCode (cname="stdc_bool", cprefix="cbool_", cheader_filename="stdbool.h")]
     [BooleanType]

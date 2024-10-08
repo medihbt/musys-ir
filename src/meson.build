@@ -74,8 +74,9 @@ musys_lib = shared_library(
     sources: musys_ir_src,
     dependencies: musys_ir_deps,
     include_directories: musys_include,
+    vala_gir: 'Musys-0.0.1.gir',
     install: true,
-    install_dir: [true, true, true]
+    install_dir: [true, true, true, true]
 )
 
 message(musys_lib.name())

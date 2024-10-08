@@ -164,8 +164,12 @@ public class Musys.IR.InstructionList {
         public bool ends() {
             return node == null || node->_next == null;
         }
+        public Modifier modify() { return this; }
     }
 
+    /**
+     * 修改式迭代器
+     */
     public struct Modifier: Iterator {
         public Modifier append(Instruction inst) throws InstructionListErr
         {
