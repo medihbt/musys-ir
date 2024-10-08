@@ -2,7 +2,7 @@ namespace Musys.IRUtil {
     public Type type_index(Type type, IR.Value? index) throws TypeMismatchErr, RuntimeErr
     {
         if (type.is_pointer)
-            return static_cast<NamedPointerType>(type).target;
+            return static_cast<PointerType>(type).target;
         if (type.is_array)
             return static_cast<ArrayType>(type).element_type;
         if (!type.is_aggregate) throw new TypeMismatchErr.MISMATCH(

@@ -35,43 +35,6 @@ namespace Musys {
     }
 
     /**
-     * 有指向目标的指针类型. 现在要被废弃了.
-     *
-     * @deprecated 0.0.1
-     */
-    [Version(deprecated=true)]
-    public sealed class NamedPointerType: RefType {
-        public override bool target_loadable(Type pointee_type) {
-            return _target.equals(pointee_type);
-        }
-        protected string _name;
-        public override string name {
-            get {
-                if (_name == null)
-                    _name = @"$(_target)*";
-                return _name;
-            }
-        }
-        protected override bool _relatively_equals(Type rhs) {
-            if (!rhs.is_pointer)
-                return false;
-            unowned var prhs = (NamedPointerType)rhs;
-            return prhs._target.equals(_target);
-        }
-
-        public NamedPointerType(TypeContext tctx, Type target) {
-            base.C1(tctx, TID.NAMED_PTR_TYPE, target);
-            _hash_cache = 0;
-        }
-        class construct { _istype[TID.NAMED_PTR_TYPE] = true; }
-
-        [CCode(cname="Musys_PtrType_MakeHash")]
-        public static inline size_t MakeHash(Type target) {
-            return hash_combine2(_TID_HASH[TID.NAMED_PTR_TYPE], target.hash());
-        }
-    }
-
-    /**
      * 指针类型. 为了方便类型存储、类型比较等, Musys-IR 的指针都是不透明的.
      * 也就是说, 指针类型实例不存储具体的指向类型, 某个指针实例的具体目标类型
      * 要根据应用于它的指令确定.

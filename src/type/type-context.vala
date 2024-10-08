@@ -90,49 +90,16 @@ public class Musys.TypeContext: Object {
         return (FunctionType)get_or_register_type(fty);
     }
 
-    /**
-     * 获取结构体类型. 当该类型的结构体在此类型上下文中不存在时, 返回 null.
-     */
-    public StructType? get_struct_type_readonly(StructType type)
+    public StructType get_anomymous_struct_type(owned (unowned Type)[] fields)
     {
-        if (type.kind.has_name()) {
-            unowned string name = type.symbol_name;
-            if (_symbolled_struct_types.has_key(name))
-                return _symbolled_struct_types[name];
-            return null;
-        }
-        if (_types.has_key(type))
-            return _types[type] as StructType;
-        return null;
-    }
-    public StructType get_struct_type_or_add(StructType type)
-    {
-        /* 匿名结构体, 字段相同即类型相等 */
-        if (type.kind == ANOMYMOUS) {
-            if (!_types.has_key(type))
-                return _types[type] as StructType;
-            _types[type] = type;
-            return type;
-        }
-
-        /* 具名结构体, 名称相同即类型相等 */
-        unowned string name = type.symbol_name;
-        unowned var sst = _symbolled_struct_types;
-        if (!sst.has_key(name)) {
-            sst[name] = type;
-            return type;
-        }
-        StructType sty = sst[name];
-        if (sty.is_opaque && !type.is_opaque) {
-            sty.swap_fields_with(type);
+        var sty = new StructType.anomymous_move((owned)fields);
+        if (!_types.has_key(sty)) {
+            _types[sty] = sty;
             return sty;
         }
-        return sty;
+        return (!)(_types.get(sty) as StructType);
     }
-    public StructType? get_named_struct_type(string name) {
-        return _symbolled_struct_types[name];
-    }
-    public StructType get_reg_named_struct_type(string name, Type[]? fields)
+    public StructType get_named_struct_type(string name, Type[]? fields)
     {
         if (_symbolled_struct_types.has_key(name))
             return _symbolled_struct_types[name];
