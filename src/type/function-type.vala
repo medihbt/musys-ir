@@ -80,12 +80,14 @@ namespace Musys {
 
         public FunctionType(Type return_type, Type []params)
         {
+            base.C1(TID.FUNCTION_TYPE, return_type.type_ctx);
             _hash_cache = 0;
             this._return_type = return_type;
             this._params      = params;
         }
         public FunctionType.move(Type return_type, owned Type []params)
         {
+            base.C1(TID.FUNCTION_TYPE, return_type.type_ctx);
             _hash_cache = 0;
             this._return_type = return_type;
             this._params = (owned)params;

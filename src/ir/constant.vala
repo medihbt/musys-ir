@@ -42,6 +42,8 @@ namespace Musys.IR {
         {
             try {
                 return _create_zero_impl(type) ?? new UndefinedValue(type, false);
+            } catch (TypeMismatchErr.NOT_ARRAY e) {
+                return new UndefinedValue(type, false);
             } catch (TypeMismatchErr e) {
                 critical("Encountered type mismatch: %s!", e.message);
                 traced_abort();

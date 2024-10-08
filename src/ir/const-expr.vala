@@ -18,6 +18,8 @@ namespace Musys.IR {
     {
         if (type.is_array)
             return new ArrayExpr.empty(static_cast<ArrayType>(type));
-        throw new TypeMismatchErr.NOT_CHILD_OF(@"Type $type is not array type");
+        if (type.is_struct)
+            return new StructExpr.empty(static_cast<StructType>(type));
+        throw new TypeMismatchErr.NOT_AGGREGATE(@"Type $type is not array type or struct type");
     }
 }

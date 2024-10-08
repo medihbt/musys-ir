@@ -20,7 +20,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     private void visit_module() {
         foreach (var ste in module.type_ctx._symbolled_struct_types) {
             StructType sty = ste.value;
-            _rt.outs.puts(@"$sty = $(sty.fields_to_string())\n");
+            _rt.outs.puts(@"$sty = type $(sty.fields_to_string())\n");
         }
         foreach (var def in module.global_def)
             def.value.accept(this);
@@ -57,6 +57,22 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
             _write_by_ref(elem);
         }
         outs.puts(" ]");
+    }
+    public override void visit_struct_expr(IR.StructExpr value)
+    {
+        unowned var outs = _rt->outs;
+        if (value.is_zero) {
+            outs.puts("{}");
+            return;
+        }
+        outs.puts("{ ");
+        uint cnt = 0;
+        foreach (var elem in (!)value.nullable_elems) {
+            outs.puts(cnt == 0? @"$(elem.value_type) " :@", $(elem.value_type) ");
+            cnt++;
+            _write_by_ref(elem);
+        }
+        outs.puts(" }");
     }
 
     public override void visit_function(IR.Function func)
@@ -97,7 +113,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         unowned var    outs = _rt->outs;
         unowned string visibl = gvar.visibility.get_display_name();
         unowned string mutabl = gvar.is_mutable? "global": "constant";
-        outs.puts(@"@$(gvar.name) = $visibl $mutabl $(gvar.ptr_type.target)");
+        outs.puts(@"@$(gvar.name) = $visibl $mutabl $(gvar.content_type)");
         if (gvar.init_content != null) {
             outs.putchar(' ');
             _write_by_ref(gvar.init_content);

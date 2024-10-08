@@ -75,12 +75,12 @@ namespace Musys.IR {
             return true;
         }
 
-        public Function.as_extern(NamedPointerType fty, string name)
+        public Function.as_extern(FunctionType fty, string name)
         {
             base.C1(FUNCTION, fty, name, false);
             _init_head(fty);
         }
-        public Function.as_impl(NamedPointerType fty, string name)
+        public Function.as_impl(FunctionType fty, string name)
         {
             base.C1(FUNCTION, fty, name, false);
             this._init_head(fty);
@@ -93,16 +93,12 @@ namespace Musys.IR {
                 this._clean_body();
         }
 
-        private void _init_head(NamedPointerType fty)
+        private void _init_head(FunctionType fty)
         {
-            Type target = fty.target;
-            if (!target.is_function)
-                crash(@"Function value type requires 'Pointer to Function type', but now it is $(fty)");
-            var ftarget = (FunctionType)target;
-            unowned var params = ftarget.params;
+            unowned var params = fty.params;
             _args = new FuncArg[params.length];
             for (int i = 0; i < _args.length; i++)
-                _args[i] = new FuncArg (params[i], this);
+                _args[i] = new FuncArg(params[i], this);
         }
         private void _init_body()
         {

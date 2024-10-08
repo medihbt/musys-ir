@@ -10,7 +10,7 @@ public sealed class Musys.IR.ArrayExpr: ConstExpr {
             if (_elems != null)
                 return _elems;
             _elems = new Constant[array_type.element_number];
-            var z = create_zero_or_undefined(array_type.element_type);
+            var z = Constant.CreateZeroOrUndefined(array_type.element_type);
             for (int i = 0; i < _elems.length; i++)
                 _elems[i] = z;
             return _elems;

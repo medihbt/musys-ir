@@ -90,6 +90,10 @@ namespace Musys {
             base.C1(tctx, TID.OPAQUE_PTR_TYPE, tctx.void_type);
         }
 
+        class construct {
+            _istype[TID.OPAQUE_PTR_TYPE] = true;
+        }
+
         public static bool IsLegalPointee(Type target) {
             TID tid = target.tid;
             return tid != VOID_TYPE && tid != LABEL_TYPE && tid != FUNCTION_TYPE;

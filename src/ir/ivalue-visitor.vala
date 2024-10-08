@@ -3,6 +3,7 @@ public interface Musys.IR.IValueVisitor {
     public virtual void visit_const_float     (ConstFloat    value) {}
     public virtual void visit_const_data_zero (ConstDataZero value) {}
     public virtual void visit_array_expr      (ArrayExpr     value) {}
+    public virtual void visit_struct_expr     (StructExpr    value) {}
     public virtual void visit_ptr_null        (ConstPtrNull  value) {}
     public virtual void visit_undefined       (UndefinedValue udef) {}
     public virtual void visit_global_variable (GlobalVariable gvar) {}

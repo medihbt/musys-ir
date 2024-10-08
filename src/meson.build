@@ -23,6 +23,7 @@ musys_ir_src = files([
     'ir/const-undefined.vala',
     'ir/const-expr.vala',
     'ir/const-array.vala',
+    'ir/const-struct.vala',
     'ir/const-ptr-null.vala',
     'ir/global-object.vala',
     'ir/global-variable.vala',
