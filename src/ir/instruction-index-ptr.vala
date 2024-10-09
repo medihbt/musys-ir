@@ -191,7 +191,7 @@ namespace Musys.IR {
                 u.type_after_extract = after_extarcted;
                 return ret;
             } catch (Error e) {
-                crash(e.message);
+                crash_err(e);
             }
         }
 

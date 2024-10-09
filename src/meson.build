@@ -60,6 +60,7 @@ musys_ir_src = files([
     'ir-util/writer.vala',
     'ir-util/valueref-compress.vala',
     'optimize/pass.vala',
+    '../csource/musys-backtrace.c',
 ])
 
 musys_ir_deps = [

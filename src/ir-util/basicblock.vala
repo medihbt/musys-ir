@@ -49,7 +49,7 @@ namespace Musys.IRUtil.BasicBlock {
             jmpssa.target = new_block;
             return new_block;
         } catch (IR.InstructionListErr e) {
-            crash(e.message);
+            crash_err(e);
         }
     }
     internal void replace_phi_from_in_succ(IR.BasicBlock oldbb, IR.BasicBlock oldbb_succ)
@@ -173,7 +173,7 @@ namespace Musys.IRUtil.BasicBlock {
                 jmpssa.target = new_block;
                 new_bb = new_block;
             } catch (IR.InstructionListErr e) {
-                crash(e.message);
+                crash_err(e);
             }
             on_raw_split(jmpssa, itermi);
         }

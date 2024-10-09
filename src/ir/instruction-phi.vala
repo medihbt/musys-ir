@@ -42,7 +42,7 @@ public class Musys.IR.PhiSSA: Instruction {
             var u = get_use(from);
             return u._operand;
         } catch (PhiError e) {
-            crash(e.message);
+            crash_err(e);
         }
     }
     public new void set(BasicBlock from, Value value) {

@@ -8,10 +8,10 @@ public class Musys.IR.IndexExtractSSA: IndexSSABase {
                 src_type, src_type.get_element_type_at(0));
     }
     public IndexExtractSSA.from(Value aggregate, Value index)
-    {
+                throws TypeMismatchErr {
         Type type = aggregate.value_type;
         if (!type.is_array)
-            crash(@"IndexExtractSSA::from()::array requires array type, but got $type");
+            throw new TypeMismatchErr.NOT_ARRAY(@"IndexExtractSSA::from()::array requires array type, but got $type");
         var atype = static_cast<AggregateType>(type);
         this.raw(atype);
         this.aggregate = aggregate;

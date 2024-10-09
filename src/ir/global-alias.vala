@@ -43,7 +43,7 @@ public class Musys.IR.GlobalAlias: GlobalObject, IPointerStorage {
     public override bool is_mutable {
         get {
             try { return get_final_aliasee().is_mutable; }
-            catch (Error e) { crash(e.message); }
+            catch (Error e) { crash_err(e); }
         }
         set {
             warning("Blocked: try to make global alias {@%s} mutable. "+

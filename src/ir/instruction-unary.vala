@@ -91,12 +91,16 @@ namespace Musys.IR {
         public UnaryOpSSA.raw(OpCode opcode, Type type) {
             base.C1(UNARYOP_SSA, opcode, type, type);
         }
-        public UnaryOpSSA.as_neg(Value value) {
+        public UnaryOpSSA.as_neg(Value value)
+                throws TypeMismatchErr {
             unowned var type = value.value_type;
             OpCode opcode;
             if    (type.is_float) opcode = FNEG;
             else if (type.is_int) opcode = INEG;
-            else crash(@"NEG operation requires int/float, but got $type");
+            else throw new TypeMismatchErr.NOT_PRIMARY(
+                "NEG operation requires int/float, but got %s",
+                type.to_string()
+            );
 
             this.raw(opcode, type);
             this.operand = value;

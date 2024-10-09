@@ -11,7 +11,7 @@ public class Musys.IR.StructExpr: ConstExpr {
             for (int i = 0; i < _elems.length; i++)
                 _elems[i] = Constant.CreateZero(struct_type.fields[i]);
         } catch (TypeMismatchErr e) {
-            crash_fmt(SourceLocation.current(), "TypeMismatchErr: %s", e.message);
+            crash_err(e, "at " + Log.METHOD);
         }
     }
     public Constant[] elems {

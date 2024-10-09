@@ -45,8 +45,7 @@ namespace Musys.IR {
             } catch (TypeMismatchErr.NOT_ARRAY e) {
                 return new UndefinedValue(type, false);
             } catch (TypeMismatchErr e) {
-                critical("Encountered type mismatch: %s!", e.message);
-                traced_abort();
+                crash_err(e);
             }
         }
     }
@@ -54,22 +53,5 @@ namespace Musys.IR {
     /** 编译期必然是常量的值. */
     public interface IConstZero: Constant {
         public abstract Constant extract_value();
-    }
-
-    [Version(deprecated=true)]
-    public Constant create_const_zero(Type type) throws TypeMismatchErr {
-        return Constant.CreateZero(type);
-    }
-
-    [Version(deprecated=true)]
-    public Constant create_zero_or_undefined(Type type)
-    {
-        try {
-            return create_const_zero(type);
-        } catch (TypeMismatchErr.NOT_INSTANTANEOUS e) {
-            return new UndefinedValue(type, false);
-        } catch (TypeMismatchErr e) {
-            crash("TypeMismatchErr: msg %s".printf(e.message));
-        }
     }
 }

@@ -39,7 +39,7 @@ public abstract class Musys.IR.CallBase: Instruction {
         get { return _callee; }
         set {
             try { _check_callee(callee); }
-            catch (Error e) { crash(e.message); }
+            catch (Error e) { crash_err(e); }
             User.set_usee_always(ref _callee, value, _ucallee);
         }
     }

@@ -2,7 +2,7 @@ public errordomain Musys.TypeMismatchErr {
     /** 就是简单的 mismatch, 找不到别的原因 */
     MISMATCH,
     /** 具体的类型不匹配 */
-    NOT_INT, NOT_FLOAT,
+    NOT_PRIMARY,   NOT_INT,   NOT_FLOAT,
     NOT_AGGREGATE, NOT_ARRAY, NOT_VECTOR, NOT_STRUCT,
     NOT_POINTER, NOT_LABEL,
     NOT_FUNCTION,

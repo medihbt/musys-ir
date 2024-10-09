@@ -103,7 +103,7 @@ namespace Musys.IR {
         private void _init_body()
         {
             var tctx = value_type.type_ctx;
-            var retval = create_zero_or_undefined(return_type);
+            var retval = Constant.CreateZeroOrUndefined(return_type);
             var retssa = new ReturnSSA(retval);
             var retblk = new BasicBlock.with_terminator(retssa);
             var fnbody = new FuncBody.empty(tctx, this);

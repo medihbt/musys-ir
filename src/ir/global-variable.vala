@@ -10,13 +10,7 @@ namespace Musys.IR {
         public size_t align{get;set;}
 
         public override bool enable_impl() {
-            try {
-                init_content  = create_const_zero(content_type);
-            } catch (TypeMismatchErr.NOT_INSTANTANEOUS e) {
-                _init_content = new UndefinedValue(content_type, false);
-            } catch (Error e) {
-                crash(e.message);
-            }
+            init_content = Constant.CreateZeroOrUndefined(content_type);
             return true;
         }
         public override bool disable_impl() {

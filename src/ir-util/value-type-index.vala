@@ -5,7 +5,7 @@ namespace Musys.IRUtil {
             return static_cast<PointerType>(type).target;
         if (type.is_array)
             return static_cast<ArrayType>(type).element_type;
-        if (!type.is_aggregate) throw new TypeMismatchErr.MISMATCH(
+        if (!type.is_aggregate) throw new TypeMismatchErr.NOT_AGGREGATE(
             @"Indexable type should be pointer or aggregate, but got $type"
         );
         var aty = static_cast<AggregateType>(type);

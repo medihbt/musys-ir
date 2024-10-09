@@ -38,11 +38,7 @@ public class Musys.IR.InstructionList {
         try {
             Modifier() { node = _node_end._prev }.append(inst);
         } catch (InstructionListErr e) {
-            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
-                      "%s.%s msg %s",
-                      e.domain.to_string(),
-                      e.code.to_string(),
-                      e.message);
+            crash_err(e);
         }
     }
     public void prepend(Instruction inst)
@@ -50,10 +46,7 @@ public class Musys.IR.InstructionList {
         try {
             Modifier() { node = _node_begin._next }.prepend(inst);
         } catch (InstructionListErr e) {
-            crash("%s.%s msg %s"
-                .printf(e.domain.to_string(),
-                        e.code.to_string(),
-                        e.message));
+            crash_err(e);
         }
     }
     public void clean()

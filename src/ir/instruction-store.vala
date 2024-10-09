@@ -48,7 +48,9 @@ public class Musys.IR.StoreSSA: Instruction {
         PointerType pty = value_ptr_or_crash(dst, "at StoreSSA()::dst");
         Type     src_ty = src.value_type;
         if (!PointerType.IsLegalPointee(src_ty)) {
-            crash_fmt(Musys.SourceLocation.current(), "StoreSSA requires ");
+            crash_fmt(Musys.SourceLocation.current(),
+                "StoreSSA requires source type to be a pointee, but got %s",
+                src_ty.to_string());
         }
         if (align == 0)
             align = User.get_ptr_value_align(dst);

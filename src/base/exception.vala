@@ -1,14 +1,3 @@
-namespace Musys.GLibC {
-    [CCode (cname="backtrace", cheader_filename="execinfo.h")]
-    public extern int backtrace(pointer []stack_buffer);
-
-    [CCode (cname="backtrace_symbols", cheader_filename="execinfo.h")]
-    public extern string *backtrace_symbols(pointer []stack_buffer);
-
-    [CCode (cname="backtrace_symbols_fd", cheader_filename="execinfo.h")]
-    public extern void backtrace_symbols_fd(pointer *stack_buffer, int len, int fd);
-}
-
 namespace Musys {
     [CCode (has_type_id=false)]
     public struct SourceLocation {
@@ -41,13 +30,8 @@ namespace Musys {
         NULL_PTR;
     }
 
-    public inline int print_backtrace()
-    {
-        pointer stack_buffer[32];
-        int ret_nlayers = GLibC.backtrace(stack_buffer);
-        GLibC.backtrace_symbols_fd((pointer*)stack_buffer, ret_nlayers, 2);
-        return ret_nlayers;
-    }
+    [CCode (cheader_filename="musys-backtrace.h")]
+    public extern int print_backtrace();
 
     private void _crash_print_head(ref SourceLocation loc)
     {
@@ -82,6 +66,13 @@ namespace Musys {
             stdin.getc();
         }
         Process.abort();
+    }
+    [NoReturn]
+    public void crash_err(Error e, string? extra_msg = null, SourceLocation loc = SourceLocation.current()) {
+        if (extra_msg == null)
+            crash_fmt(loc, "Aborted error %s(%d): %s", e.domain.to_string(), e.code, e.message);
+        else
+            crash_fmt(loc, "Aborted error %s(%d): %s\n%s", e.domain.to_string(), e.code, e.message, extra_msg);
     }
     [NoReturn]
     public inline void crash_vfmt(SourceLocation loc, string fmt, va_list ap)

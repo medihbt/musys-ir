@@ -129,7 +129,7 @@ public class Musys.IR.BasicBlock: Value {
                     return;
                 _instructions.back().modifier.replace(value);
             } catch (Error e) {
-                crash(e.message);
+                crash_err(e);
             }
         }
     }
