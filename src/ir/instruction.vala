@@ -87,15 +87,38 @@ namespace Musys.IR {
             get { return null; } set {}
         }
 
-        /** ntargets -- 这条指令的跳转目标个数. 对于重复的跳转目标, 重复几次
+        /**
+         * ntargets -- 这条指令的跳转目标个数. 对于重复的跳转目标, 重复几次
          * 就算几次, 不合并计算.
          * - `ntargets > 0` 表示该指令存在跳转目标且为 ntargets 个.
          * - `ntargets = 0` 表示该指令**没有跳转目标**.
-         * - `ntargets < 0` 表示该指令的跳转目标**数量不固定**, 或者遇到其他错误. */
+         * - `ntargets < 0` 表示该指令的跳转目标**数量不固定**, 或者遇到其他错误.
+         */
         public virtual int64 ntargets{ get { return 0; } }
 
-        public abstract void forEachTarget(BasicBlock.ReadFunc fn);
-        public abstract void replaceTarget(BasicBlock.ReplaceFunc fn);
+        /**
+         * ==== 遍历读取跳转目标 ====
+         * {{{foreach_target(ReadFunc = {(bb) => terminates?})}}}
+         *
+         * 遍历读取所有的跳转目标, 每读取一个就传入迭代闭包 fn 执行一次. 倘若没有跳转目标
+         * 可以读取了, 或者 fn 返回 true, 就停止迭代.
+         *
+         * 该方法也是一个迭代方法, 返回 true 表示迭代过程被异常终止, 返回 false 表示迭代
+         * 从头到尾没有被打断.
+         *
+         * @param fn 迭代闭包, 接受一个基本块参数, 返回是否立即终止当前的读取.
+         *
+         * @return 该方法也是一个迭代方法, 返回 true 表示迭代过程被异常终止, 返回 false
+         *         表示迭代从头到尾没有被打断.
+         *
+         * @see Musys.IR.BasicBlock.ReadFunc
+         */
+        public abstract bool foreach_target(BasicBlock.ReadFunc fn);
+
+        /**
+         * ==== 遍历替换跳转目标 ====
+         */
+        public abstract bool replace_target(BasicBlock.ReplaceFunc fn);
     }
 
     private unowned string _instruction_opcode_names[OpCode.RESERVED_CNT] = {

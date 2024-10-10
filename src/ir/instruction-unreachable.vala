@@ -20,6 +20,6 @@ public class Musys.IR.UnreachableSSA: Instruction, IBasicBlockTerminator {
         _istype[TID.UNREACHABLE_SSA]         = true;
     }
 
-    public void forEachTarget(BasicBlock.ReadFunc fn) {}
-    public void replaceTarget(BasicBlock.ReplaceFunc fn) {}
+    public bool foreach_target(BasicBlock.ReadFunc fn) { return false; }
+    public bool replace_target(BasicBlock.ReplaceFunc fn) { return false; }
 }

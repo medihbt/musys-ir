@@ -7,8 +7,8 @@ public class Musys.IR.ReturnSSA: Instruction, IBasicBlockTerminator {
         }
     }
 
-    public void forEachTarget(BasicBlock.ReadFunc    fn) {}
-    public void replaceTarget(BasicBlock.ReplaceFunc fn) {}
+    public bool foreach_target(BasicBlock.ReadFunc    fn) { return false; }
+    public bool replace_target(BasicBlock.ReplaceFunc fn) { return false; }
 
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_return(this);

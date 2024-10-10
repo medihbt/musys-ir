@@ -58,7 +58,7 @@ namespace Musys.IRUtil.BasicBlock {
         if (termi.isvalue_by_id(RET_SSA) ||
             termi.isvalue_by_id(UNREACHABLE_SSA))
             return;
-        termi.forEachTarget((block) => {
+        termi.foreach_target((block) => {
             foreach (var inst in block.instructions) {
                 if (!(inst is IR.PhiSSA))
                     continue;

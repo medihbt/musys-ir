@@ -192,9 +192,35 @@ public class Musys.IR.BasicBlock: Value {
     }
     class construct { _istype[TID.BASIC_BLOCK] = true; }
 
+    /**
+     * ==== 基本块的读取迭代闭包 ====
+     *
+     * 用在遍历函数中, 每次读取一个基本块 bb 并做若干操作. 倘若需要终止迭代,
+     * 则返回 true; 否则返回 false.
+     *
+     * @param bb 等待读取的基本块
+     *
+     * @return 是 (true) 或否 (false) 终止迭代. 不清楚怎么返回的话, 写 false
+     *         一般没错.
+     */
     [CCode(cname="_ZN5Musys2IR10BasicBlock8ReadFuncE")]
-    public delegate bool        ReadFunc   (BasicBlock value);
+    public delegate bool ReadFunc(BasicBlock bb);
 
+    /**
+     * ==== 基本块替换迭代闭包 ====
+     *
+     * 用在遍历函数中, 每次读取一个基本块 bb, 执行若干操作并决定怎么替换这个
+     * 基本块 bb. 倘若需要终止迭代, 就返回 null; 倘若替换原基本块, 则返回与
+     * 参数 bb 相同的值; 倘若要做替换, 则返回你需要的值.
+     *
+     * 做完替换以后, 遍历函数会继续遍历. 如果你需要在替换后终止遍历, 就在下一轮
+     * 执行该函数时返回 null.
+     *
+     * @param bb 等待读取的基本块.
+     *
+     * @return 返回 null 表示终止遍历, 返回 bb 自己表示不做替换继续遍历, 返回
+     *         其他值表示做替换并继续遍历.
+     */
     [CCode(cname="_ZN5Musys2IR10BasicBlock11ReplaceFuncE")]
-    public delegate BasicBlock? ReplaceFunc(BasicBlock value);
+    public delegate BasicBlock? ReplaceFunc(BasicBlock bb);
 }

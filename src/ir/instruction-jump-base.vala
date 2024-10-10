@@ -12,18 +12,22 @@ namespace Musys.IR {
             get { return _default_target;  }
             set { _default_target = value; }
         }
-    
-        protected abstract void foreach_target(BasicBlock.ReadFunc    fn);
-        protected abstract void replace_target(BasicBlock.ReplaceFunc fn);
-        protected abstract int64 do_get_n_targets();
 
-        public void forEachTarget(BasicBlock.ReadFunc    fn) { foreach_target(fn); }
-        public void replaceTarget(BasicBlock.ReplaceFunc fn) { replace_target(fn); }
-        
+        public abstract bool foreach_jump_target(BasicBlock.ReadFunc    fn);
+        public abstract bool replace_jump_target(BasicBlock.ReplaceFunc fn);
+        public abstract int64 n_jump_targets();
+
+        public bool foreach_target(BasicBlock.ReadFunc fn) {
+            return foreach_jump_target(fn);
+        }
+        public bool replace_target(BasicBlock.ReplaceFunc fn) {
+            return replace_jump_target(fn);
+        }
+
         /**
-         * {@inheritDoc}
+         * {@link Musys.IR.IBasicBlockTerminator.ntargets}
          */
-        public int64 ntargets { get { return do_get_n_targets(); } }
+        public int64 ntargets { get { return n_jump_targets(); } }
 
         protected JumpBase.C1(Value.TID tid, OpCode opcode, VoidType voidty) {
             base.C1(tid, opcode, voidty);

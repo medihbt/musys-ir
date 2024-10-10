@@ -3,17 +3,18 @@ public class Musys.IR.JumpSSA: JumpBase {
         get { return _default_target;  }
         set { _default_target = value; }
     }
-    protected override void foreach_target(BasicBlock.ReadFunc fn) {
-        fn(default_target);
+    protected override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
+        return fn(default_target);
     }
-    protected override void replace_target(BasicBlock.ReplaceFunc fn)
+    protected override bool replace_jump_target(BasicBlock.ReplaceFunc fn)
     {
         var target = fn(default_target);
         if (target == null || target == _default_target)
-            return;
+            return target != null;
         default_target = target;
+        return false;
     }
-    protected override int64 do_get_n_targets() { return 1; }
+    protected override int64 n_jump_targets() { return 1; }
     public override void on_parent_finalize() {
         _default_target = null;
         base._deep_clean();
