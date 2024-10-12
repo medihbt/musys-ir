@@ -5,8 +5,9 @@ namespace Musys.IR {
      * 调用函数 `fn_callee`. 要求 callee 必须是 `Function` 类型的.
      *
      * ''指令文本格式'':
-     * - 有返回值: `%<id> = [tail] call <return type> <callee> ([<ty0> <arg0> [, <ty...> <arg...>]])`
-     * - 无返回值: `[tail] call void <callee> ([<ty0> <arg0> [, <ty...> <arg...>]])`
+     *
+     * * 有返回值: `%<id> = [tail] call <return type> <callee> ([<ty0> <arg0> [, <ty...> <arg...>] ] )`
+     * * 无返回值: `[tail] call void <callee> ( [<ty0> <arg0> [, <ty...> <arg...>] ] )`
      *
      * ''操作数表'': 同父类 `CallBase`.
      */
@@ -45,8 +46,9 @@ namespace Musys.IR {
      * 同父类 `CallBase`.
      *
      * ''指令文本格式'':
-     * - 有返回值: `%<id> = dyncall <return type> <callee> ([<ty0> <arg0> [, <ty...> <arg...>]])`
-     * - 无返回值: `dyncall void <callee> ([<ty0> <arg0> [, <ty...> <arg...>]])`
+     *
+     * - 有返回值: `%<id> = dyncall <return type> <callee> ( [ <ty0> <arg0> [, <ty...> <arg...>] ] )`
+     * - 无返回值: `dyncall void <callee> ( [ <ty0> <arg0> [, <ty...> <arg...> ] ] )`
      *
      * ''操作数表'': 同父类 `CallBase`.
      */

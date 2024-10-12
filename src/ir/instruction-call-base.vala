@@ -17,8 +17,9 @@
  * 持运行期变长参数. 至于 Musys 前端该用什么语法糖把它圆回来, 那就不是 IR 要管的了.
  *
  * ==== 父类的操作数表 ====
- * - `[0] = callee`: 被调用的函数值
- * - `[1:] = args[]`: 函数的参数
+ *
+ * * `[0] = callee`: 被调用的函数值
+ * * `[1:] = args[]`: 函数的参数
  */
 public abstract class Musys.IR.CallBase: Instruction {
     protected unowned FunctionType _callee_fn_type;

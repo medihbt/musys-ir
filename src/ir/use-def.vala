@@ -1,4 +1,10 @@
 namespace Musys.IR {
+    /**
+     * 表示中间代码“值”的类, 数据流图的基本结点.
+     *
+     * 因为 Musys-IR 的内存表示中几乎所有结点 (指令、函数、全局对象) 都是数据流
+     * 的一部分, 因此几乎所有你能想到的中间代码组成元素都是 Value 的子类.
+     */
     public abstract class Value: Object {
         public enum TID {
             VALUE, USER, IPOINTER_STORAGE,
@@ -22,9 +28,29 @@ namespace Musys.IR {
             RESERVED_COUNT;
         }
 
-        protected TID _tid;
+        /**
+         * 唯一表示 Value 类型的 ID, 发挥的作用类似 GType, 但仅限于 Value 及其子类.
+         *
+         * 这个 ID 常常用来加速一些类型操作, 比如与 ``istype_by_id()`` 配合使用时
+         * 可以起到动态类型检查/转换的效果. 例如, 要判断一个 Value 子类是不是指令类,
+         * 有以下两种方法:
+         *
+         * {{{
+         * // 使用 GType 类型转换: 好写, 但是很慢
+         * bool is_instruction = value is IR.Instruction;
+         * // 使用 TID 转换: 比 GType 快一些
+         * bool is_instruction = value.isvalue_by_id(INSTRUCTION);
+         * }}}
+         *
+         * 类型 ID 在 Value 类构造完成后即不可更改.
+         */
         public    TID  tid{ get { return _tid; } }
+        protected TID _tid;
 
+        /**
+         * 一个随便怎么用都可以的整数. 一般在打印 IR 结点树时作为值的 ID,
+         * 这样打印出的文本表示就兼容 LLVM IR 了.
+         */
         public int id{get;set;}
 
         protected class stdc.bool _istype[Value.TID.RESERVED_COUNT];
@@ -54,9 +80,11 @@ namespace Musys.IR {
         }
         class construct { _istype[TID.VALUE] = true; }
 
+        /** 迭代读取函数. 传入的 operand 表示被读取的操作数, 返回是否终止迭代. */
         [CCode(cname="_ZN5Musys2IR5Value8ReadFuncE")]
         public delegate bool   ReadFunc   (Value operand);
 
+        /** 迭代替换函数. 传入的 operand 表示被读取的操作数, 返回值决定是否终止迭代以及是否替换. */
         [CCode(cname="_ZN5Musys2IR5Value11ReplaceFuncE")]
         public delegate Value? ReplaceFunc(Value operand);
     }

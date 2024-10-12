@@ -88,24 +88,18 @@ namespace Musys {
         public bool is_function   { get { return _istype[TID.FUNCTION_TYPE]; } }
 
         /**
-         * 表示类型实例的大小.  
-         * Represents the instance of this type.
-         *
-         * 倘若该类型不可实例化, 则大小为 0. 反之不成立.  
-         * If instance size is 0, the type cannot be instantiated.
-         * However, the converse is not true.
+         * 表示类型实例的大小, 按字节表示. 倘若该类型不可实例化, 则大小为 0. 反之不成立.
          */
         public abstract size_t instance_size{get;}
 
         /** 
-         * 表示该类型是否可实例化.
-         * Shows whether this type can make `Value` instances.
+         * 表示该类型是否可实例化. 可实例化的类型至少有一个 ``IR.Value`` 子类的类型是它.
          */
         public virtual bool is_instantaneous {
             get { return instance_size > 0; }
         }
 
-        /** 表示该类型的内存对齐字节大小. */
+        /** 表示该类型的内存对齐字节大小. 一般来说, 内存对齐的大小是 2 的次方. */
         public abstract size_t instance_align{get;}
 
         /** 类型的哈希值, 用于 TypeContext 验证类型的唯一性. */
@@ -115,6 +109,7 @@ namespace Musys {
         public bool equals(Type rhs) {
             return this == rhs || _relatively_equals(rhs);
         }
+        /** 类型判等的内部实现, 剔除了引用必须相等之类的公共代码. */
         protected abstract bool _relatively_equals(Type rhs);
 
         /**
@@ -138,7 +133,7 @@ namespace Musys {
         /**
          * 检查整数 size 是不是 2 的次方。倘若不是, 就抛 SizeErr 异常。
          *
-         * @throws SizeErr
+         * @throws Musys.SizeErr 大小不是 2 的次方
          */
         public static void CheckPowerOf2(size_t size)
                            throws SizeErr {

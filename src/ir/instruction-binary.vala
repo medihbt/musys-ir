@@ -5,10 +5,12 @@ namespace Musys.IR {
      * 顾名思义. 双操作数指令要么是算术运算指令，要么是逻辑运算指令.
      *
      * ==== 操作数表 ====
+     *
      * - `[0] = lhs`: 左操作数
      * - `[1] = rhs`: 右操作数
      *
      * ==== 文本格式 ====
+     *
      * - 整数加/减/乘指令: `%<id> = <opcode> <nsw|nuw> <type> <lhs>, <rhs>`, 其中 opcode = add, sub, mul
      * - 其他算术指令: `%<id> = <opcode> <type> <lhs>, <rhs>`, 其中 opcode = fadd,...,frem;sdiv,udiv,srem,urem
      * - 其他指令: `%<id> = <opcode> <type> <lhs>, <type> <rhs>`, 其中 opcode = and,or,...,ashr

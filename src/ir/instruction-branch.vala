@@ -9,9 +9,11 @@ namespace Musys.IR {
      * `JumpSSA` 类 (jump 指令).
      *
      * ==== 操作数表 ====
+     *
      * - `[0] = condition` 跳转条件
      *
      * ==== 文本格式 ====
+     *
      * {{{
      * br i1 <condition>, label <if true>, label <if false>
      * }}}

@@ -1,12 +1,16 @@
 public class Musys.StructType: AggregateType {
     /** 结构体的分类. 不同类型的结构体各不相同,  */
     public enum Kind {
-        /** 匿名结构体: 只有字段表示, 没有名称. 与其他结构体比较时
-         *  只比较字段成员. */
+        /**
+         * 匿名结构体: 只有字段表示, 没有名称. 与其他结构体比较时
+         * 只比较字段成员.
+         */
         ANOMYMOUS,
 
-        /** 带标签结构体: 既有字段表示, 也有名称. 与其他结构体比较
-         *  时既比较字段成员, 也比较名称成员. */
+        /**
+         * 带标签结构体: 既有字段表示, 也有名称. 与其他结构体比较
+         * 时既比较字段成员, 也比较名称成员.
+         */
         SYMBOLLED,
 
         /** 不透明结构体: 只有名称，没有字段. 比较时只比较名称. */
@@ -110,7 +114,8 @@ public class Musys.StructType: AggregateType {
     /**
      * 表示该结构体是不是**不透明的**.
      * 一个不透明结构体的内部字段成员全部不可见, 不能使用 getelementptr 之类
-     * 的指令获取成员指针. */
+     * 的指令获取成员指针.
+     */
     public bool is_opaque {
         get { return kind == OPAQUE || _fields == null; }
     }

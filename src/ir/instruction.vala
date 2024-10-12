@@ -29,20 +29,38 @@ namespace Musys.IR {
         }
     }
 
+    /**
+     * === Musys 指令类 ===
+     *
+     * 指令结点, 同时表示指令执行的结果. 指令的类型就是结果的类型.
+     */
     public abstract class Instruction: User {
-        protected OpCode _opcode;
+        /**
+        * 操作码：表示指令执行的具体操作. 指令一旦构造完成, 操作码不可更改.
+        *
+        * @see Musys.IR.OpCode
+        */
         public    OpCode  opcode { get { return _opcode; } }
+        protected OpCode _opcode;
 
-        protected unowned BasicBlock _parent;
+        /** 指令在 IR 结点树中的父结点. */
         public    unowned BasicBlock  parent {
             get { return  _parent; }
             set { _parent = value; }
         }
+        protected unowned BasicBlock _parent;
 
-        internal InstructionList.Node* _nodeof_this;
+        /**
+         * 返回指向指令自己的修改式迭代器. 你可以用这个迭代器完成增删改操作.
+         * 倘若你调用两次该属性分别得到 a 和 b 迭代器, 那修改一个迭代器的具体
+         * 内容时, 另一个不受影响.
+         *
+         * @see Musys.IR.InstructionList.Modifier
+         */
         public   InstructionList.Modifier  modifier {
             get { return {_nodeof_this}; }
         }
+        internal InstructionList.Node* _nodeof_this;
         public bool is_attached() { return modifier.is_available(); }
 
         public virtual void on_plug(BasicBlock parent) {
@@ -83,9 +101,15 @@ namespace Musys.IR {
      * @see BasicBlock
      */
     public interface IBasicBlockTerminator: Instruction {
-        public virtual BasicBlock? default_target {
-            get { return null; } set {}
-        }
+        /**
+         * 默认跳转目标.
+         *
+         * 基本块终止子可能会有一个默认跳转目标. 在 br 指令里, 跳转目标是条件为 false
+         * 的分支; 在只有一个跳转目标的 jump 指令里, 默认跳转目标就是那仅有的一个; 在
+         * 像 ret/unreachable 这样直接终止控制流的指令里没有跳转目标, 此时 default_target
+         * 属性应当为 null,
+         */
+        public virtual BasicBlock? default_target { get { return null; } set {} }
 
         /**
          * ntargets -- 这条指令的跳转目标个数. 对于重复的跳转目标, 重复几次
@@ -97,7 +121,8 @@ namespace Musys.IR {
         public virtual int64 ntargets{ get { return 0; } }
 
         /**
-         * ==== 遍历读取跳转目标 ====
+         * 遍历读取跳转目标.
+         *
          * {{{foreach_target(ReadFunc = {(bb) => terminates?})}}}
          *
          * 遍历读取所有的跳转目标, 每读取一个就传入迭代闭包 fn 执行一次. 倘若没有跳转目标
@@ -116,7 +141,17 @@ namespace Musys.IR {
         public abstract bool foreach_target(BasicBlock.ReadFunc fn);
 
         /**
-         * ==== 遍历替换跳转目标 ====
+         * 遍历替换跳转目标.
+         *
+         * {{{replace_target(ReadFunc = {(bb) => replacement?})}}}
+         *
+         * @param fn 迭代替换闭包. 接受一个基本块参数, 返回是否立即终止当前替换, 以及
+         * 是否替换目标.
+         *
+         * @return 该方法也是一个迭代方法, 返回 true 表示迭代过程被异常终止, 返回 false
+         *         表示迭代从头到尾没有被打断.
+         *
+         * @see Musys.IR.BasicBlock.ReplaceFunc
          */
         public abstract bool replace_target(BasicBlock.ReplaceFunc fn);
     }

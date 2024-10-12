@@ -4,11 +4,15 @@ namespace Musys.IRUtil.BasicBlock {
         GOT_PHI_IN_MIDDLE;
     }
 
-    /** **检查函数**: PHI 指令必须在基本块的开头, **否则报错**
-     * - @param `block` 等待检查的基本块
-     * - @param `out last_phi` 正常情况下输出基本块的最后一条
+    /**
+     * **检查函数**: PHI 指令必须在基本块的开头, **否则报错**
+     *
+     * @param block 等待检查的基本块
+     *
+     * @param last_phi (out) 正常情况下输出基本块的最后一条
      *   Phi 指令迭代器, 否则输出位置放错的那条 Phi 指令. 倘若
-     *   基本块没有 Phi 指令, 则输出一个不可用的迭代器. */
+     *   基本块没有 Phi 指令, 则输出一个不可用的迭代器.
+     */
     public void check_phi_on_top(IR.BasicBlock block,
                                  out IR.InstructionList.Iterator last_phi)
                 throws CheckErr

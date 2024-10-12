@@ -8,7 +8,7 @@ namespace Musys.IR {
      * 因为 Musys-IR 的指针量都是不透明的, 所以 `AllocaBase` 及其子类实现了
      * `IPointerValue` 接口用于展示目标类型.
      *
-     * @see Musys.IR.IPointerValue
+     * @see Musys.IR.IPointerStorage
      *
      * @see Musys.IR.DynAllocaSSA
      *
@@ -46,7 +46,7 @@ namespace Musys.IR {
      *
      * - 操作数列表: 无
      *
-     * @see Musys.IR.IPointerValue
+     * @see Musys.IR.IPointerStorage
      *
      * @see Musys.IR.AllocaSSA
      *
@@ -80,7 +80,7 @@ namespace Musys.IR {
      *
      * - `[0] = length` 表示申请得到的内存可以容纳多少个类型为 target_type 的元素.
      *
-     * @see Musys.IR.IPointerValue
+     * @see Musys.IR.IPointerStorage
      *
      * @see Musys.IR.LoadSSA
      *

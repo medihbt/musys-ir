@@ -4,63 +4,47 @@ namespace Musys.IRUtil {
         SYMBOL_NAME_EXISTS;
     }
 
+    /**
+     * === 函数拷贝装置 ===
+     * 把函数 from 拷贝一份并命名为 to.
+     *
+     * ==== 使用样例 ====
+     * 把函数 `foo` 拷贝一份，命名为 `foo_1`; 然后再拷贝一次 `foo_1` 为 `foo_2`,
+     * 最后返回 foo_2.
+     *
+     * {{{
+     *  IR.Function clone_foo(IR.Module module, IR.Function foo_func)
+     *  {
+     *  	var clone = new CloneFunction.from_module(module);
+     *  	try {
+     *  		IR.Function foo1 = clone.run(foo_func, "foo_1");
+     *  		IR.Function foo2 = clone.run(foo1, "foo_2");
+     *  		return foo_2;
+     *  	} catch (Error e) {
+     *  		crash_err(e);
+     *  	}
+     *  }
+     * }}}
+     */
     public class CloneFunction: IR.IValueVisitor {
-        public struct Runtime {
-            unowned CloneFunction         parent;
-            HashTable<IR.Value, IR.Value> copy_map;
-            IR.Value saved;
-
-            public void init_clean(CloneFunction parent)
-            {
-                this.parent = parent;
-                if (copy_map != null)
-                    copy_map.remove_all();
-                else
-                    copy_map = new HashTable<IR.Value, IR.Value>(null, null);
-            }
-            public bool needs_clone(IR.Value value)
-            {
-                /* 常量数值和常量表达式共享引用, 不需要拷贝
-                 * 全局量不在函数作用域内，不可拷贝 */
-                if (value.isvalue_by_id(CONSTANT))
-                    return false;
-                if (value.isvalue_by_id(BASIC_BLOCK))
-                    return static_cast<IR.BasicBlock>(value).parent != parent.from;
-                if (value.isvalue_by_id(INSTRUCTION))
-                    return static_cast<IR.Instruction>(value).parent.parent != parent.from;
-                return true;
-            }
-            public IR.Value? find_copy(IR.Value value)
-            {
-                if (!needs_clone(value))
-                    return value;
-                if (value in copy_map)
-                    return copy_map[value];
-                return null;
-            }
-
-        /* ======== [指令流拷贝] ======== */
-
-            /** 当前指令拷贝的源基本块 */
-            IR.BasicBlock from_bb;
-            /** 当前指令拷贝的目标基本块 */
-            IR.BasicBlock to_bb;
-        
-        /* ======== [终止子拷贝] ========  */
-        } // struct Runtime
-
         private Runtime       rt;
         private IR.Module module;
         private TypeContext tctx;
         private IR.Function from;
         private IR.Function to;
 
+        /**
+         * ==== 构造函数: 这是你要调用的构造方法 ====
+         */
         public CloneFunction.from_module(IR.Module module) {
             this.module = module;
             this.tctx   = module.type_ctx;
             this.rt.init_clean(this);
         }
 
+        /**
+         * ==== 拷贝函数: 这是你要调用的函数接口 ====
+         */
         public IR.Function run(IR.Function fn, string new_name, bool copy_attributes = false)
                 throws Error, CloneFunctionErr, IR.FuncBodyErr
         {
@@ -303,5 +287,49 @@ namespace Musys.IRUtil {
             };
             rt.saved = ret;
         }
+
+        public struct Runtime {
+            unowned CloneFunction         parent;
+            HashTable<IR.Value, IR.Value> copy_map;
+            IR.Value saved;
+
+            public void init_clean(CloneFunction parent)
+            {
+                this.parent = parent;
+                if (copy_map != null)
+                    copy_map.remove_all();
+                else
+                    copy_map = new HashTable<IR.Value, IR.Value>(null, null);
+            }
+            public bool needs_clone(IR.Value value)
+            {
+                /* 常量数值和常量表达式共享引用, 不需要拷贝
+                 * 全局量不在函数作用域内，不可拷贝 */
+                if (value.isvalue_by_id(CONSTANT))
+                    return false;
+                if (value.isvalue_by_id(BASIC_BLOCK))
+                    return static_cast<IR.BasicBlock>(value).parent != parent.from;
+                if (value.isvalue_by_id(INSTRUCTION))
+                    return static_cast<IR.Instruction>(value).parent.parent != parent.from;
+                return true;
+            }
+            public IR.Value? find_copy(IR.Value value)
+            {
+                if (!needs_clone(value))
+                    return value;
+                if (value in copy_map)
+                    return copy_map[value];
+                return null;
+            }
+
+        /* ======== [指令流拷贝] ======== */
+
+            /** 当前指令拷贝的源基本块 */
+            IR.BasicBlock from_bb;
+            /** 当前指令拷贝的目标基本块 */
+            IR.BasicBlock to_bb;
+        
+        /* ======== [终止子拷贝] ========  */
+        } // struct Runtime
     } // class CloneFunction
 }

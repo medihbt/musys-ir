@@ -20,11 +20,11 @@ namespace Musys.IR {
      * %<id> = indexptr <primary-target-type>, ptr <source>, (<idx-type[i]> index[i])...
      * }}}
      *
-     * - `primary-target-type`: 应当把 source 视为指向什么类型的指针.
-     * - `source`: 源操作数指针
-     * - `idx-type[0], index[0]`: 初始索引, 这时是把 source 当成 `primary-target-type[]` 数组指针.
-     * - `idx-type[...], index[...]`: 后续分层索引. idx-type 必须是整数类型. 每层解索引之前的类型必须
-     *   是数组、结构体或向量, 倘若是结构体的话则 index 必须是编译期常量.
+     * * `primary-target-type`: 应当把 source 视为指向什么类型的指针.
+     * * `source`: 源操作数指针
+     * * `idx-type[0], index[0]`: 初始索引, 这时是把 source 当成 `primary-target-type[]` 数组指针.
+     * * `idx-type[...], index[...]`: 后续分层索引. idx-type 必须是整数类型. 每层解索引之前的类型必须
+     * 是数组、结构体或向量, 倘若是结构体的话则 index 必须是编译期常量.
      */
     public class IndexPtrSSA: Instruction, IPointerStorage {
         private SourceUse _usource;
