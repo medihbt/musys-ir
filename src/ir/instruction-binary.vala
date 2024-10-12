@@ -29,11 +29,10 @@ namespace Musys.IR {
             set {
                 if (!opcode.is_shift_op()) {
                     set_usee_type_match_self(ref _rhs, value, _urhs);
-                    return;
+                } else {
+                    value_int_or_crash(value, "%s", "BinarySSA.rhs::set()");
+                    User.set_usee_always(ref _rhs, value, _urhs);
                 }
-                value_int_or_crash(value, "at BinarySSA.rhs::set()");
-                User.replace_use(_rhs, value, _urhs);
-                _rhs = value;
             }
         }
 
@@ -62,8 +61,9 @@ namespace Musys.IR {
             _ulhs = new BinaryLHSUse(this).attach_back(this);
             _urhs = new BinaryRHSUse(this).attach_back(this);
         }
-        public BinarySSA.nocheck(OpCode opcode, Type type, Value lhs, Value rhs) {
-            base.C1 (BINARY_SSA, opcode, type);
+        public BinarySSA.nocheck(OpCode opcode, Type type, Value lhs, Value rhs, bool is_signed) {
+            base.C1(BINARY_SSA, opcode, type);
+            this._is_signed = is_signed;
             _ulhs = new BinaryLHSUse(this).attach_back(this);
             _urhs = new BinaryRHSUse(this).attach_back(this);
             this._lhs = lhs;
@@ -72,74 +72,94 @@ namespace Musys.IR {
             _rhs.add_use_as_usee(_urhs);
         }
 
-        public BinarySSA.as_add(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = _valuetype_same_or_crash(lhs, rhs);
-            var opcode = type.is_int? OpCode.ADD: OpCode.FADD;
-            this.nocheck(opcode, type, lhs, rhs);
-            this._is_signed = is_signed;
+        public BinarySSA.as_add(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_add");
+            this.nocheck(type.is_int? OpCode.ADD: OpCode.FADD, type, lhs, rhs, is_signed);
         }
-        public BinarySSA.as_sub(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = _valuetype_same_or_crash(lhs, rhs);
-            var opcode = type.is_int? OpCode.SUB: OpCode.FSUB;
-            this.nocheck(opcode, type, lhs, rhs);
-            this._is_signed = is_signed;
+        public BinarySSA.as_sub(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_sub");
+            this.nocheck(type.is_int? OpCode.SUB: OpCode.FSUB, type, lhs, rhs, is_signed);
         }
-        public BinarySSA.as_mul(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = _valuetype_same_or_crash(lhs, rhs);
-            var opcode = type.is_int? OpCode.MUL: OpCode.FMUL;
-            this.nocheck(opcode, type, lhs, rhs);
-            this._is_signed = is_signed;
+        public BinarySSA.as_mul(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_mul");
+            this.nocheck(type.is_int? OpCode.MUL: OpCode.FMUL, type, lhs, rhs, is_signed);
         }
-        public BinarySSA.as_idiv(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = int_value_match_or_crash(lhs, rhs);
-            var opcode = is_signed? OpCode.SDIV: OpCode.UDIV;
-            this.nocheck(opcode, type, lhs, rhs);
-            this._is_signed = is_signed;
+        public BinarySSA.as_idiv(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, INT_TYPE, "BinarySSA::as_idiv");
+            this.nocheck(is_signed? OpCode.SDIV: OpCode.UDIV, type, lhs, rhs, is_signed);
         }
-        public BinarySSA.as_fdiv(Value lhs, Value rhs) {
-            unowned var type = _floattype_same_or_crash(lhs, rhs);
-            this.nocheck(FDIV, type, lhs, rhs);
-            this._is_signed = true;
+        public BinarySSA.as_fdiv(Value lhs, Value rhs)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, FLOAT_TYPE, "BinarySSA::as_fdiv");
+            this.nocheck(FDIV, type, lhs, rhs, true);
         }
-        public BinarySSA.as_irem(Value lhs, Value rhs, bool is_signed = true) {
-            unowned var type = int_value_match_or_crash(lhs, rhs);
-            var opcode = is_signed? OpCode.SREM: OpCode.UREM;
-            this.nocheck(opcode, type, lhs, rhs);
-            this._is_signed = is_signed;
+        public BinarySSA.as_div(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type.TID tidreq;
+            OpCode   opcode;
+            if (lhs.value_type.is_float) {
+                tidreq = FLOAT_TYPE; is_signed = true;
+                opcode = FDIV;
+            } else {
+                tidreq = INT_TYPE;
+                opcode = is_signed? OpCode.SDIV: OpCode.UDIV;
+            }
+            this.nocheck(opcode,
+                checkop_same(lhs, rhs, tidreq, "BinarySSA::as_div"),
+                lhs, rhs, true);
         }
-        public BinarySSA.as_frem(Value lhs, Value rhs) {
-            unowned var type = _floattype_same_or_crash(lhs, rhs);
-            this.nocheck(FREM, type, lhs, rhs);
-            this._is_signed = true;
+        public BinarySSA.as_irem(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, INT_TYPE, "BinarySSA::as_irem");
+            this.nocheck(is_signed? OpCode.SREM: OpCode.UREM, type, lhs, rhs, is_signed);
         }
-        public inline BinarySSA.as_logic(OpCode opcode, Value lhs, Value rhs)
-        {
+        public BinarySSA.as_frem(Value lhs, Value rhs)
+                    throws TypeMismatchErr {
+            Type type = checkop_same(lhs, rhs, FLOAT_TYPE, "BinarySSA::as_irem");
+            this.nocheck(FREM, type, lhs, rhs, true);
+        }
+        public BinarySSA.as_rem(Value lhs, Value rhs, bool is_signed = true)
+                    throws TypeMismatchErr {
+            Type.TID tidreq;
+            OpCode   opcode;
+            if (lhs.value_type.is_float) {
+                tidreq = FLOAT_TYPE; is_signed = true;
+                opcode = FREM;
+            } else {
+                tidreq = INT_TYPE;
+                opcode = is_signed? OpCode.SREM: OpCode.UREM;
+            }
+            this.nocheck(opcode,
+                checkop_same(lhs, rhs, tidreq, "BinarySSA::as_rem"),
+                lhs, rhs, true);
+        }
+        public BinarySSA.as_logic(OpCode opcode, Value lhs, Value rhs)
+                    throws TypeMismatchErr {
             if (!opcode.is_logic_op())
-                crash (@"Requires logic opcode, but got $(opcode)");
-            unowned Type type = opcode.is_shift_op() ?
-                                _all_int_or_crash(lhs, rhs):
-                                int_value_match_or_crash(lhs, rhs);
-            this.nocheck(opcode, type, lhs, rhs);
-            this._is_signed = opcode == ASHR;
+                crash_fmt("Requires logic opcode, but got %s", opcode.get_name());
+            IntType lty = value_int_or_throw(lhs, "BinarySSA::as_logic().lhs");
+            IntType rty = value_int_or_throw(rhs, "BinarySSA::as_logic().rhs");
+            if (!opcode.is_shift_op())
+                type_match_or_throw(lty, rty);
+            this.nocheck(opcode, lty, lhs, rhs, opcode == ASHR);
         }
-        public BinarySSA.as_and (Value lhs, Value rhs) { this.as_logic(AND,  lhs, rhs); }
-        public BinarySSA.as_orr (Value lhs, Value rhs) { this.as_logic(ORR,  lhs, rhs); }
-        public BinarySSA.as_xor (Value lhs, Value rhs) { this.as_logic(XOR,  lhs, rhs); }
-        public BinarySSA.as_shl (Value lhs, Value rhs) { this.as_logic(SHL,  lhs, rhs); }
-        public BinarySSA.as_lshr(Value lhs, Value rhs) { this.as_logic(LSHR, lhs, rhs); }
-        public BinarySSA.as_ashr(Value lhs, Value rhs) { this.as_logic(ASHR, lhs, rhs); }
+        public BinarySSA.as_and (Value lhs, Value rhs) throws TypeMismatchErr { this.as_logic(AND,  lhs, rhs); }
+        public BinarySSA.as_orr (Value lhs, Value rhs) throws TypeMismatchErr { this.as_logic(ORR,  lhs, rhs); }
+        public BinarySSA.as_xor (Value lhs, Value rhs) throws TypeMismatchErr { this.as_logic(XOR,  lhs, rhs); }
+        public BinarySSA.as_shl (Value lhs, Value rhs) throws TypeMismatchErr { this.as_logic(SHL,  lhs, rhs); }
+        public BinarySSA.as_lshr(Value lhs, Value rhs) throws TypeMismatchErr { this.as_logic(LSHR, lhs, rhs); }
+        public BinarySSA.as_ashr(Value lhs, Value rhs) throws TypeMismatchErr { this.as_logic(ASHR, lhs, rhs); }
 
-        [CCode(cname="_ZN5Musys2IR9BinarySSA9CreateDivE")]
-        public static BinarySSA CreateDiv(Value lhs, Value rhs, bool is_signed = true) {
-            return lhs.value_type.is_int? new BinarySSA.as_idiv(lhs, rhs, is_signed):
-                                          new BinarySSA.as_fdiv(lhs, rhs);
-        }
-        [CCode(cname="_ZN5Musys2IR9BinarySSA9CreateRemE")]
-        public static BinarySSA CreateRem(Value lhs, Value rhs, bool is_signed = true) {
-            return lhs.value_type.is_int? new BinarySSA.as_irem(lhs, rhs, is_signed):
-                                          new BinarySSA.as_frem(lhs, rhs);
-        }
         class construct { _istype[TID.BINARY_SSA] = true; }
+
+        private static Type checkop_same(IR.Value lhs, IR.Value rhs, Type.TID tid, string msg)
+                    throws TypeMismatchErr {
+            return type_match_istid(lhs.value_type, rhs.value_type, tid, msg);
+        }
     }
 
     /** BinarySSA 的左操作数. */
@@ -162,44 +182,5 @@ namespace Musys.IR {
             get { return user.rhs; } set { user.rhs = value; }
         }
         public BinaryRHSUse(BinarySSA user) { base.C1(user); }
-    }
-
-    private unowned PrimitiveType _valuetype_same_or_crash(Value lhs, Value rhs)
-    {
-        unowned var lty = lhs.value_type;
-        unowned var rty = rhs.value_type;
-        if (!lty.is_valuetype || !rty.is_valuetype) {
-            crash(@"Add instruction requires int/float value type, but:\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        if (!lty.equals(rty)) {
-            crash(@"Add instruction requires LHS and RHS type be the same, but\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        return static_cast<PrimitiveType>(lty);
-    }
-    private unowned Type _all_int_or_crash(Value lhs, Value rhs)
-    {
-        unowned var lty = lhs.value_type;
-        unowned var rty = rhs.value_type;
-        if (!lty.is_int || !rty.is_int) {
-            crash(@"requires int type, but:\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        return lty;
-    }
-    private unowned FloatType _floattype_same_or_crash(Value lhs, Value rhs)
-    {
-        unowned var lty = lhs.value_type;
-        unowned var rty = rhs.value_type;
-        if (!lty.is_float || !rty.is_float) {
-            crash(@"requires float type, but:\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        if (!lty.equals(rty)) {
-            crash(@"requires LHS and RHS type be the same, but:\nlhs is $(lty)\nrhs is $(rty)"
-                  , true, {Log.FILE, Log.METHOD, Log.LINE});
-        }
-        return static_cast<FloatType>(lty);
     }
 }

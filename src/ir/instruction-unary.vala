@@ -17,8 +17,7 @@ namespace Musys.IR {
                 if (value == _operand)
                     return;
                 if (value != null) {
-                    type_match_or_crash(_operand_type, value.value_type,
-                        {Log.FILE, Log.METHOD, Log.LINE});
+                    type_match_or_crash(_operand_type, value.value_type);
                 }
                 replace_use(_operand, value, _uoperand);
                 _operand = value;
@@ -83,9 +82,7 @@ namespace Musys.IR {
         {
             if (value == null)
                 return;
-            type_match_or_crash(this.value_type,
-                                value.value_type,
-                                Musys.SourceLocation.current());
+            type_match_or_crash(this.value_type, value.value_type);
         }
 
         public UnaryOpSSA.raw(OpCode opcode, Type type) {
@@ -106,7 +103,7 @@ namespace Musys.IR {
             this.operand = value;
         }
         public UnaryOpSSA.as_not(Value value) {
-            var type = value_int_or_crash(value);
+            var type = value_int_or_crash(value, "UnaryOpSSA(NOT)");
             this.raw(NOT, type);
             this.operand = value;
         }

@@ -55,9 +55,7 @@ namespace Musys {
         public GeeArraySlice.from_slice(ElemT[] array, int begin, int end)
         {
             if (begin > end) {
-                crash_fmt(Musys.SourceLocation.current(),
-                    "GeeArraySlice{%p[%d:%d]} begin > end",
-                    array, begin, end);
+                crash_fmt("GeeArraySlice{%p[%d:%d]} begin > end", array, begin, end);
             }
             this.array = array;
             this.begin = int.max(begin, 0);

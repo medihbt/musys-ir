@@ -33,12 +33,10 @@ namespace Musys {
     [CCode (cheader_filename="musys-backtrace.h")]
     public extern int print_backtrace();
 
-    private void _crash_print_head(ref SourceLocation loc)
+    private void _crash_print_head()
     {
         stderr.printf("|================ [进程 %d 已崩溃] ================|\n",
                       stdc.getpid());
-        stderr.puts  ("-----------------<  位置  >-----------------\n");
-        stderr.printf("源文件: %s\n行:   %d\n方法: %s\n", loc.filename, loc.line, loc.method);
         stderr.puts  ("-----------------< 栈回溯 >-----------------\n");
         print_backtrace();
     }
@@ -55,37 +53,39 @@ namespace Musys {
         Process.abort();
     }
 
-    [NoReturn]
-    public void crash(string msg, bool pauses = true, SourceLocation loc = SourceLocation.current())
+    [NoReturn, Diagnostics]
+    public void crash(string msg, bool pauses = false)
     {
-        _crash_print_head(ref loc);
+        _crash_print_head();
         stderr.puts("-----------------<  消息  >-----------------\n");
         stderr.puts(msg);
         if (pauses) {
-            stderr.puts("请按回车键继续...");
+            stderr.puts("请按回车键继续...\n");
             stdin.getc();
+        } else {
+            stderr.putc('\n');
         }
         Process.abort();
     }
-    [NoReturn]
-    public void crash_err(Error e, string? extra_msg = null, SourceLocation loc = SourceLocation.current()) {
+    [NoReturn, Diagnostics]
+    public void crash_err(Error e, string? extra_msg = null) {
         if (extra_msg == null)
-            crash_fmt(loc, "Aborted error %s(%d): %s", e.domain.to_string(), e.code, e.message);
+            crash_fmt("Aborted error %s(%d): %s", e.domain.to_string(), e.code, e.message);
         else
-            crash_fmt(loc, "Aborted error %s(%d): %s\n%s", e.domain.to_string(), e.code, e.message, extra_msg);
+            crash_fmt("Aborted error %s(%d): %s\n%s", e.domain.to_string(), e.code, e.message, extra_msg);
     }
     [NoReturn]
-    public inline void crash_vfmt(SourceLocation loc, string fmt, va_list ap)
+    public inline void crash_vfmt(string fmt, va_list ap)
     {
-        _crash_print_head(ref loc);
+        _crash_print_head();
         stderr.puts("-----------------<  消息  >-----------------\n");
         stderr.vprintf(fmt, ap);
         stderr.puts("\n请按回车键继续...");
         stdin.getc();
         Process.abort();
     }
-    [NoReturn, PrintfFormat]
-    public void crash_fmt(SourceLocation loc, string fmt, ...) {
-        crash_vfmt(loc, fmt, va_list());
+    [NoReturn, PrintfFormat, Diagnostics]
+    public void crash_fmt(string fmt, ...) {
+        crash_vfmt(fmt, va_list());
     }
 }

@@ -30,7 +30,7 @@ namespace Musys.IR {
         private SourceUse _usource;
         private Value     _source;
         /** 源操作数. 必须是指针类型的. */
-        public  Value  source {
+        public  Value source {
             get { return _source; }
             set {
                 if (value == _source)
@@ -139,6 +139,14 @@ namespace Musys.IR {
             }
             this._init_uses((owned)indices);
         }
+        public IndexPtrSSA.copy_nocheck(Type primary_target, IndexUse[] indices) {
+            try { this.move_nocheck(primary_target, CopyIndices(indices, false)); }
+            catch (Error e) { crash_err(e); }
+        }
+        public IndexPtrSSA.copy(Type primary_target, IndexUse[] indices)
+                    throws TypeMismatchErr, IndexPtrErr {
+            this.move_nocheck(primary_target, CopyIndices(indices, true));
+        }
         public IndexPtrSSA.from_values(Type primary_target, Gee.List<Value> indices)
                     throws TypeMismatchErr, IndexPtrErr
         {
@@ -152,7 +160,7 @@ namespace Musys.IR {
             Type curr = arr0;
             foreach (Value? index in indices) {
                 if (check_type_index_step(index, layer_idx, curr, out curr)) {
-                    crash_fmt(Musys.SourceLocation.current(),
+                    crash_fmt(
                         "Iteration (%u / %d) terminates too early",
                         layer_idx, uses.length);
                 }
@@ -194,6 +202,27 @@ namespace Musys.IR {
                 crash_err(e);
             }
         }
+        public static IndexUse[] CopyIndices(IndexUse[] indices, bool check = false)
+                    throws TypeMismatchErr, IndexPtrErr {
+            var ret = new IndexUse[indices.length];
+            Type primary_target = indices[0].type_after_extract;
+            Type before_extract = primary_target;
+            for (int layer = 0; layer < indices.length; layer++) {
+                IndexUse ufrom = indices[layer];
+                Value?   index = ufrom.index;
+                Type after_extract = ufrom.type_after_extract;
+                /* i == 0 时索引是初始索引, 不受检查限制 */
+                if (check && layer != 0) {
+                    check_type_index_step(index, layer, before_extract, out after_extract);
+                    before_extract = after_extract;
+                }
+                ret[layer] = new IndexUse() {
+                    layer = layer, index = index,
+                    type_after_extract = after_extract,
+                };
+            }
+            return ret;
+        }
 
         /** 表示源操作数的使用关系 */
         public class SourceUse: Use {
@@ -213,9 +242,8 @@ namespace Musys.IR {
             /** 本层取索引前的类型 */
             public unowned Type type_before_extract {
                 get {
-                    if (layer == 0)
-                        return user.arr0_primary_target;
-                    return user.indices[layer - 1].type_after_extract;
+                    return layer == 0? user.arr0_primary_target
+                        : user._indices[layer - 1].type_after_extract;
                 }
             }
             /** 本层取索引后的类型 */
@@ -227,18 +255,20 @@ namespace Musys.IR {
             }
 
             internal Value _index;
-            /** 本层索引. 当未解包的类型是结构体时, 本层索引不可变. */
+            /**
+             * 本层索引. ''当未解包的类型是结构体时, 本层索引不可变.''
+             * 因为 Vala 的属性语法不允许抛异常, 直接 crash 掉又会让那些
+             * 依赖这方面错误处理的程序的很难写, 所以这仅仅是一个君子协议罢了.
+             */
             public Value index {
                 get { return _index; }
                 set {
                     if (value == _index)
                         return;
-                    if (value != null && !value.value_type.is_int) {
-                        crash_fmt(Musys.SourceLocation.current(),
-                            "IndexPtrSSA(%d)::IndexUse(layer %u).index requires int type, " +
-                            "but got %s",
-                            user.id, layer, value.value_type.name);
-                    }
+                    value_int_or_crash(
+                        value, "IndexPtrSSA(%d)::IndexUse(layer %u).index",
+                        user.id, layer
+                    );
                     User.replace_use(_index, value, this);
                     _index = value;
                 }
@@ -257,19 +287,7 @@ namespace Musys.IR {
                 return ((AggregateType)before_extract).element_always_consist;
             }
             public override Value? usee {
-                get { return _index; }
-                set {
-                    index = value;
-                    if (error != null)
-                        return;
-                }
-            }
-
-            public IndexUse.auto_attach(IndexPtrSSA user, uint layer, Type after_extracted) {
-                this.user  = user;
-                this.layer = layer;
-                this.type_after_extract = after_extracted;
-                this.attach_back(user);
+                get { return _index; } set { index = value; }
             }
         }
     }

@@ -48,7 +48,7 @@ namespace Musys.IRUtil.BasicBlock {
             new_block.plug_this_after(old);
             jmpssa.target = new_block;
             return new_block;
-        } catch (IR.InstructionListErr e) {
+        } catch (Error e) {
             crash_err(e);
         }
     }
@@ -86,7 +86,7 @@ namespace Musys.IRUtil.BasicBlock {
         public void split_after_modifier(IR.InstructionList.Modifier modif) throws Error
         {
             if (modif.node == null || modif.list == null)
-                crash_fmt({Log.FILE, Log.METHOD, Log.LINE}, "Modifier NOT attached to any basic block\n");
+                crash("Modifier NOT attached to any basic block\n");
             old_bb = modif.list.parent;
 
             /* Musys 要求 PHI 指令位于基本块头部且不可拆分, 因此需要跳过 PHI 指令 */
@@ -103,11 +103,8 @@ namespace Musys.IRUtil.BasicBlock {
             /* 搬移指令 */
             while (true) {
                 IR.InstructionList.Modifier next = modif.get_next();
-                if (unlikely(!next.is_available())) {
-                    crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
-                        "InstructionList position %p next not available",
-                        modif.node);
-                }
+                if (unlikely(!next.is_available()))
+                    crash_fmt("InstructionList position %p next not available", modif.node);
                 if (next.get().isvalue_by_id(IBASIC_BLOCK_TERMINATOR))
                     break;
                 IR.Instruction inst = next.unplug();
@@ -123,7 +120,6 @@ namespace Musys.IRUtil.BasicBlock {
                 unowned string iklass = ibefore.get_class().get_name();
                 unowned string opcode = ibefore.opcode.to_string();
                 crash_fmt(
-                    {Log.FILE, Log.METHOD, Log.LINE},
                     "Instruction(class %s, opcode %s) should be attached to Basic Block\n",
                     iklass, opcode
                 );
@@ -136,7 +132,6 @@ namespace Musys.IRUtil.BasicBlock {
                 unowned string iklass = iafter.get_class().get_name();
                 unowned string opcode = iafter.opcode.to_string();
                 crash_fmt(
-                    {Log.FILE, Log.METHOD, Log.LINE},
                     "Instruction(class %s, opcode %s) should be attached to Basic Block\n",
                     iklass, opcode
                 );

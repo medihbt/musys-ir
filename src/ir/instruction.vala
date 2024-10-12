@@ -70,7 +70,7 @@ namespace Musys.IR {
             if (_nodeof_this != null) {
                 unowned string iklass = get_class().get_name();
                 unowned string opcode = opcode.to_string();
-                crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                crash_fmt(
                     "Instruction %p(id %d, opcode %s, class %s) still connected to list",
                     this, id, opcode, iklass);
             }

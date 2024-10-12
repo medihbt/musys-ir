@@ -1,19 +1,3 @@
-public errordomain Musys.TypeMismatchErr {
-    /** 就是简单的 mismatch, 找不到别的原因 */
-    MISMATCH,
-    /** 具体的类型不匹配 */
-    NOT_PRIMARY,   NOT_INT,   NOT_FLOAT,
-    NOT_AGGREGATE, NOT_ARRAY, NOT_VECTOR, NOT_STRUCT,
-    NOT_POINTER, NOT_LABEL,
-    NOT_FUNCTION,
-    /** 具体类型的细分错误 */
-    STRUCT_OPAQUE,
-    /** 不是要求类型的子类型 */
-    NOT_CHILD_OF,
-    /** 不能实例化 */
-    NOT_INSTANTANEOUS;
-}
-
 /**
  * **类型上下文** -- 存储、注册、获取类型对象, 保证类型唯一性的类
  *
@@ -112,7 +96,7 @@ public class Musys.TypeContext: Object {
     public VectorType get_vec_type(Type element_type, size_t length)
     {
         if (!is_power_of_2_nonzero(length)) {
-            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+            crash_fmt(
                 "in TypeContext %p: fixed VectorType requires length" +
                 " to be power of 2 and nonzero, but got %lu\n",
                 this, length

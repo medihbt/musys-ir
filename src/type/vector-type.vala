@@ -6,7 +6,7 @@ public class Musys.VectorType: AggregateType {
         internal set {
             if (is_power_of_2(value))
                 _length = value;
-            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+            crash_fmt(
                 "VectorType(%p) length requires power of 2, but got %lu",
                 this, value
             );
@@ -56,7 +56,7 @@ public class Musys.VectorType: AggregateType {
     public VectorType.fixed(Type element, size_t length) {
         base.C1(element.type_ctx, VEC_TYPE);
         if (!is_power_of_2_nonzero(length)) {
-            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+            crash_fmt(
                 "fixed VectorType %p requires length power of 2 and nonzero, but got %lu\n",
                 this, length
             );

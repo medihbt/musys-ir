@@ -94,9 +94,8 @@ namespace Musys.IR {
             set {
                 if (value == _length)
                     return;
-                value_int_or_crash(value, "at DynAllocaSSA.length::set()");
-                replace_use(_length, value, _ulength);
-                _length = value;
+                value_int_or_crash(value, "DynAllocaSSA.length::set()");
+                User.set_usee_always(ref _length, value, _ulength);
             }
         }
 

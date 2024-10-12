@@ -7,7 +7,7 @@ public class Musys.IR.UnreachableSSA: Instruction, IBasicBlockTerminator {
         set_as_usee.clear();
         base._fast_clean();
     }
-    public override void accept (IValueVisitor visitor) {
+    public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_unreachable(this);
     }
     public UnreachableSSA(BasicBlock parent)

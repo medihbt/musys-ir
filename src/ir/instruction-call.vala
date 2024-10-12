@@ -21,8 +21,7 @@ namespace Musys.IR {
         {
             if (callee == null || callee.isvalue_by_id(TID.FUNCTION))
                 return;
-            crash_fmt(SourceLocation.current(),
-                "CallSSA callee should be global function (NOT anything dynamic)" +
+            crash_fmt("CallSSA callee should be global function (NOT anything dynamic)" +
                 "while it receives value(%p) type %s",
                 callee, callee.value_type.to_string());
         }

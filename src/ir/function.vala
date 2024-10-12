@@ -98,7 +98,7 @@ namespace Musys.IR {
             unowned var params = fty.params;
             _args = new FuncArg[params.length];
             for (int i = 0; i < _args.length; i++)
-                _args[i] = new FuncArg(params[i], this);
+                _args[i] = new FuncArg(params[i], this, i);
         }
         private void _init_body()
         {
@@ -107,7 +107,7 @@ namespace Musys.IR {
             var retssa = new ReturnSSA(retval);
             var retblk = new BasicBlock.with_terminator(retssa);
             var fnbody = new FuncBody.empty(tctx, this);
-            fnbody.append_as_entry(retblk);
+            fnbody.add_as_entry(retblk);
             this._body = (owned)fnbody;
         }
         private void _clean_body()
@@ -129,12 +129,18 @@ namespace Musys.IR {
         public override void accept (IValueVisitor visitor) {
             visitor.visit_argument(this);
         }
-        public weak Function parent{get;set;}
+        public weak Function parent{ get; set; }
 
-        public FuncArg(Type type, Function parent)
+        /** 函数形参在参数列表中的位置. 从 0 开始计数. */
+        public int index { get; set; }
+
+        public FuncArg(Type type, Function parent, int index)
         {
             base.C1(FUNC_ARG, type);
             this.parent = parent;
+            this.index  = index;
+            /* 在大多数时候, id 和下标也是一一对应的. 初始化一下没什么用, 也无妨 */
+            this.id     = index;
         }
         class construct { _istype[TID.FUNC_ARG] = true; }
     }
@@ -155,10 +161,39 @@ namespace Musys.IR {
         internal BasicBlock _node_begin;
         internal BasicBlock _node_end;
 
-        public weak Function    parent;
-        public weak TypeContext type_ctx;
-        public weak BasicBlock  entry;
-        public size_t length{get;internal set;default = 0;}
+        public weak   TypeContext type_ctx;
+        public weak   Function    parent;
+        public size_t length { get; internal set; default = 0; }
+
+        internal BasicBlock _entry;
+        public   BasicBlock  entry {
+            get {
+                if (unlikely(!_entry.is_attached))
+                    critical("Broken function body: entry %p(%d) unattached", _entry, _entry.id);
+                return _entry;
+            }
+            set {
+                try { set_entry_throw(value); }
+                catch (FuncBodyErr e) { crash_err(e); }
+            }
+        }
+        public void set_entry_throw(BasicBlock? block) throws FuncBodyErr
+        {
+            assert_nonnull(block);
+            if (block == _entry)
+                return;
+            Function? fparent = block.parent;
+            if (fparent == null) {
+                block.parent = parent;
+            } else if (fparent != parent) {
+                throw new FuncBodyErr.FOREIGN_BASIC_BLOCK_INSERTED(
+                    "Foreign function @%s(%p) detected from basicblock %p(id: %d)",
+                    fparent.name, fparent, block, block.id
+                );
+            }
+            _entry = block.is_attached ? block: block.unplug();
+            prepend_raw(block);
+        }
 
         public FuncBody.empty(TypeContext tctx, Function parent)
         {
@@ -182,10 +217,21 @@ namespace Musys.IR {
             _node_end._prev = block;
             _length++;
         }
-        internal void append_as_entry(BasicBlock block)
+        internal void prepend_raw(BasicBlock block)
         {
-            this.entry = block;
-            append_raw(block);
+            var next = _node_begin._next;
+            block._next = next;
+            block._prev = _node_begin;
+            block._list = this;
+
+            next._prev  = block;
+            _node_begin._next = block;
+            _length++;
+        }
+        internal void add_as_entry(BasicBlock block)
+        {
+            this._entry = block;
+            prepend_raw(block);
         }
         public Iterator iterator() { return {_node_begin}; }
         public void clean()
@@ -203,7 +249,7 @@ namespace Musys.IR {
             public bool next()
             {
                 if (block == null)
-                    crash("Block is NULL!", true, {Log.FILE, Log.METHOD, Log.LINE});
+                    crash("Block is NULL!");
                 if (block._next == null || block == list._node_end)
                     return false;
                 block = block._next;
@@ -212,5 +258,10 @@ namespace Musys.IR {
                 return true;
             }
         }
+    } // class FunctionBody
+    
+    public errordomain FuncBodyErr {
+        BODY_ERR,
+        FOREIGN_BASIC_BLOCK_INSERTED;
     }
 }

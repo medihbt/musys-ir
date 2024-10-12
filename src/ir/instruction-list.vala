@@ -19,16 +19,13 @@ public class Musys.IR.InstructionList {
     }
     public unowned Instruction front() {
         if (is_empty()) {
-            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
-                      "Instruction List %p is empty", this);
+            crash_fmt("Instruction List %p is empty", this);
         }
         return _node_begin._next->item;
     }
     public unowned Instruction back() {
-        if (is_empty()) {
-            crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
-                      "Instruction List %p is empty", this);
-        }
+        if (is_empty())
+            crash_fmt("Instruction List %p is empty", this);
         return _node_end._prev->item;
     }
     public Iterator iterator() { return {&_node_begin}; }
@@ -137,7 +134,7 @@ public class Musys.IR.InstructionList {
         public bool next()
         {
             if (node == null)
-                crash("node is NULL!\n", true, {Log.FILE, Log.METHOD, Log.LINE});
+                crash("node is NULL!\n");
             if (node->_next == null) {
                 warning("touched end of BasicBlock %p(%d)",
                         list.parent, list.parent.id);

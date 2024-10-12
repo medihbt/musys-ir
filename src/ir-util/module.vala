@@ -20,7 +20,7 @@ namespace Musys.IRUtil {
         if (fn.is_extern)
             return;
         unowned var body = fn.body;
-        IR.BasicBlock entry = body.entry;
+        IR.BasicBlock entry = body._entry;
         number = _number_basic_block(entry, number);
         foreach (var b in body) {
             if (b == entry)

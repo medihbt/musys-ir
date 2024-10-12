@@ -40,11 +40,16 @@ namespace Musys.IR {
             this._op_type   = operand_type;
         }
         public CompareSSA.as_icmp(Value lhs, Value rhs, Condition cond)
-        {
-            unowned var ity = int_value_match_or_crash(lhs, rhs);
+                    throws TypeMismatchErr {
+            Type ity = checkop_same(lhs, rhs, INT_TYPE, "CompareSSA::as_icmp");
             this.raw(ICMP, ity, cond.make_int());
-            this.lhs = lhs;
-            this.rhs = rhs;
+            this.lhs = lhs; this.rhs = rhs;
+        }
+        public CompareSSA.as_fcmp(Value lhs, Value rhs, Condition cond)
+                    throws TypeMismatchErr {
+            Type fty = checkop_same(lhs, rhs, FLOAT_TYPE, "CompareSSA::as_fcmp");
+            this.raw(FCMP, fty, cond.make_float());
+            this.lhs = lhs; this.rhs = rhs;
         }
         class construct { _istype[TID.COMPARE_SSA] = true; }
 
@@ -96,6 +101,11 @@ namespace Musys.IR {
             public unowned string to_string() {
                 return _cmpssa_name_map[this];
             }
+        }
+
+        private static Type checkop_same(IR.Value lhs, IR.Value rhs, Type.TID tid, string msg)
+                    throws TypeMismatchErr {
+            return type_match_istid(lhs.value_type, rhs.value_type, tid, "%s", msg);
         }
     }
 

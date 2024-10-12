@@ -204,7 +204,7 @@ public class Musys.StructType: AggregateType {
         size_t isize = 0, align = 0, cnt = 0;
         foreach (Type? type in fields) {
             if (unlikely(type == null)) {
-                crash_fmt({Log.FILE, Log.METHOD, Log.LINE},
+                crash_fmt(
                     "StructType(name %s) index %lu NOT Initialized",
                     symbol_name, cnt
                 );

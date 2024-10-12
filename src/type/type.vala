@@ -4,7 +4,6 @@ namespace Musys {
         /** 大小不是 2 的次方. */
         NOT_PWR_OF_2;
     }
-
     /**
      * Musys IR 数值和 Musys MIR 寄存器的类型. 包括数值、集合、函数、指针等等。
      *
@@ -29,10 +28,23 @@ namespace Musys {
             TYPE, VOID_TYPE,
             PRIMITIVE_TYPE, INT_TYPE, FLOAT_TYPE,
             AGGR_TYPE,  ARRAY_TYPE, VEC_TYPE, STRUCT_TYPE,
-            REF_TYPE,   NAMED_PTR_TYPE, OPAQUE_PTR_TYPE, LABEL_TYPE,
+            REF_TYPE,   OPAQUE_PTR_TYPE, LABEL_TYPE,
             FUNCTION_TYPE,
             COUNT;
+
+            public unowned string nickname() {
+                if (this >= COUNT)
+                    return "(unknown type)";
+                return _tid_nickname[this];
+            }
         } // enum TID
+        private const string _tid_nickname[TID.COUNT] = {
+            "(unknown)", "void",
+            "primitive", "int", "float",
+            "aggregate", "array", "vector", "struct",
+            "reference", "ptr",   "label",
+            "function"
+        };
 
         /**
          * @see Musys.Type.TID
@@ -195,5 +207,47 @@ namespace Musys {
     [CCode(cname="_ZN5Musys10type_equalE")]
     public bool type_equal(Type l, Type r) {
         return l.equals(r);
+    }
+
+    public errordomain TypeMismatchErr {
+        /** 就是简单的 mismatch, 找不到别的原因 */
+        MISMATCH,
+        /** 具体的类型不匹配 */
+        NOT_PRIMARY,   NOT_INT,   NOT_FLOAT,
+        NOT_AGGREGATE, NOT_ARRAY, NOT_VECTOR, NOT_STRUCT,
+        NOT_POINTER, NOT_LABEL,
+        NOT_FUNCTION,
+        /** 具体类型的细分错误 */
+        NOT_BOOLEAN, BITS_NOT_SAME,
+        STRUCT_OPAQUE,
+        /** 不是要求类型的子类型 */
+        NOT_CHILD_OF,
+        /** 不能实例化 */
+        NOT_INSTANTANEOUS;
+    }
+    public TypeMismatchErr error_type_mismatch_by_id(Type.TID tid, string coremsg, string? fmt, va_list ap)
+    {
+        unowned string msg = coremsg;
+        string? omsg = null;
+        if (fmt != null && fmt != "") {
+            if (fmt == "%s")
+                omsg = coremsg + ap.arg<string>();
+            else
+                omsg = coremsg + fmt.vprintf(ap);
+            msg = omsg;
+        }
+        switch (tid) {
+            case PRIMITIVE_TYPE: return new TypeMismatchErr.NOT_PRIMARY (msg);
+            case INT_TYPE:       return new TypeMismatchErr.NOT_INT     (msg);
+            case FLOAT_TYPE:     return new TypeMismatchErr.NOT_FLOAT   (msg);
+            case AGGR_TYPE:      return new TypeMismatchErr.NOT_AGGREGATE(msg);
+            case ARRAY_TYPE:     return new TypeMismatchErr.NOT_ARRAY   (msg);
+            case VEC_TYPE:       return new TypeMismatchErr.NOT_VECTOR  (msg);
+            case STRUCT_TYPE:    return new TypeMismatchErr.NOT_STRUCT  (msg);
+            case OPAQUE_PTR_TYPE:return new TypeMismatchErr.NOT_POINTER (msg);
+            case LABEL_TYPE:     return new TypeMismatchErr.NOT_LABEL   (msg);
+            case FUNCTION_TYPE:  return new TypeMismatchErr.NOT_FUNCTION(msg);
+            default:             return new TypeMismatchErr.MISMATCH    (msg);
+        }
     }
 }

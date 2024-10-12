@@ -108,7 +108,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         }
 
         iouts().puts(") {");
-        var entry = func.body.entry;
+        var entry = func.body._entry;
         _wrap_indent();
         this.visit_basicblock(entry);
         foreach (IR.BasicBlock b in func.body) {

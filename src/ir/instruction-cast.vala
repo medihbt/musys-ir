@@ -17,21 +17,19 @@ namespace Musys.IR {
             this.source = source;
         }
         public CastSSA.as_itof(FloatType target_type, Value source, bool is_signed = true)
-        {
-            value_int_or_crash(source, "at value CastSSA::as_itof()::source");
+                    throws TypeMismatchErr {
+            value_int_or_throw(source, "CastSSA::as_itof()::source");
             var opcode = is_signed ? OpCode.SITOFP: OpCode.UITOFP;
             this.nocheck(opcode, target_type, source);
         }
         public CastSSA.as_ftoi(IntType target_type, Value source)
-        {
-            value_float_or_crash(source, "at value CastSSA::as_ftoi()::source");
+                    throws TypeMismatchErr {
+            value_float_or_throw(source, "CastSSA::as_ftoi()::source");
             this.nocheck(FPTOSI, target_type, source);
         }
         public CastSSA.as_itoi(IntType target_type, Value source, bool is_signed = true)
-        {
-            IntType ity = value_int_or_crash(
-                source, "at value CastSSA::as_itoi()::source"
-            );
+                    throws TypeMismatchErr {
+            IntType ity = value_int_or_throw(source, "CastSSA::as_itoi()::source");
             var sbit = ity.binary_bits;
             var tbit = target_type.binary_bits;
             OpCode opcode;
@@ -43,34 +41,38 @@ namespace Musys.IR {
                 opcode = TRUNC;
             this.nocheck(opcode, target_type, source);
         }
-        public CastSSA.as_ftof(FloatType target_type, Value source) {
-            FloatType sfty = value_float_or_crash(
-                source, "at value CastSSA::as_itoi()::source");
+        public CastSSA.as_ftof(FloatType target_type, Value source)
+                    throws TypeMismatchErr {
+            FloatType sfty = value_float_or_throw(source, "CastSSA::as_itoi()::source");
             var sbit = sfty.binary_bits;
             var tbit = target_type.binary_bits;
             var opcode = tbit >= sbit? OpCode.FPEXT: OpCode.FPTRUNC;
             this.nocheck(opcode, target_type, source);
         }
-        public CastSSA.as_bitcast(Type target_type, Value source) {
-            if (!target_type.is_instantaneous)
-                crash(@"Type Mismatch: requires instantaneous target, but got $target_type");
-            var srcty = source.value_type;
-            type_bit_same_or_crash(srcty, target_type);
+        public CastSSA.as_bitcast(Type target_type, Value source)
+                    throws TypeMismatchErr {
+            if (!target_type.is_instantaneous) {
+                throw new TypeMismatchErr.NOT_INSTANTANEOUS(
+                    @"at CastSSA::as_bitcast: $target_type does not make an instance");
+            }
+            type_bit_same_or_throw(source.value_type, target_type);
             this.nocheck(BITCAST, target_type, source);
         }
-        public CastSSA.as_itop(PointerType target_type, Value source) {
-            value_int_or_crash(source, "as CastSSA.as_itop()::source");
+        public CastSSA.as_itop(PointerType target_type, Value source)
+                    throws TypeMismatchErr {
+            value_int_or_throw(source, "CastSSA.as_itop()::source");
             this.nocheck(INT_TO_PTR, target_type, source);
         }
-        public CastSSA.as_ptoi(IntType target_type, Value source) {
-            value_ptr_or_crash(source, "as CastSSA.as_ptoi()::source");
+        public CastSSA.as_ptoi(IntType target_type, Value source)
+                    throws TypeMismatchErr {
+            value_ptr_or_throw(source, "CastSSA.as_ptoi()::source");
             this.nocheck(PTR_TO_INT, target_type, source);
         }
-        public CastSSA.as_ptoi_auto(Value source) {
-            value_ptr_or_crash(source, "as CastSSA.as_ptoi()::source");
-            unowned var type_ctx = source.value_type.type_ctx;
+        public CastSSA.as_ptoi_auto(Value source)
+                    throws TypeMismatchErr {
+            value_ptr_or_throw(source, "CastSSA.as_ptoi()::source");
             this.nocheck(PTR_TO_INT,
-                type_ctx.get_intptr_type(), source);
+                source.value_type.type_ctx.get_intptr_type(), source);
         }
 
         class construct { _istype[TID.CAST_SSA] = true; }

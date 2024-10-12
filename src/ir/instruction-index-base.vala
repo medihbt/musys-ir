@@ -9,7 +9,7 @@ public abstract class Musys.IR.IndexSSABase: Instruction {
         get { return _aggregate_type; }
         internal set {
             if (!(value.element_consist)) {
-                crash_fmt(Musys.SourceLocation.current(),
+                crash_fmt(
                     "IndexSSABase::aggregate_type requires consistant aggregate " +
                     "type, but got %s",
                     value.to_string()

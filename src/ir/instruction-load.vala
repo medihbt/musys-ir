@@ -19,10 +19,12 @@ public class Musys.IR.LoadSSA: UnarySSA {
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_load(this);
     }
+    protected override void _check_operand(Value? operand) {
+        value_ptr_or_crash(operand, "as LoadSSA.operand");
+    }
     public LoadSSA.raw(Type target_type, size_t align = 0) {
         if (!PointerType.IsLegalPointee(target_type)) {
-            crash_fmt(SourceLocation.current(),
-                "Requires legal pointee type for LoadSSA, but got %s",
+            crash_fmt("Requires legal pointee type for LoadSSA, but got %s",
                 target_type.to_string());
         }
         base.C1(LOAD_SSA, LOAD, target_type,

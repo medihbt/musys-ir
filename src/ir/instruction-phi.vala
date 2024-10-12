@@ -3,6 +3,24 @@ public errordomain Musys.IR.PhiError {
 }
 
 /**
+ * === PHI 结点 ===
+ *
+ * SSA 数据流的必备结点, 汇总不同入口基本块的数据流. PHI 结点是一张
+ * 基本块-操作数映射表 (B, V), 其含义是倘若控制流从某个入口基本块 B
+ * 进入该基本块, 那 PHI 结点的值就代表操作数 V 的值. 暴露这个映射
+ * 关系的对象都是 `PhiSSA.FromUse` 类 (IR.Use 子类) 的.
+ *
+ * PHI 结点永远处在基本块的最前面. 倘若一个基本块里有不止一个 PHI 结点,
+ * 那除非这个基本块的入口之一是自己, 否则这些结点不能互为操作数.
+ *
+ * ==== 指令基本信息 ====
+ *
+ * ''类型'': 操作数的类型就是指令的类型
+ *
+ * ''操作数表'':
+ * - `[0:] = {b, v}.v`: {from_bb, value} 基本块-操作数映射的操作数
+ *
+ * ''文本格式'': `%<id> = phi <type> [value, from_bb], ...`
  */
 public class Musys.IR.PhiSSA: Instruction {
     public Gee.HashMap<unowned BasicBlock, FromUse> from_map{get;}
@@ -71,6 +89,11 @@ public class Musys.IR.PhiSSA: Instruction {
     }
     class construct { _istype[TID.PHI_SSA] = true; }
 
+    /**
+     * === PhiSSA 操作数映射关系 ===
+     *
+     * 表示 PHI 结点中''基本块-操作数映射关系''的使用关系.
+     */
     public class FromUse: Use {
         public unowned PhiSSA parent {
             get { return static_cast<PhiSSA>(_user); }

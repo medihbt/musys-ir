@@ -69,8 +69,7 @@ namespace Musys.IR {
             if (newv == refv)
                 return;
             if (newv != null) {
-                type_match_or_crash(value_type, newv.value_type,
-                    {Log.FILE, Log.METHOD, Log.LINE});
+                type_match_or_crash(value_type, newv.value_type);
             }
             replace_use(refv, newv, use);
             refv = newv;
@@ -110,9 +109,19 @@ namespace Musys.IR {
             return align;
         }
 
+        /**
+         * - 倘若 from == null, 则清空 to.
+         * - 倘若 from 的类型不是 type, 就报错退出.
+         * - 倘若检查通过, 就把 to 设为 from.
+         *
+         * 以上操作倘若发生在一个 Use 对象上, 且该对象自带表示 to 的字段时, 这个 Use
+         * 不需要连接在 User 上即可完成写操作.
+         *
+         * 这个操作会自动处理 use-def 关系.
+         */
         protected static void set_usee_type_match(Type type, ref Value? to, Value? from, Use use)
         {
-            if (to == from)  return;
+            if (unlikely(to == from)) return;
             if (from != null)
                 type_match_or_crash(type, from.value_type);
             User.replace_use(to, from, use);
@@ -120,7 +129,7 @@ namespace Musys.IR {
         }
         protected static void set_usee_always(ref Value? to, Value? from, Use use)
         {
-            if (to == from)  return;
+            if (unlikely(to == from))  return;
             User.replace_use(to, from, use);
             to = from;
         }
@@ -165,9 +174,9 @@ namespace Musys.IR {
         internal OperandList op_list{ get { return _op_list; } }
 
         /** 自己所属的使用者, 一般也是指令. */
-        internal User        user {
-            get { return  _user; }
-            set { _user = value; }
+        public User user {
+            get          { return  _user; }
+            internal set { _user = value; }
         }
 
         /** 把自己插入使用者 user 操作数列表的末尾. */

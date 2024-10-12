@@ -15,11 +15,13 @@
  * @see Musys.IR.InstructionList
  *
  * @see Musys.IR.Function
+ *
+ * @see Musys.IR.IBasicBlockTerminator
  */
 public class Musys.IR.BasicBlock: Value {
     internal         BasicBlock _next;
     internal unowned BasicBlock _prev;
-    internal unowned FuncBody   _list;
+    internal unowned FuncBody?  _list;
 
     /**
      * 把自己从所在的函数体上取下来, 然后返回(带所有权的自己).
@@ -45,7 +47,7 @@ public class Musys.IR.BasicBlock: Value {
         this._list = null;
         return othis;
     }
-    private inline void _plug_check(BasicBlock before)
+    private void _plug_check(BasicBlock before) throws FuncBodyErr
     {
         if (this == before)
             crash("DO NOT plug this basic block after itself\n");
@@ -58,7 +60,7 @@ public class Musys.IR.BasicBlock: Value {
                  .printf(this, before));
         }
     }
-    public void plug_this_after(BasicBlock before)
+    public void plug_this_after(BasicBlock before) throws FuncBodyErr
     {
         _plug_check(before);
         unowned var list = before._list;
@@ -72,7 +74,7 @@ public class Musys.IR.BasicBlock: Value {
         this._list = list; this.parent = before.parent;
         list.length++;
     }
-    public void plug_this_before(BasicBlock after)
+    public void plug_this_before(BasicBlock after) throws FuncBodyErr
     {
         _plug_check(after);
         unowned var list = after._list;
@@ -86,6 +88,11 @@ public class Musys.IR.BasicBlock: Value {
         this._list = list; this.parent = after.parent;
         list.length++;
     }
+    /**
+     * 自己是否附着在某个函数体内. 附着在函数体内的基本块在控制流的插入/删除
+     * 操作内会做特殊处理.
+     */
+    public bool is_attached { get { return this._list != null; } }
 
     public void on_function_finalize()
     {
@@ -105,6 +112,7 @@ public class Musys.IR.BasicBlock: Value {
     public unowned Function parent{get;set;}
 
     internal InstructionList _instructions;
+    /** ==== 指令列表 ==== */
     public   InstructionList  instructions {
         get { return _instructions; }
     }
@@ -112,27 +120,48 @@ public class Musys.IR.BasicBlock: Value {
         return instructions.length != 0 &&
                instructions.back().isvalue_by_id(IBASIC_BLOCK_TERMINATOR);
     }
-    public unowned IBasicBlockTerminator? terminator {
+    /**
+     * ==== 基本块终止子 ====
+     * 位于基本块最末尾, 决定控制流方向的指令. 完备的基本块有且只有一个终止子,
+     * 但由于优化过程中不时会出现基本块终止子需要替换的情况, 所以这里允许暂时
+     * 出现终止子为 null 的情况.
+     *
+     * 终止子的 set 方法会直接修改最后一条指令. 实际操作取决于 `has_terminator()`
+     * 函数的返回值, 可能是插入最后一条指令, 也可能是替换之.
+     * @see Musys.IR.IBasicBlockTerminator
+     */
+    public IBasicBlockTerminator? terminator {
         get {
             return (!has_terminator()) ? null:
                 static_cast<IBasicBlockTerminator>(_instructions.back());
         }
         set {
-            (!)value;
-            try {
-                if (!has_terminator()) {
-                    InstructionList.Modifier modif = _instructions.iterator();
-                    modif.append(value);
-                    return;
-                }
-                if (value == _instructions.back())
-                    return;
-                _instructions.back().modifier.replace(value);
-            } catch (Error e) {
-                crash_err(e);
-            }
+            try { set_terminator_throw(value); }
+            catch (Error e) { crash_err(e); }
         }
     }
+    /**
+     * 基本块终止子的写方法, 遇到错误时会抛异常而不是崩溃.
+     * @see Musys.IR.IBasicBlockTerminator
+     *
+     * @see Musys.IR.BasicBlock.terminator
+     */
+    public void set_terminator_throw(IBasicBlockTerminator? value)
+                throws InstructionListErr {
+        assert_nonnull(value);
+        if (!has_terminator()) {
+            InstructionList.Modifier modif = _instructions.iterator();
+            modif.append(value);
+            return;
+        }
+        if (value == _instructions.back())
+            return;
+        _instructions.back().modifier.replace(value);
+    }
+    /**
+     * 从上到下遍历基本块的指令流, 然后返回第一个不是 PHI 结点的指令.
+     * 在完备的 Musys IR 中, PHI 指令永远在基本块指令流的最前面.
+     */
     public InstructionList.Iterator get_1st_nonphi()
     {
         foreach (Instruction inst in instructions) {
@@ -141,6 +170,12 @@ public class Musys.IR.BasicBlock: Value {
         }
         return {&instructions._node_end};
     }
+    /**
+     * ==== 附加一条指令 ====
+     * 把指令 `inst` 插入指令列表. 倘若指令 `inst` 不是 PHI 结点,
+     * 就把 `inst` 附加到指令列表的末尾. 否则, 找到第一条不是 PHI
+     * 的指令, 把 `inst` 插入到这条指令的前面.
+     */
     public InstructionList.Iterator append(Instruction inst)
             throws InstructionListErr
     {
@@ -155,6 +190,7 @@ public class Musys.IR.BasicBlock: Value {
         terminator.modifier.prepend(inst);
         return inst.modifier;
     }
+    /** 附加一条 PHI 结点指令. */
     public InstructionList.Iterator append_phi(PhiSSA phi)
             throws InstructionListErr {
         InstructionList.Modifier m = get_1st_nonphi();
@@ -166,23 +202,19 @@ public class Musys.IR.BasicBlock: Value {
     }
     public BasicBlock.raw(LabelType labelty) {
         base.C1(BASIC_BLOCK, labelty);
-        _instructions = null;
     }
     public BasicBlock.with_unreachable(LabelType labelty) {
         base.C1(BASIC_BLOCK, labelty);
         _instructions = new InstructionList.empty(this);
-        _instructions.append(
-            new UnreachableSSA(this)
-        );
-        print("Unreachable: refcnt %u\n", _instructions.back().ref_count);
+        _instructions.append(new UnreachableSSA(this));
+        message("Unreachable: refcnt %u\n", _instructions.back().ref_count);
     }
-    public BasicBlock.with_terminator(owned IBasicBlockTerminator terminator)
+    public BasicBlock.with_terminator(IBasicBlockTerminator terminator)
     {
         var tctx = terminator.value_type.type_ctx;
         base.C1(BASIC_BLOCK, tctx.label_type);
         _instructions = new InstructionList.empty(this);
         _instructions.append(terminator);
-        this.terminator = terminator;
     }
     ~BasicBlock() {
         if (instructions == null || instructions.is_empty())

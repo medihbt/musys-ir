@@ -59,8 +59,8 @@ public abstract class Musys.IR.CallBase: Instruction {
     protected ArgUse[] _uargs;
     /** 调用表达式的参数列表, 由 use 组成. */
     public    ArgUse[]  uargs {
-        get { return _uargs; }
-        internal set { _uargs = value; }
+        get                { return  _uargs; }
+        internal owned set { _uargs = value; }
     }
     /** 获取位于 index 位置的参数值. 倘若 index 溢出, 则返回 null. */
     public unowned Value? get_arg(uint index) {
