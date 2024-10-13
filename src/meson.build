@@ -71,14 +71,24 @@ musys_ir_deps = [
 add_project_arguments('--enable-mem-profiler', language: 'vala')
 add_project_arguments('--enable-gobject-tracing', language: 'vala')
 
-musys_lib = shared_library(
-    'musys',
+musys_ir_lib = shared_library(
+    'musys-ir',
     sources: musys_ir_src,
     dependencies: musys_ir_deps,
     include_directories: musys_include,
-    vala_gir: 'Musys-0.0.1.gir',
+    vala_gir: 'musys-ir-0.0.1.gir',
     install: true,
     install_dir: [true, true, true, true]
 )
 
-message(musys_lib.name())
+message(musys_ir_lib.name())
+
+musys_pkg_config = import('pkgconfig')
+musys_pkg_config.generate(
+    libraries: musys_ir_lib,
+    subdirs: [musys_include_str, 'src'],
+    version: '0.0.1',
+    name:     'libmusys-ir',
+    filebase: 'musys-ir',
+    description: 'LLVM-like compiler framework'
+)
