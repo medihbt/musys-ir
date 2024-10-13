@@ -43,6 +43,8 @@ Musys 在 Fedora 40 操作系统平台的依赖如下:
 - `mingw-w64-ucrt-x86_64-meson`
 - `mingw-w64-ucrt-x86_64-libgee`
 
+然后可以构建了.
+
 ### 作为动态库构建
 
 准备好环境以后, 进入项目所在目录并输入命令:
