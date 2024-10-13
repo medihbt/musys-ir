@@ -6,14 +6,17 @@ namespace Musys.IR {
      *
      * ==== 操作数表 ====
      *
-     * - `[0] = lhs`: 左操作数
-     * - `[1] = rhs`: 右操作数
+     * * ``[0] = lhs``: 左操作数
+     *
+     * * ``[1] = rhs``: 右操作数
      *
      * ==== 文本格式 ====
      *
-     * - 整数加/减/乘指令: `%<id> = <opcode> <nsw|nuw> <type> <lhs>, <rhs>`, 其中 opcode = add, sub, mul
-     * - 其他算术指令: `%<id> = <opcode> <type> <lhs>, <rhs>`, 其中 opcode = fadd,...,frem;sdiv,udiv,srem,urem
-     * - 其他指令: `%<id> = <opcode> <type> <lhs>, <type> <rhs>`, 其中 opcode = and,or,...,ashr
+     * * 整数加/减/乘指令: ``%<id> = <opcode> <nsw|nuw> <type> <lhs>, <rhs>``, 其中 opcode = add, sub, mul
+     *
+     * * 其他算术指令: ``%<id> = <opcode> <type> <lhs>, <rhs>``, 其中 opcode = fadd,...,frem;sdiv,udiv,srem,urem
+     *
+     * * 其他指令: ``%<id> = <opcode> <type> <lhs>, <type> <rhs>``, 其中 opcode = and,or,...,ashr
      */
     public class BinarySSA: Instruction {
         private Value _lhs;

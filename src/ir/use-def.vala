@@ -96,9 +96,8 @@ namespace Musys.IR {
         {
             if (newv == refv)
                 return;
-            if (newv != null) {
+            if (newv != null)
                 type_match_or_crash(value_type, newv.value_type);
-            }
             replace_use(refv, newv, use);
             refv = newv;
         }

@@ -1,4 +1,3 @@
-[CCode(gir_namespace="Musys", gir_version="0.0.1")]
 namespace Musys.IRUtil.Value {
     public size_t replace_operand_with(IR.Value old, IR.Value novel)
     {

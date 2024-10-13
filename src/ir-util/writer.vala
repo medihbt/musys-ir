@@ -216,6 +216,25 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         }
         outs.putchar(')');
     }
+    public override void visit_inst_dyn_call(IR.DynCallSSA inst)
+    {
+        unowned var outs = iouts();
+        unowned var calleety = inst.callee_fn_type;
+        unowned var retty = calleety.return_type;
+        iouts().puts((retty is VoidType) ? "dyncall void ": @"%$(inst.id) = dyncall $retty ");
+        _write_by_ref(inst.callee);
+        iouts().puts(" (");
+        uint cnt = 0;
+        foreach (var arg in inst.uargs) {
+            if (cnt != 0)
+                iouts().puts(", ");
+            cnt++;
+            unowned var varg = arg.arg;
+            iouts().printf("%s ", varg.value_type.to_string());
+            _write_by_ref(varg);
+        }
+        outs.putchar(')');
+    }
     public override void visit_inst_alloca(IR.AllocaSSA inst)
     {
         var id = inst.id;

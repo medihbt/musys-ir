@@ -1,4 +1,3 @@
-[CCode(gir_namespace="Musys", gir_version="0.0.1")]
 namespace Musys.IRUtil.BasicBlock {
     public errordomain CheckErr {
         GOT_PHI_IN_MIDDLE;

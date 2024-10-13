@@ -16,9 +16,9 @@ namespace Musys.IR {
             set {
                 if (value == _operand)
                     return;
-                if (value != null) {
+                if (value != null)
                     type_match_or_crash(_operand_type, value.value_type);
-                }
+                _check_operand(value);
                 replace_use(_operand, value, _uoperand);
                 _operand = value;
             }

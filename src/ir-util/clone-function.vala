@@ -5,26 +5,25 @@ namespace Musys.IRUtil {
     }
 
     /**
-     * === 函数拷贝装置 ===
      * 把函数 from 拷贝一份并命名为 to.
      *
-     * ==== 使用样例 ====
-     * 把函数 `foo` 拷贝一份，命名为 `foo_1`; 然后再拷贝一次 `foo_1` 为 `foo_2`,
+     * 使用样例: 把函数 ``foo`` 拷贝一份，命名为 ``foo_1``; 然后再拷贝一次 ``foo_1`` 为 ``foo_2``,
      * 最后返回 foo_2.
      *
      * {{{
-     *  IR.Function clone_foo(IR.Module module, IR.Function foo_func)
-     *  {
-     *  	var clone = new CloneFunction.from_module(module);
-     *  	try {
-     *  		IR.Function foo1 = clone.run(foo_func, "foo_1");
-     *  		IR.Function foo2 = clone.run(foo1, "foo_2");
-     *  		return foo_2;
-     *  	} catch (Error e) {
-     *  		crash_err(e);
-     *  	}
-     *  }
+     * IR.Function clone_foo(IR.Module module, IR.Function foo_func)
+     * {
+     *     var clone = new CloneFunction.from_module(module);
+     *     try {
+     *         IR.Function foo1 = clone.run(foo_func, "foo_1");
+     *         IR.Function foo2 = clone.run(foo1, "foo_2");
+     *         return foo_2;
+     *     } catch (Error e) {
+     *         crash_err(e);
+     *     }
+     * }
      * }}}
+     *
      */
     public class CloneFunction: IR.IValueVisitor {
         private Runtime       rt;
