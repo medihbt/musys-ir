@@ -111,7 +111,7 @@ namespace Musys.IRUtil.BasicBlock {
                 if (next.get().isvalue_by_id(IBASIC_BLOCK_TERMINATOR))
                     break;
                 IR.Instruction inst = next.unplug();
-                new_bb.append(inst);
+                new_bb.add(inst);
             }
             on_complete();
         }

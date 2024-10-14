@@ -114,7 +114,7 @@ public class Musys.IR.BasicBlock: Value {
     public unowned Function parent{get;set;}
 
     internal InstructionList _instructions;
-    /** ==== 指令列表 ==== */
+    /** 指令列表 */
     public   InstructionList  instructions {
         get { return _instructions; }
     }
@@ -128,7 +128,7 @@ public class Musys.IR.BasicBlock: Value {
      * 但由于优化过程中不时会出现基本块终止子需要替换的情况, 所以这里允许暂时
      * 出现终止子为 null 的情况.
      *
-     * 终止子的 set 方法会直接修改最后一条指令. 实际操作取决于 `has_terminator()`
+     * 终止子的 set 方法会直接修改最后一条指令. 实际操作取决于 ``has_terminator()``
      * 函数的返回值, 可能是插入最后一条指令, 也可能是替换之.
      * @see Musys.IR.IBasicBlockTerminator
      */
@@ -173,16 +173,17 @@ public class Musys.IR.BasicBlock: Value {
         return {&instructions._node_end};
     }
     /**
-     * ==== 附加一条指令 ====
-     * 把指令 `inst` 插入指令列表. 倘若指令 `inst` 不是 PHI 结点,
-     * 就把 `inst` 附加到指令列表的末尾. 否则, 找到第一条不是 PHI
-     * 的指令, 把 `inst` 插入到这条指令的前面.
+     * 在''不改变控制流''的情况下把指令 ``inst`` 插入指令列表, 并保证 PHI
+     * 指令永远处在基本块列表的最前面.
+     *
+     * 倘若指令 ``inst`` 不是 PHI 结点, 就把 ``inst`` 附加到指令列表的末尾.
+     * 否则, 找到第一条不是 PHI 的指令, 把 PHI 结点 ``inst`` 插入到这条指令的前面.
      */
-    public InstructionList.Iterator append(Instruction inst)
+    public InstructionList.Iterator add(Instruction inst)
             throws InstructionListErr
     {
         if (inst is PhiSSA)
-            return append_phi(static_cast<PhiSSA>(inst));
+            return add_phi(static_cast<PhiSSA>(inst));
         if (inst is IBasicBlockTerminator) {
             var opcode = inst.opcode;
             unowned var iklass = inst.get_class();
@@ -192,8 +193,32 @@ public class Musys.IR.BasicBlock: Value {
         terminator.modifier.prepend(inst);
         return inst.modifier;
     }
-    /** 附加一条 PHI 结点指令. */
-    public InstructionList.Iterator append_phi(PhiSSA phi)
+    /**
+     * 在''不改变控制流''的情况下往指令列表的末尾附加一条指令, 不管它是不是 PHI 结点.
+     *
+     * * 倘若指令已经连接在基本块上了, 就不改变它的位置.
+     *
+     * * 倘若基本块的指令列表里__已经有终止子了__, 就把指令附加在''终止子前面''.
+     *
+     * * 倘若基本块的指令列表里__没有终止子__, 就把指令附加在''指令列表末尾''.
+     *
+     * @return 指向这条指令的修改式迭代器.
+     */
+    public InstructionList.Modifier push_back(Instruction inst)
+            throws InstructionListErr {
+        if (inst.is_attached())
+            return inst.modifier;
+        if (!has_terminator()) {
+            _instructions.append(inst);
+            return inst.modifier;
+        }
+        return terminator.modifier.prepend(inst);
+    }
+    /**
+     * 附加一条 PHI 结点指令. 该方法会在指令列表中找到第一个不是 PHI
+     * 的指令, 然后把参数 phi 所示的 PHI 结点插在这条指令前面.
+     */
+    public InstructionList.Iterator add_phi(PhiSSA phi)
             throws InstructionListErr {
         InstructionList.Modifier m = get_1st_nonphi();
         return m.prepend(phi);
