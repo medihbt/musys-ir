@@ -328,6 +328,15 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
             _write_by_ref(idx.index);
         }
     }
+    public override void visit_inst_select(IR.BinarySelectSSA inst)
+    {
+        iouts().puts(@"%$(inst.id) = select i1 ");
+        _write_by_ref(inst.condition);
+        iouts().printf(", %s ", inst.value_type.to_string());
+        _write_by_ref(inst.if_true);
+        iouts().puts(", ");
+        _write_by_ref(inst.if_false);
+    }
     public override void visit_inst_index_extract(IR.IndexExtractSSA inst)
     {
         var id = inst.id;

@@ -26,6 +26,7 @@ public interface Musys.IR.IValueVisitor {
     public virtual void visit_inst_jump       (JumpSSA        inst) {}
     public virtual void visit_inst_branch     (BranchSSA      inst) {}
     public virtual void visit_inst_phi        (PhiSSA         inst) {}
+    public virtual void visit_inst_select     (BinarySelectSSA inst) {}
     public virtual void visit_inst_index_ptr  (IndexPtrSSA    inst) {}
     public virtual void visit_inst_index_extract(IndexExtractSSA inst) {}
     public virtual void visit_inst_index_insert (IndexInsertSSA  inst) {}
