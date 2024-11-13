@@ -1,4 +1,5 @@
 bootstrap/
 build/
+builddir/
 .vscode/
 .cache/
