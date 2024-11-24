@@ -293,7 +293,7 @@ namespace Musys.IR {
     }
 
     /**
-     * 在 `IndexPtrSSA` 中遇到的各种问题.
+     * 在 `IndexPtrSSA` `IndexPtrExpr` `OffsetOfPtr` 中遇到的各种问题.
      * @see Musys.IR.IndexPtrSSA
      */
     public errordomain IndexPtrErr {

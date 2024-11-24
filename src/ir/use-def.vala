@@ -11,8 +11,10 @@ namespace Musys.IR {
             CONSTANT,   ICONST_ZERO,
             CONST_DATA, CONST_INT,  CONST_FLOAT, CONST_DATA_ZERO,
             UNDEFINED_VALUE,
-            CONST_EXPR, ARRAY_EXPR, STRUCT_EXPR,
+            CONST_EXPR,
+            CONST_AGGREGATE, CONST_ARRAY, CONST_STRUCT,
             CONST_UNDEFINED, CONST_PTR_NULL,
+            CONST_INDEX_PTR_BASE, CONST_INDEX_PTR, CONST_OFFSET_OF, CONST_INDEX_INSERT, CONST_INDEX_EXTRACT,
             GLOBAL_OBJECT, GLOBAL_VARIABLE, GLOBAL_ALIAS, FUNCTION,
             BASIC_BLOCK, FUNC_ARG,
             INSTRUCTION, IBASIC_BLOCK_TERMINATOR,
@@ -253,10 +255,6 @@ namespace Musys.IR {
         internal GuideUse(OperandList op_list) {
             base.C1_for_guide(op_list);
         }
-    }
-
-    public errordomain OperandListErr {
-        INDEX_OVERFLOW
     }
 
     [Compact, CCode (has_type_id=false)]

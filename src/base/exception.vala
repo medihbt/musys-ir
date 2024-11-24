@@ -65,7 +65,7 @@ namespace Musys {
         } else {
             stderr.putc('\n');
         }
-        Process.abort();
+        breakpoint();
     }
     [NoReturn, Diagnostics]
     public void crash_err(Error e, string? extra_msg = null) {
@@ -82,7 +82,7 @@ namespace Musys {
         stderr.vprintf(fmt, ap);
         stderr.puts("\n请按回车键继续...");
         stdin.getc();
-        Process.abort();
+        breakpoint();
     }
     [NoReturn, PrintfFormat, Diagnostics]
     public void crash_fmt(string fmt, ...) {

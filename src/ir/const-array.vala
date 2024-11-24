@@ -1,41 +1,32 @@
-public sealed class Musys.IR.ArrayExpr: ConstExpr {
-    public  ArrayType array_type {
-        get { return static_cast<ArrayType>(_value_type); }
-    }
-    internal Constant []_elems;
-
-    [CCode(notify=false)]
-    public   Constant []elems {
-        get {
-            if (_elems != null)
-                return _elems;
-            _elems = new Constant[array_type.element_number];
-            var z = Constant.CreateZeroOrUndefined(array_type.element_type);
-            for (int i = 0; i < _elems.length; i++)
-                _elems[i] = z;
-            return _elems;
-        }
+/**
+ * === 数组常量表达式 ===
+ *
+ * @see Musys.IR.ConstAggregate
+ */
+public sealed class Musys.IR.ConstArray: ConstAggregate {
+    public ArrayType array_type {
+        get { return static_cast<ArrayType>(this._value_type); }
     }
 
-    public override bool is_zero {
-        get {
-            if (_elems == null || _elems.length == 0)
-                return true;
-            foreach (var i in _elems) {
-                if (i != null && !i.is_zero)
-                    return false;
-            }
-            return true;
-        }
+    /** 返回自己的拷贝，用于修改. 注意, 返回对象的元素还是不可变的. */
+    public new ConstArray clone()
+    {
+        var ret = new ConstArray.empty(this.array_type);
+        if (elems_nullable != null)
+            ret.elems_nullable = elems_nullable;
+        return ret;
     }
-    public override void accept (IValueVisitor visitor) {
-        visitor.visit_array_expr (this);
+    protected override ConstAggregate _clone_impl() { return this.clone(); }
+    public override void accept(IValueVisitor visitor) {
+        visitor.visit_const_array(this);
     }
 
-    public ArrayExpr.empty(ArrayType arr_ty) {
-        base.C1 (ARRAY_EXPR, arr_ty);
-        this._value_type = arr_ty;
-        this._elems      = null;
+    public ConstArray.empty(ArrayType arrty) {
+        base.C1_empty(CONST_ARRAY, arrty);
+        this.opcode = CONST_ARRAY;
     }
-    class construct { _istype[TID.ARRAY_EXPR] = true; }
-}
+
+    class construct {
+        _istype[TID.CONST_ARRAY] = true;
+    }
+} // class Musys.IR.ConstArray

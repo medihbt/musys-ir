@@ -5,7 +5,7 @@ public class Musys.IR.IndexExtractSSA: IndexSSABase {
 
     public IndexExtractSSA.raw(AggregateType src_type) {
         base.C1(INDEX_EXTRACT_SSA, INDEX_EXTRACT,
-                src_type, src_type.get_element_type_at(0));
+                src_type, src_type.get_elem(0));
     }
     public IndexExtractSSA.from(Value aggregate, Value index)
                 throws TypeMismatchErr {

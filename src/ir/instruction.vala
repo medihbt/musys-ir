@@ -8,10 +8,11 @@ namespace Musys.IR {
         INEG, FNEG, NOT,
         SITOFP, UITOFP, FPTOSI, ZEXT, SEXT, TRUNC, FPEXT, FPTRUNC,
         BITCAST, INT_TO_PTR, PTR_TO_INT,
-        SELECT, INDEX_EXTRACT, INDEX_INSERT, INDEX_PTR,
+        SELECT, INDEX_EXTRACT, INDEX_INSERT, INDEX_PTR, INDEX_OFFSET_OF,
         LOAD, STORE, ALLOCA, DYN_ALLOCA,
         CALL, DYN_CALL, PHI,
         ICMP, FCMP,
+        CONST_ARRAY, CONST_STRUCT, CONST_VEC,
         INTRIN, RESERVED_CNT;
 
         public bool is_shift_op()  { return SHL  <= this <= ASHR; }
@@ -21,6 +22,12 @@ namespace Musys.IR {
         public bool is_binary_op() { return AND  <= this <= FREM; }
         public bool is_divrem_op() {
             return SDIV <= this <= UREM || this == FREM || this == FDIV;
+        }
+        public bool is_constexpr_op() {
+            return (AND <= this <= FREM) || (INDEX_EXTRACT <= this <= INDEX_OFFSET_OF);
+        }
+        public bool is_inst_op() {
+            return this != INDEX_OFFSET_OF && !(CONST_ARRAY <= this <= CONST_VEC);
         }
         public unowned string get_name() {
             return this >= RESERVED_CNT?
@@ -131,10 +138,13 @@ namespace Musys.IR {
          * 该方法也是一个迭代方法, 返回 true 表示迭代过程被异常终止, 返回 false 表示迭代
          * 从头到尾没有被打断.
          *
+         * ''注意, 这个迭代返回值的含义和 Gee 是恰好相反的.''
+         *
          * @param fn 迭代闭包, 接受一个基本块参数, 返回是否立即终止当前的读取.
          *
          * @return 该方法也是一个迭代方法, 返回 true 表示迭代过程被异常终止, 返回 false
-         *         表示迭代从头到尾没有被打断.
+         *         表示迭代从头到尾没有被打断. ''注意, 这个迭代返回值的含义和 Gee
+         *         是恰好相反的.''
          *
          * @see Musys.IR.BasicBlock.ReadFunc
          */
@@ -151,6 +161,8 @@ namespace Musys.IR {
          * @return 该方法也是一个迭代方法, 返回 true 表示迭代过程被异常终止, 返回 false
          *         表示迭代从头到尾没有被打断.
          *
+         * ''注意, 这个迭代返回值的含义和 Gee 是恰好相反的.''
+         *
          * @see Musys.IR.BasicBlock.ReplaceFunc
          */
         public abstract bool replace_target(BasicBlock.ReplaceFunc fn);
@@ -165,8 +177,10 @@ namespace Musys.IR {
         "ineg", "fneg", "not",
         "sitofp", "uitofp", "fptosi", "zext", "sext", "trunc", "fpext", "fptrunc",
         "bitcast", "inttoptr", "ptrtoint",
-        "select", "extractelement", "insertelement", "getelementptr",
+        "select", "extractelement", "insertelement", "getelementptr", "offsetof",
         "load", "store", "alloca", "dyn-alloca", "call", "phi",
-        "icmp", "fcmp",  "intrin"
+        "icmp", "fcmp",
+        "constarray", "conststruct", "constvec",
+        "intrin"
     };
 }

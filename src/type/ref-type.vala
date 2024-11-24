@@ -13,10 +13,10 @@ namespace Musys {
         }
 
         public override size_t instance_align {
-            get { return type_ctx.machine_word_size; }
+            get { return type_ctx.word_size; }
         }
         public override size_t instance_size {
-            get { return type_ctx.machine_word_size; }
+            get { return type_ctx.word_size; }
         }
 
         protected size_t _hash_cache;

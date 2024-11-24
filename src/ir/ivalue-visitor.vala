@@ -2,15 +2,21 @@ public interface Musys.IR.IValueVisitor {
     public virtual void visit_const_int       (ConstInt      value) {}
     public virtual void visit_const_float     (ConstFloat    value) {}
     public virtual void visit_const_data_zero (ConstDataZero value) {}
-    public virtual void visit_array_expr      (ArrayExpr     value) {}
-    public virtual void visit_struct_expr     (StructExpr    value) {}
+    public virtual void visit_const_array     (ConstArray    value) {}
+    public virtual void visit_const_struct    (ConstStruct   value) {}
     public virtual void visit_ptr_null        (ConstPtrNull  value) {}
     public virtual void visit_undefined       (UndefinedValue udef) {}
+
+    public virtual void visit_const_index_ptr (ConstIndexPtrExpr expr) {}
+    public virtual void visit_const_offset_of (ConstOffsetOfExpr expr) {}
+
     public virtual void visit_global_variable (GlobalVariable gvar) {}
     public virtual void visit_global_alias    (GlobalAlias  galias) {}
     public virtual void visit_function        (Function       func) {}
     public virtual void visit_argument        (FuncArg        farg) {}
+
     public virtual void visit_basicblock      (BasicBlock    block) {}
+
     public virtual void visit_inst_binary     (BinarySSA      inst) {}
     public virtual void visit_inst_compare    (CompareSSA     inst) {}
     public virtual void visit_inst_unary      (UnaryOpSSA     inst) {}
@@ -25,9 +31,11 @@ public interface Musys.IR.IValueVisitor {
     public virtual void visit_inst_return     (ReturnSSA      inst) {}
     public virtual void visit_inst_jump       (JumpSSA        inst) {}
     public virtual void visit_inst_branch     (BranchSSA      inst) {}
+    public virtual void visit_inst_switch     (SwitchSSA      inst) {}
     public virtual void visit_inst_phi        (PhiSSA         inst) {}
     public virtual void visit_inst_select     (BinarySelectSSA inst) {}
-    public virtual void visit_inst_index_ptr  (IndexPtrSSA    inst) {}
+
+    public virtual void visit_inst_index_ptr    (IndexPtrSSA    inst) {}
     public virtual void visit_inst_index_extract(IndexExtractSSA inst) {}
     public virtual void visit_inst_index_insert (IndexInsertSSA  inst) {}
-}
+} // interface Musys.IR.IValueVisitor

@@ -15,6 +15,9 @@ namespace Musys.IR {
             get { return static_cast<PrimitiveType>(value_type); }
         }
 
+        public ConstData clone() { return _clone_impl(); }
+        protected abstract ConstData _clone_impl();
+
         protected ConstData.C1(Value.TID tid, PrimitiveType type) {
             base.C1(tid, type);
         }
@@ -43,6 +46,13 @@ namespace Musys.IR {
         public override double f64_value { get { return 0; } set{} }
         public override void accept(IValueVisitor visitor) {
             visitor.visit_const_data_zero(this);
+        }
+
+        public new ConstDataZero clone() {
+            return new ConstDataZero(value_type);
+        }
+        protected override ConstData _clone_impl() {
+            return this.clone();
         }
 
         public ConstDataZero(PrimitiveType value_type) {
@@ -79,6 +89,13 @@ namespace Musys.IR {
             visitor.visit_const_int(this);
         }
 
+        public new ConstInt clone() {
+            return new ConstInt.from_i64(int_type, i64_value);
+        }
+        protected override ConstData _clone_impl() {
+            return clone();
+        }
+
         public ConstInt.from_i64(IntType ity, int64 i64_value)
         {
             base.C1(CONST_INT, ity);
@@ -106,6 +123,14 @@ namespace Musys.IR {
         public override void accept(IValueVisitor visitor) {
             visitor.visit_const_float(this);
         }
+
+        public new ConstFloat clone() {
+            return new ConstFloat.from_f64(float_type, f64_value);
+        }
+        protected override ConstData _clone_impl() {
+            return clone();
+        }
+
         public ConstFloat.from_f64(FloatType fty, double value) {
             base.C1(CONST_FLOAT, fty);
             this._f64_value = value;

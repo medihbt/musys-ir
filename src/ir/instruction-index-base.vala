@@ -19,7 +19,7 @@ public abstract class Musys.IR.IndexSSABase: Instruction {
         }
     }
     public Type element_type{
-        owned get { return aggregate_type.get_element_type_at(0); }
+        owned get { return aggregate_type.get_elem(0); }
     }
 
     public Value aggregate {

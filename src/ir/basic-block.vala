@@ -257,6 +257,8 @@ public class Musys.IR.BasicBlock: Value {
      * 用在遍历函数中, 每次读取一个基本块 bb 并做若干操作. 倘若需要终止迭代,
      * 则返回 true; 否则返回 false.
      *
+     * ''注意, 这个迭代返回值的含义和 Gee 是恰好相反的.''
+     *
      * @param bb 等待读取的基本块
      *
      * @return 是 (true) 或否 (false) 终止迭代. 不清楚怎么返回的话, 写 false

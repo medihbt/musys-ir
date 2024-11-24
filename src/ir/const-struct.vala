@@ -1,73 +1,32 @@
-public class Musys.IR.StructExpr: ConstExpr {
+/**
+ * === 结构体常量表达式 ===
+ *
+ * @see Musys.IR.ConstAggregate
+ */
+public sealed class Musys.IR.ConstStruct: ConstAggregate {
     public StructType struct_type {
         get { return static_cast<StructType>(value_type); }
     }
-    public size_t nelems { get { return struct_type.nfields; } }
-    internal Constant[]? _elems;
-    private void _init_elems()
-    {
-        try {
-            _elems = new Constant[struct_type.nfields];
-            for (int i = 0; i < _elems.length; i++)
-                _elems[i] = Constant.CreateZero(struct_type.fields[i]);
-        } catch (TypeMismatchErr e) {
-            crash_err(e, "at " + Log.METHOD);
-        }
-    }
-    public Constant[] elems {
-        get {
-            if (_elems == null)
-                _init_elems();
-            return (!)_elems;
-        }
-    }
-    public Constant[]? nullable_elems { get { return _elems; } }
 
-    public Constant? get_elem(int index)
+    /** 返回自己的拷贝，用于修改. 注意, 返回对象的元素还是不可变的. */
+    public new ConstStruct clone()
     {
-        if (index < 0 || index >= nelems)
-            return null;
-        return elems[index];
+        var ret = new ConstStruct.empty(this.struct_type);
+        if (elems_nullable != null)
+            ret.elems_nullable = this.elems_nullable;
+        return ret;
     }
-    public void set_elem(int index, Constant value)
-                throws TypeMismatchErr, RuntimeErr {
-        if (index < 0 || index >= nelems)
-            throw new RuntimeErr.INDEX_OVERFLOW("Requires [0, %lu), got %d", nelems, index);
-        if (_elems == null && value.is_zero)
-            return;
-        unowned var elems = this.elems;
-        if (elems[index] == value)
-            return;
-        if (struct_type.fields[index].equals(value.value_type)) {
-            elems[index] = value;
-            return;
-        }
-        throw new TypeMismatchErr.MISMATCH(
-            "StructExpr(%p)[%d] requires %s, but got %s",
-            this, index,
-            struct_type.fields[index].to_string(),
-            value.value_type.to_string()
-        );
-    }
-
-    public override bool is_zero {
-        get {
-            if (_elems == null)
-                return true;
-            foreach (Constant? c in _elems) {
-                if (c != null && !c.is_zero)
-                    return false;
-            }
-            return true;
-        }
-    }
+    protected override ConstAggregate _clone_impl() { return this.clone(); }
     public override void accept(IValueVisitor visitor) {
-        visitor.visit_struct_expr(this);
+        visitor.visit_const_struct(this);
     }
-    public StructExpr.empty(StructType sty) {
-        base.C1(STRUCT_EXPR, sty);
+
+    public ConstStruct.empty(StructType sty) {
+        base.C1_empty(CONST_STRUCT, sty);
+        this.opcode = OpCode.CONST_STRUCT;
     }
+
     class construct {
-        _istype[TID.STRUCT_EXPR] = true;
+        _istype[TID.CONST_STRUCT] = true;
     }
-}
+} // class Musys.IR.ConstStruct

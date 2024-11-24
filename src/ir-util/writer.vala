@@ -1,6 +1,7 @@
 public class Musys.IRUtil.Writer: IR.IValueVisitor {
     protected Runtime*  _rt;
     public    IR.Module module;
+    public bool llvm_compatible { get; set; default = false; }
 
     public void write_stream(IOutputStream stream)
     {
@@ -50,12 +51,15 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         iouts().printf("%ld", (long)value.i64_value);
     }
     public override void visit_const_float(IR.ConstFloat value) {
-        iouts().printf("%lg", value.f64_value);
+        string f64_str = "%.32lg".printf(value.f64_value);
+        if (!f64_str.contains("."))
+            f64_str += ".0";
+        iouts().puts(f64_str);
     }
     public override void visit_undefined(IR.UndefinedValue udef) {
         iouts().puts(udef.is_poisonous ? "(poison)": "(undefined)");
     }
-    public override void visit_array_expr(IR.ArrayExpr value)
+    public override void visit_const_array(IR.ConstArray value)
     {
         if (value.is_zero) {
             iouts().puts("[]");
@@ -71,7 +75,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         }
         iouts().puts(" ]");
     }
-    public override void visit_struct_expr(IR.StructExpr value)
+    public override void visit_const_struct(IR.ConstStruct value)
     {
         if (value.is_zero) {
             iouts().puts("{}");
@@ -79,13 +83,43 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         }
         iouts().puts("{ ");
         uint cnt = 0;
-        foreach (var elem in (!)value.nullable_elems) {
+        foreach (var elem in (!)value.elems_nullable) {
             unowned string elemty = strvty(elem);
             iouts().puts(cnt == 0? @"$(elemty) " :@", $(elemty) ");
             cnt++;
             _write_by_ref(elem);
         }
         iouts().puts(" }");
+    }
+    public override void visit_const_index_ptr(IR.ConstIndexPtrExpr expr)
+    {
+        iouts().puts(@"getelementptr ($(expr.get_primary_type()), ptr ");
+        _write_by_ref(expr.source);
+        _write_const_index_body(expr.indices);
+        iouts().putchar(')');
+    }
+    public override void visit_const_offset_of(IR.ConstOffsetOfExpr expr) {
+        if (this.llvm_compatible)
+            _write_offsetof_llvm(expr);
+        else
+            _write_offsetof_musys(expr);
+    }
+    private void _write_offsetof_musys(IR.ConstOffsetOfExpr expr) {
+        iouts().puts(@"offsetof ($(expr.get_primary_type())");
+        _write_const_index_body(expr.indices);
+        iouts().putchar(')');
+    }
+    private void _write_offsetof_llvm(IR.ConstOffsetOfExpr expr) {
+        iouts().puts(@"ptrtoint (ptr getelementptr ($(expr.get_primary_type()), ptr null");
+        _write_const_index_body(expr.indices);
+        iouts().printf(") to i%d)", module.target.ptr_size_bytes * 8);
+    }
+    private void _write_const_index_body(IR.ConstIndexPtrBase.IndexUse[] indices) {
+        foreach (var uidx in indices) {
+            unowned IR.Value idx = uidx.get();
+            iouts().printf(", %s ", idx.value_type.to_string());
+            _write_by_ref(idx);
+        }
     }
 
     public override void visit_function(IR.Function func)
@@ -184,8 +218,23 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     {
         unowned var type = inst.value_type;
         var opcode = inst.opcode;
-        unowned string opcode_name = opcode.get_name();
-        iouts().puts(@"%$(inst.id) = $opcode_name $type ");
+        if (llvm_compatible) {
+            _write_unaryop_llvm(inst, opcode, type);
+        } else {
+            unowned string opcode_name = opcode.get_name();
+            iouts().puts(@"%$(inst.id) = $opcode_name $type ");
+            _write_by_ref(inst.operand);
+        }
+    }
+    private void _write_unaryop_llvm(IR.UnaryOpSSA inst, IR.OpCode opcode, Musys.Type type) {
+        unowned string inst_head = null;
+        switch (inst.opcode) {
+            case INEG:  inst_head = "%%%d = sub nsw %s 0, "; break;
+            case FNEG:  inst_head = "%%%d = fsub %s 0.0, ";  break;
+            case NOT:   inst_head = "%%%d = xor %s -1, ";    break;
+            default: crash_fmt("opcode %s is not legal for unary operation", inst.opcode.to_string());
+        }
+        iouts().printf(inst_head, inst.id, type.to_string());
         _write_by_ref(inst.operand);
     }
     public override void visit_inst_cast(IR.CastSSA inst)
@@ -221,7 +270,11 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         unowned var outs = iouts();
         unowned var calleety = inst.callee_fn_type;
         unowned var retty = calleety.return_type;
-        iouts().puts((retty is VoidType) ? "dyncall void ": @"%$(inst.id) = dyncall $retty ");
+        if (llvm_compatible)
+            iouts().puts(retty.is_void ? "call void ":    @"%$(inst.id) = call $retty ");
+        else
+            iouts().puts(retty.is_void ? "dyncall void ": @"%$(inst.id) = dyncall $retty ");
+
         _write_by_ref(inst.callee);
         iouts().puts(" (");
         uint cnt = 0;
@@ -248,7 +301,11 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         var ty = inst.target_type;
         var align = inst.align;
         var length = inst.length;
-        iouts().puts(@"%$id = alloca $ty, $(length.value_type) ");
+        iouts().puts(
+            llvm_compatible?
+                @"%$id = alloca $ty, $(length.value_type) ":
+                @"%$id = dynalloca $ty, $(length.value_type) "
+        );
         _write_by_ref(length);
         iouts().printf(" align %lu", align);
     }
@@ -295,11 +352,27 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     }
     public override void visit_inst_branch(IR.BranchSSA inst)
     {
-        unowned Type cond_type = inst.condition.value_type;
-        iouts().puts(@"br $cond_type ");
-        _write_by_ref(inst.condition);
+        IR.Value cond = inst.condition;
+        iouts().puts(@"br $(cond.value_type) ");
+        _write_by_ref(cond);
         iouts().printf(", label %%%d, label %%%d",
                     inst.if_true.id, inst.if_false.id);
+    }
+    public override void visit_inst_switch(IR.SwitchSSA inst)
+    {
+        IR.Value cond = inst.condition;
+        iouts().puts(@"switch $(cond.value_type) ");
+        _write_by_ref(cond);
+        iouts().printf(", label %%%d [", inst.default_target.id);
+        _rt->indent_level++;
+        inst.cases.foreach((entry) => {
+            _wrap_indent();
+            iouts().printf("%s %ld, label %%%d", cond.value_type.to_string(), entry.key, entry.value.bb.id);
+            return true;
+        });
+        _rt->indent_level--;
+        _wrap_indent();
+        iouts().putchar(']');
     }
     public override void visit_inst_phi(IR.PhiSSA inst)
     {
@@ -389,4 +462,4 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         uint    indent_level;
         string  space;
     }
-}
+} // public class Musys.IRUtil.Writer

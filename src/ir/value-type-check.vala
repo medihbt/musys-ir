@@ -74,6 +74,13 @@ namespace Musys.IR {
     }
 
     [Diagnostics, PrintfFormat]
+    public unowned AggregateType value_aggr_or_throw(Value? value, string fmt = "", ...)
+                throws TypeMismatchErr {
+        return static_cast<AggregateType>(
+            check_value_istype_throw(value, AGGR_TYPE, fmt, va_list()));
+    }
+
+    [Diagnostics, PrintfFormat]
     public unowned PointerType? value_ptr_or_throw(Value? value, string fmt = "", ...)
                 throws TypeMismatchErr {
         return static_cast<PointerType?>(
@@ -176,7 +183,7 @@ namespace Musys.IR {
          * 注意, 因为 IndexPtrSSA 有对 0 长度数组做解包的情况, 所以 IR 内不要对数组
          * 是否越界做任何检查. */
         if (aggr_bex.element_always_consist) {
-            after_extract = aggr_bex.get_element_type_at(0);
+            after_extract = aggr_bex.get_elem(0);
             return false;
         }
 
@@ -199,7 +206,7 @@ namespace Musys.IR {
         }
         /* 结构体索引不能超限 */
         var iconst_index = static_cast<ConstInt>(index);
-        after_extract = aggr_bex.get_element_type_at((size_t)iconst_index.i64_value);
+        after_extract = aggr_bex.get_elem((size_t)iconst_index.i64_value);
         if (unlikely(after_extract.is_void)) {
             throw new IndexPtrErr.INDEX_OVERFLOW(
                 "IndexPtrSSA layer %u (type {%s}) index[%l] overflow",

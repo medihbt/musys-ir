@@ -11,8 +11,13 @@ public class Musys.TypeContext: Object {
         OK, HAD_ITEM;
     }
 
+    public Platform target { get; internal set; }
+
     /** 目标机器字长, 单位是字节. Musys 只支持一字节 8 位的系统. */
-    public   uint32 machine_word_size{ get; }
+    public uint32 word_size{ get { return target.word_size_bytes; } }
+
+    /** Target pointer size in bytes. Musys only supports platforms 8 bits per byte. */
+    public uint32 ptr_size { get { return target.ptr_size_bytes; } }
 
     /** 类型缓存. 这部分缓存可以加快整数等类型的存取. */
     private  TypeCtxCache _type_cache;
@@ -32,7 +37,7 @@ public class Musys.TypeContext: Object {
         return _type_cache.new_or_get_int_ty(binary_bits, this);
     }
     public IntType get_intptr_type() {
-        return get_int_type(machine_word_size * 8);
+        return get_int_type(ptr_size * 8);
     }
     public FloatType ieee_f32 { get { return _type_cache.ieee_f32; } }
     public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
@@ -138,7 +143,10 @@ public class Musys.TypeContext: Object {
 
     public TypeContext(uint word_size = (uint)sizeof(pointer))
     {
-        this._machine_word_size = word_size;
+        this.target = new Platform.host() {
+            word_size_bytes = (uint8)word_size,
+            ptr_size_bytes  = (uint8)word_size,
+        };
         this._type_cache.init_reg_ty(this);
         this._types = new Gee.HashMap<unowned Type, Type>(
             type_hash, type_equal
@@ -212,5 +220,5 @@ public class Musys.TypeContext: Object {
             ity_bytes[8] = new IntType(tctx, 64);
             int_types = null;
         }
-    }
+    } // struct TypeCtxCache
 } // class TypeContext

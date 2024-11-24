@@ -151,7 +151,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
     public override void visit_const_data_zero(IR.ConstDataZero value) {
         outs.printf("Zero (addr %p)", value);
     }
-    public override void visit_array_expr(IR.ArrayExpr value)
+    public override void visit_const_array(IR.ConstArray value)
     {
         if (value.is_zero) {
             outs.printf("ArrayExpr (addr %p, zeroinitializer) []", value);
@@ -169,7 +169,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level--;
         _wrap_indent(); outs.puts("]");
     }
-    public override void visit_struct_expr(IR.StructExpr value)
+    public override void visit_const_struct(IR.ConstStruct value)
     {
         if (value.is_zero) {
             outs.printf("StructExpr (addr %p, zeroinitializer) {}", value);

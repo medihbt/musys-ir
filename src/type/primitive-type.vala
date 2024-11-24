@@ -44,9 +44,9 @@ namespace Musys {
          * {@link Musys.Type.instance_align}
          */
         public override size_t instance_align {
-            get { return size_get_align(
-                instance_size, type_ctx.machine_word_size
-            ); }
+            get {
+                return size_get_align(instance_size, type_ctx.word_size);
+            }
         }
 
         /** 名称缓存. */

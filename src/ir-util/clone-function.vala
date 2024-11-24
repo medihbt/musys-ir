@@ -158,6 +158,19 @@ namespace Musys.IRUtil {
             /* Terminator ReturnSSA */
             rt.saved = new IR.ReturnSSA(ret_inst.retval);
         }
+        void visit_inst_switch(IR.SwitchSSA inst)
+        {
+            /* Terminator SwitchSSA */
+            var to_default = (!)(rt.find_copy(inst.default_target) as IR.BasicBlock);
+            var copy = new IR.SwitchSSA.with_default(inst.condition, to_default);
+            inst.cases.foreach((entry) => {
+                long case_n = entry.key;
+                var  bb     = (!)(rt.find_copy(entry.value.bb) as IR.BasicBlock);
+                copy.set_case(case_n, bb);
+                return true;
+            });
+            rt.saved = copy;
+        }
         void visit_inst_unreachable(IR.UnreachableSSA unreachable_inst) {
             /* Terminator UnreachableSSA */
             rt.saved = new IR.UnreachableSSA(rt.to_bb);

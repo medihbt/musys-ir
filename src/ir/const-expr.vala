@@ -1,5 +1,7 @@
 namespace Musys.IR {
     public abstract class ConstExpr: Constant {
+        public OpCode opcode { get; internal set; }
+
         public bool is_aggregate { get { return _is_aggregate; } }
         
         protected ConstExpr.C1(Value.TID tid, Type type) {
@@ -17,9 +19,9 @@ namespace Musys.IR {
                      throws TypeMismatchErr
     {
         if (type.is_array)
-            return new ArrayExpr.empty(static_cast<ArrayType>(type));
+            return new ConstArray.empty(static_cast<ArrayType>(type));
         if (type.is_struct)
-            return new StructExpr.empty(static_cast<StructType>(type));
+            return new ConstStruct.empty(static_cast<StructType>(type));
         throw new TypeMismatchErr.NOT_AGGREGATE(@"Type $type is not array type or struct type");
     }
 }

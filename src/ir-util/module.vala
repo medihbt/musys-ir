@@ -17,7 +17,7 @@ namespace Musys.IRUtil {
         ALL = 7;
     }
 
-    public void number_function(IR.Function fn, NumberValueFlags flags = 0)
+    public int number_function(IR.Function fn, NumberValueFlags flags = 0)
     {
         int number = 0;
         foreach (var arg in fn.args) {
@@ -25,7 +25,7 @@ namespace Musys.IRUtil {
             number++;
         }
         if (fn.is_extern)
-            return;
+            return number;
         unowned var body = fn.body;
         IR.BasicBlock entry = body._entry;
         number = _number_basic_block(entry, number, flags);
@@ -34,6 +34,7 @@ namespace Musys.IRUtil {
                 continue;
             number = _number_basic_block(b, number + 1, flags);
         }
+        return number;
     }
 
     private int _number_basic_block(IR.BasicBlock block, int begin, NumberValueFlags flags)

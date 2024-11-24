@@ -128,7 +128,7 @@ public class Musys.StructType: AggregateType {
     /**
      * {@inheritDoc}
      */
-    public override Type get_element_type_at(size_t index) {
+    public override Type get_elem(size_t index) {
         return index >= _fields.length? type_ctx.void_type: _fields[index];
     }
     /**
