@@ -17,6 +17,11 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     public void write_file(GLib.FileStream file = stdout) {
         write_stream(new FileOutStream(file));
     }
+    public string write_string() {
+        var strout = new StringOutStream();
+        write_stream(strout);
+        return strout.str_builder.free_and_steal();
+    }
     public unowned string strtype(Musys.Type? type) {
         return type == null? "<null type>": type.to_string();
     }
@@ -33,10 +38,9 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
     }
 
     private void visit_module() {
-        foreach (var ste in module.type_ctx._symbolled_struct_types) {
-            StructType sty = ste.value;
-            iouts().puts(@"$sty = type $(sty.fields_to_string())\n");
-        }
+        module.type_ctx._symbolled_structs.foreach((s, t) => {
+            _rt->outs.printf("$%s = type %s", s, t.fields_to_string());
+        });
         foreach (var def in module.global_def)
             def.value.accept(this);
         iouts().printf("\n;module %s\n", module.name);
@@ -457,7 +461,7 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         this.module = module;
     }
 
-    public struct Runtime {
+    protected struct Runtime {
         IOutputStream   outs;
         uint    indent_level;
         string  space;

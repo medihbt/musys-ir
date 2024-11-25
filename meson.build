@@ -8,6 +8,7 @@ musys_include= include_directories([
     musys_include_str,
     'src'
 ])
+add_project_arguments('--hide-internal', language: 'vala')
 
 subdir('src')
 

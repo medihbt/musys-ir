@@ -31,4 +31,7 @@ namespace Musys {
         else
             return 0;
     }
+    public int uintcmp(uint l, uint r) {
+        return (int)l - (int)r;
+    }
 }

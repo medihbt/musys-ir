@@ -32,4 +32,23 @@ namespace Musys {
             this.file = file;
         }
     }
+
+    public class StringOutStream: Object, IOutputStream {
+        public GLib.StringBuilder str_builder = new StringBuilder();
+        public size_t write_buf(uint8* buf, size_t size) {
+            str_builder.append_len((string)buf, (ssize_t)size);
+            return size;
+        }
+        public override size_t puts(string str) {
+            ssize_t len0 = str_builder.len;
+            str_builder.append(str);
+            return str_builder.len - len0;
+        }
+        public override void putchar(char c) {
+            str_builder.append_c(c);
+        }
+        public override void vprintf(string fmt, va_list ap) {
+            str_builder.append_vprintf(fmt, ap);
+        }
+    }
 }
