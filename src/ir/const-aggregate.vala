@@ -64,7 +64,7 @@ public abstract class Musys.IR.ConstAggregate: ConstExpr {
     }
 
     /** 集合元素读访问函数, 会检查下标越界. */
-    public Constant get_elem(int index) throws RuntimeErr {
+    public unowned Constant get_elem(int index) throws RuntimeErr {
         if (index < 0 || index >= (int)nelems())
             throw new RuntimeErr.INDEX_OVERFLOW("Requires [0, %lu) but got %d", nelems(), index);
         return this.elems[index];

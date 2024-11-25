@@ -21,45 +21,35 @@ public class Musys.TypeContext: Object {
 
     /** 类型缓存. 这部分缓存可以加快整数等类型的存取. */
     private  TypeCtxCache _type_cache;
-    internal Gee.HashMap<unowned Type, Type> _types;
-    internal Gee.HashMap<string, StructType> _symbolled_struct_types;
+    internal HashTable<unowned Type, Type> _types;
+    internal HashTable<string, StructType> _symbolled_structs;
 
-    public IntType bool_type {
-        get { return _type_cache.ity_bytes[0]; }
-    }
-    public VoidType void_type {
-        get { return _type_cache.voidty; }
-    }
-    public LabelType label_type {
-        get { return _type_cache.labelty; }
-    }
-    public IntType get_int_type(uint binary_bits) {
+    public IntType   bool_type  { get { return _type_cache.ity_bytes[0]; } }
+    public VoidType  void_type  { get { return _type_cache.voidty;  } }
+    public LabelType label_type { get { return _type_cache.labelty; } }
+    public unowned IntType get_int_type(uint binary_bits) {
         return _type_cache.new_or_get_int_ty(binary_bits, this);
     }
-    public IntType get_intptr_type() {
-        return get_int_type(ptr_size * 8);
+    public unowned IntType intptr_type {
+        get { return get_int_type(ptr_size * 8); }
     }
     public FloatType ieee_f32 { get { return _type_cache.ieee_f32; } }
     public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
 
     /** 获取元素类型为 elemty, 长度为 len 的数组类型 */
-    public ArrayType get_array_type(Type elemty, size_t len) {
+    public unowned ArrayType get_array_type(Type elemty, size_t len) {
         var ret = new ArrayType(this, elemty, len);
         return (ArrayType)get_or_register_type(ret);
     }
 
-    public PointerType get_opaque_ptr() {
-        if (_type_cache.opaque_ptr_type == null)
-            _type_cache.opaque_ptr_type = new PointerType.opaque(this);
-        return _type_cache.opaque_ptr_type;
-    }
+    public PointerType opaque_ptr { get { return _type_cache.opaque_ptr_type; } }
 
     /**
      * 获取返回类型为 `ret_ty`, 参数类型为 `args_ty` 的函数类型.
      *
      * @param ret_ty 返回值类型.
      */
-    public FunctionType get_func_type(Type ret_ty, Type []?args_ty)
+    public unowned FunctionType get_func_type(Type ret_ty, Type []?args_ty)
     {
         FunctionType fty = null;
         if (args_ty != null)
@@ -73,32 +63,33 @@ public class Musys.TypeContext: Object {
      *
      * @param ret_ty 返回值类型.
      */
-    public FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty)
+    public unowned FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty)
     {
         var fty = new FunctionType.move(ret_ty, (owned)args_ty);
         return (FunctionType)get_or_register_type(fty);
     }
 
-    public StructType get_anomymous_struct_type(owned (unowned Type)[] fields)
+    public unowned StructType get_anomymous_struct_type(owned Type[] fields)
     {
         var sty = new StructType.anomymous_move((owned)fields);
-        if (!_types.has_key(sty)) {
-            _types[sty] = sty;
-            return sty;
-        }
-        return (!)(_types.get(sty) as StructType);
+        unowned Type? ret = _types.get(sty);
+        if (ret != null)
+            return static_cast<StructType>(ret);
+        _types.insert(sty, sty);
+        return static_cast<StructType>(_types[sty]);
     }
-    public StructType get_named_struct_type(string name, Type[]? fields)
+    public unowned StructType get_named_struct_type(string name, Type[]? fields)
     {
-        if (_symbolled_struct_types.has_key(name))
-            return _symbolled_struct_types[name];
+        unowned StructType? vty = _symbolled_structs[name];
+        if (vty != null)
+            return vty;
         var ret = fields != null?
             new StructType.symbolled_copy(fields, name):
             new StructType.opaque(this, name);
-        _symbolled_struct_types[name] = ret;
-        return ret;
+        _symbolled_structs[name] = (owned)ret;
+        return _symbolled_structs[name];
     }
-    public VectorType get_vec_type(Type element_type, size_t length)
+    public unowned VectorType get_vec_type(Type element_type, size_t length)
     {
         if (!is_power_of_2_nonzero(length)) {
             crash_fmt(
@@ -110,19 +101,17 @@ public class Musys.TypeContext: Object {
         var vec_ty = new VectorType.fixed(element_type, length);
         return get_reg_vec_type(vec_ty);
     }
-    public VectorType get_reg_vec_type(VectorType vec_ty)
+    public unowned VectorType get_reg_vec_type(VectorType vec_ty)
     {
-        if (!_types.has_key(vec_ty)) {
-            _types[vec_ty] = vec_ty;
-            return vec_ty;
-        }
-        return _types[vec_ty] as VectorType;
+        unowned Type vecvty = get_or_register_type(vec_ty);
+        assert(vecvty.is_vector);
+        return static_cast<VectorType>(vecvty);
     }
 
     /** 用障眼法写的方法, 让代码好看一些罢了 */
     public bool has_type(Type ty) { return ty.type_ctx == this; }
 
-    private Type get_or_register_type(Type ty)
+    private unowned Type get_or_register_type(Type ty)
     {
         if (ty.is_int)
             return _type_cache.new_or_get_int_ty(((IntType)ty).binary_bits, this);
@@ -135,10 +124,14 @@ public class Musys.TypeContext: Object {
             return _type_cache.voidty;
         if (ty.is_label)
             return _type_cache.labelty;
-        if (_types.has_key(ty))
-            return _types[ty];
-        _types[ty] = ty;
-        return ty;
+
+        /* common types: in a large hash map. */
+        unowned Type? vty = _types.get(ty);
+        if (vty == null) {
+            _types.set(ty, ty);
+            vty = ty;
+        }
+        return vty;
     }
 
     public TypeContext(uint word_size = (uint)sizeof(pointer))
@@ -148,31 +141,22 @@ public class Musys.TypeContext: Object {
             ptr_size_bytes  = (uint8)word_size,
         };
         this._type_cache.init_reg_ty(this);
-        this._types = new Gee.HashMap<unowned Type, Type>(
-            type_hash, type_equal
-        );
-        this._symbolled_struct_types = new Gee.HashMap<string, StructType>(
-            (Gee.HashDataFunc)str_hash,
-            (Gee.EqualDataFunc)str_equal,
-            null
-        );
+        this._types = new HashTable<unowned Type, Type>(type_hash, type_equal);
+        this._symbolled_structs = new HashTable<string, StructType>(str_hash, str_equal);
     }
+
     ~TypeContext() {
-        foreach (var entry in _types) {
-            if (entry.value is StructType) {
-                var sty = static_cast<StructType>(entry.value);
-                sty.fields = null;
-            }
-        }
-        foreach (var entry in _symbolled_struct_types) {
-            StructType sty = entry.value;
-            sty.fields = null;
-        }
+        _types.foreach((k, v) => {
+            if (k.istype_by_id(STRUCT_TYPE))
+                static_cast<StructType>(k).fields = null;
+        });
+        _symbolled_structs.foreach((s, t) => t.fields = null);
     }
 
     [CCode (has_type_id=false)]
     private struct TypeCtxCache {
-        Gee.TreeMap<uint, IntType> int_types;
+        //  Gee.TreeMap<uint, IntType> int_types;
+        Tree<uint, IntType> int_types;
         IntType   ity_bytes[9];
         VoidType  voidty;
         LabelType labelty;
@@ -180,29 +164,27 @@ public class Musys.TypeContext: Object {
         FloatType ieee_f64;
         PointerType opaque_ptr_type;
 
-        internal IntType new_or_get_int_ty(uint bits, TypeContext tctx)
+        internal unowned IntType new_or_get_int_ty(uint bits, TypeContext tctx)
         {
             if (bits == 1 && ity_bytes[0] == null) {
-                var ret = new IntType(tctx, bits);
-                ity_bytes[0] = ret;
-                return ret;
+                ity_bytes[0] = new IntType(tctx, bits);
+                return ity_bytes[0];
             }
             if (bits % 8 == 0 && bits <= 64) {
                 uint bytes = bits / 8;
                 if (ity_bytes[bytes] == null) {
-                    var ty = new IntType(tctx, bits);
-                    ity_bytes[bytes] = ty;
-                    return ty;
+                    ity_bytes[bytes] = new IntType(tctx, bits);
+                    return ity_bytes[bytes];
                 }
                 return ity_bytes[bytes];
             }
             if (int_types == null)
-                int_types = new Gee.TreeMap<uint, IntType>();
-            if (int_types.has_key(bits))
-                return int_types[bits];
-            var ty = new IntType(tctx, bits);
-            int_types[bits] = ty;
-            return ty;
+                int_types = new Tree<uint, IntType>(uintcmp);
+            unowned IntType? ret = int_types.lookup(bits);
+            if (ret != null)
+                return ret;
+            int_types.insert(bits, new IntType(tctx, bits));
+            return int_types.lookup(bits);
         }
         internal void init_reg_ty(TypeContext tctx)
         {

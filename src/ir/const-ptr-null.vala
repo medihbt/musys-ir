@@ -18,12 +18,12 @@ namespace Musys.IR {
             base.C1(Value.TID.CONST_PTR_NULL, ptr_ty);
         }
         public ConstPtrNull.from_type_ctx(TypeContext tctx) {
-            base.C1(Value.TID.CONST_PTR_NULL, tctx.get_opaque_ptr());
+            base.C1(Value.TID.CONST_PTR_NULL, tctx.opaque_ptr);
         }
         class construct {
             _istype[TID.ICONST_ZERO]    = true;
             _istype[TID.CONST_PTR_NULL] = true;
             _is_aggregate               = false;
         }
-    }
+    } // public sealed class ConstPtrNull
 }

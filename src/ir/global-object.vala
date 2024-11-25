@@ -69,7 +69,7 @@ public abstract class Musys.IR.GlobalObject: Constant, IPointerStorage {
 
     protected GlobalObject.C1(Value.TID tid, Type content_type, string name, bool is_internal) {
         var tctx = content_type.type_ctx;
-        base.C1(tid, tctx.get_opaque_ptr());
+        base.C1(tid, tctx.opaque_ptr);
         this.content_type = content_type;
         this._is_internal = is_internal;
         this._name = name;

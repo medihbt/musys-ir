@@ -28,7 +28,7 @@ public class Musys.IR.LoadSSA: UnarySSA {
                 target_type.to_string());
         }
         base.C1(LOAD_SSA, LOAD, target_type,
-                target_type.type_ctx.get_opaque_ptr());
+                target_type.type_ctx.opaque_ptr);
         if (align == 0)
             align = target_type.instance_align;
         this.align = align;

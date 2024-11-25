@@ -1,5 +1,5 @@
 namespace Musys.IRUtil {
-    public Type type_index(Type type, IR.Value? index) throws TypeMismatchErr, RuntimeErr
+    public unowned Type type_index(Type type, IR.Value? index) throws TypeMismatchErr, RuntimeErr
     {
         if (type.is_pointer)
             return static_cast<PointerType>(type).target;
@@ -21,7 +21,5 @@ namespace Musys.IRUtil {
         crash(@"$(Log.METHOD)::index should be compile-time constant while type $type is not array-like");
     }
 
-    public PointerType get_ptr_type(Type target) {
-        return target.type_ctx.get_opaque_ptr();
-    }
+    public unowned PointerType get_ptr_type(Type target) { return target.type_ctx.opaque_ptr; }
 }

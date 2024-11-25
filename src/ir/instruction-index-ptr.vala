@@ -58,7 +58,7 @@ namespace Musys.IR {
         /** 索引列表. 其中 indices[0] 是初始索引. */
         public   IndexUse[]  indices { get { return _indices; } }
 
-        public Value get_index_at(uint layer) throws RuntimeErr
+        public unowned Value get_index_at(uint layer) throws RuntimeErr
         {
             if (layer >= indices.length)
                 throw new RuntimeErr.INDEX_OVERFLOW("IndexPtrSSA(%d)[%u] overflow", id, layer);
@@ -101,7 +101,7 @@ namespace Musys.IR {
         private IndexPtrSSA._full_empty(ArrayType arr0_primary_target)
         {
             base.C1(INDEX_PTR_SSA, INDEX_PTR,
-                    arr0_primary_target.type_ctx.get_opaque_ptr());
+                    arr0_primary_target.type_ctx.opaque_ptr);
             this.arr0_primary_target = arr0_primary_target;
         }
         private void _init_uses(owned IndexUse[] indices)
@@ -118,7 +118,7 @@ namespace Musys.IR {
         public IndexPtrSSA.move_nocheck(Type primary_target, owned IndexUse[] indices)
         {
             base.C1(INDEX_PTR_SSA, INDEX_PTR,
-                    primary_target.type_ctx.get_opaque_ptr());
+                    primary_target.type_ctx.opaque_ptr);
             this.primary_target_type = primary_target;
             this._init_uses((owned)indices);
         }

@@ -71,8 +71,7 @@ namespace Musys.IR {
         public CastSSA.as_ptoi_auto(Value source)
                     throws TypeMismatchErr {
             value_ptr_or_throw(source, "CastSSA.as_ptoi()::source");
-            this.nocheck(PTR_TO_INT,
-                source.value_type.type_ctx.get_intptr_type(), source);
+            this.nocheck(PTR_TO_INT, source.value_type.type_ctx.intptr_type, source);
         }
 
         class construct { _istype[TID.CAST_SSA] = true; }

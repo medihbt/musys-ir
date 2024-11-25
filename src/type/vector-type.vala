@@ -14,7 +14,7 @@ public class Musys.VectorType: AggregateType {
     }
     public bool is_scalable { get { return length == 0; } }
 
-    public override Type get_elem(size_t index) {
+    public override unowned Type get_elem(size_t index) {
         return element_type;
     }
     public override size_t element_number { get { return length; } }

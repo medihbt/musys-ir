@@ -144,16 +144,16 @@ namespace Musys.IR {
         }
     }
 
-    public IntType get_bool_type(Type type)
+    public unowned IntType get_bool_type(Type type)
     {
         if (type.is_int && static_cast<IntType>(type).binary_bits == 1)
             return static_cast<IntType>(type);
         return type.type_ctx.bool_type;
     }
-    public PointerType get_ptr_type(Type type) {
+    public unowned PointerType get_ptr_type(Type type) {
         if (type.is_pointer)
             return (PointerType)type;
-        return type.type_ctx.get_opaque_ptr();
+        return type.type_ctx.opaque_ptr;
     }
 
     /**

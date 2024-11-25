@@ -37,7 +37,7 @@ musys_fmt_u32base10(char *buf, unsigned length, unsigned number)
 static inline char const*
 musys_fmt_u32base16(char *buf, unsigned length, unsigned number)
 {
-    static const char xdigits[16] = "0123456789abcdef";
+    static const char xdigits[] = "0123456789abcdef";
     if (length < (sizeof(unsigned) * 2 + 1)) {
         *buf = '\0';
         return buf;
@@ -56,7 +56,7 @@ musys_fmt_u32base16(char *buf, unsigned length, unsigned number)
 static inline char const*
 musys_fmt_u32Base16(char *buf, unsigned length, unsigned number)
 {
-    static const char xdigits[16] = "0123456789ABCDEF";
+    static const char xdigits[] = "0123456789ABCDEF";
     if (length < (sizeof(unsigned) * 2 + 1)) {
         *buf = '\0';
         return buf;

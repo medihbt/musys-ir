@@ -37,7 +37,7 @@ public class Musys.StructType: AggregateType {
             kind = symbol_name == null? Kind.ANOMYMOUS: Kind.SYMBOLLED;
     }
 
-    internal (unowned Type)[]? _fields;
+    internal Type[]? _fields;
     /**
      * 结构体的字段表. 当 `fields == null` 时表示它是一个**不透明结构体**.
      *
@@ -48,7 +48,7 @@ public class Musys.StructType: AggregateType {
      *
      * @see _fields
      */
-    public (unowned Type)[]? fields {
+    public Type[]? fields {
         get { return _fields; }
         /* 把带所有权的放进去以提高效率 */
         owned set {
@@ -70,7 +70,7 @@ public class Musys.StructType: AggregateType {
      * 因为 Vala 的 "属性" 不支持直接换出带所有权的独占所有权对象, 故写此方法以执行
      * 类似 C++ 移动语义的操作.
      */
-    public (unowned Type)[]? swapout_fields(owned (unowned Type)[]? new_fields)
+    public Type[]? swapout_fields(owned Type[]? new_fields)
     {
         if (new_fields == fields)
             return null;
@@ -128,7 +128,7 @@ public class Musys.StructType: AggregateType {
     /**
      * {@inheritDoc}
      */
-    public override Type get_elem(size_t index) {
+    public override unowned Type get_elem(size_t index) {
         return index >= _fields.length? type_ctx.void_type: _fields[index];
     }
     /**
@@ -282,17 +282,17 @@ public class Musys.StructType: AggregateType {
 
     public StructType.anomymous(TypeContext tctx, size_t nfields) {
         base.C1(tctx, STRUCT_TYPE);
-        this._fields = new (unowned Type)[nfields];
+        this._fields = new Type[nfields];
         this._kind   = ANOMYMOUS;
     }
-    public StructType.anomymous_copy((unowned Type)[] fields) {
+    public StructType.anomymous_copy(Type[] fields) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
         _update_size_align();
         this._kind = ANOMYMOUS;
     }
-    public StructType.anomymous_move(owned (unowned Type)[] fields) {
+    public StructType.anomymous_move(owned Type[] fields) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = (owned)fields;
@@ -302,11 +302,11 @@ public class Musys.StructType: AggregateType {
 
     public StructType.symbolled(TypeContext tctx, size_t nfields, string name) {
         base.C1(tctx, STRUCT_TYPE);
-        this._fields = new (unowned Type)[nfields];
+        this._fields = new Type[nfields];
         this.symbol_name = name;
         this._kind = SYMBOLLED;
     }
-    public StructType.symbolled_copy((unowned Type)[] fields, string name) {
+    public StructType.symbolled_copy(Type[] fields, string name) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
@@ -314,7 +314,7 @@ public class Musys.StructType: AggregateType {
         _update_size_align();
         this._kind = SYMBOLLED;
     }
-    public StructType.symbolled_move(owned (unowned Type)[] fields, string name) {
+    public StructType.symbolled_move(owned Type[] fields, string name) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = (owned)fields;

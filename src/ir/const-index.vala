@@ -1,4 +1,9 @@
 namespace Musys.IR {
+    /**
+     * === 指针索引表达式类 ===
+     *
+     * 对指针常量取偏移量, 或者返回偏移量自己的表达式.
+     */
     public abstract class ConstIndexPtrBase: ConstExpr {
         public IndexUse[] indices { get; internal owned set; }
 
@@ -48,11 +53,6 @@ namespace Musys.IR {
         protected ConstIndexPtrBase.C1(Value.TID tid, Type type) {
             base.C1(tid, type);
         }
-        protected ConstIndexPtrBase.C1_ptr_move(Value.TID tid, Constant ptr_src, owned IndexUse[] indices) {
-            value_ptr_or_crash(ptr_src);
-            this.C1(tid, static_cast<PointerType>(ptr_src.value_type));
-            _reg_move_index_uses((owned)indices);
-        }
 
         class construct {
             _istype[TID.CONST_INDEX_PTR_BASE] = true;
@@ -87,7 +87,37 @@ namespace Musys.IR {
     } // class ConstIndexBase
 
 
-    /** e.g. ``getelementptr {i32, i32, i64, i8, [3 x i8]}, ptr @val, i32 0, i64 1`` */
+    /**
+     * === 常量指针索引表达式 ===
+     *
+     * C 语言允许这样定义一个全局对象: ``int a[10]; int* b = &a[4];`` 常量指针索引表达式是做这个用的.
+     *
+     * ==== 操作数表 ====
+     *
+     * - ``[0]  = source``: 等待取偏移量的指针常量.
+     * - ``[1:] = indices[...]``: 偏移量
+     * 
+     * ==== 语法及示例 ====
+     *
+     * ```
+     * getelementptr (<primary type>, ptr <ptr const>, <int0> <index0>, ...)
+     * // 示例: Musys-Lang 代码
+     * // [[Layout(kind = C)]]
+     * // public struct Demo {
+     * //     a: int32;
+     * //     b: int32;
+     * //     c: int64;
+     * //     d: int8;
+     * // }
+     * // public static a: Demo = {};
+     * // public static b: &int64;
+     * %Demo = type {i32, i32, i64, i8, [7 x i8]}
+     * @a = dso_local global %Demo {}, align 8
+     * @b = dso_local global ptr getelementptr (%Demo, ptr @val, i32 0, i64 1), align 8
+     * ```
+     *
+     * @see Musys.IR.COnstIndexPtrBase
+     */
     public class ConstIndexPtrExpr: ConstIndexPtrBase {
         public override bool is_zero { get { return false; } }
         public override void accept(IValueVisitor visitor) {
@@ -107,6 +137,7 @@ namespace Musys.IR {
 
         public ConstIndexPtrExpr.raw(PointerType ptr_ty) {
             base.C1(CONST_INDEX_PTR, ptr_ty);
+            _usource = new SourceUse().attach_back(this);
         }
         public ConstIndexPtrExpr.raw_move(Constant source, owned IndexUse[] indices)
             throws TypeMismatchErr {
@@ -115,7 +146,7 @@ namespace Musys.IR {
             this.source = source;
             this._reg_move_index_uses((owned)indices);
         }
-        public ConstIndexPtrExpr.checked(Constant source, owned IndexUse[] indices)
+        public ConstIndexPtrExpr.check_move(Constant source, owned IndexUse[] indices)
             throws TypeMismatchErr, IndexPtrErr {
             this.raw_move(source, (owned)indices);
             this.verify();
@@ -152,7 +183,27 @@ namespace Musys.IR {
     /**
      * === 类型偏移量计算表达式 ===
      *
-     * ``offsetof {i32, i32, i64, i8, [3 x i8]}, i32 0, i64 1``
+     * 平台无关的 ``offsetof`` 表达式实现.
+     *
+     * ==== 操作数表 ====
+     *
+     * - ``[0:] = indices[...]``: 索引操作数
+     *
+     * ==== 语法及示例 ====
+     *
+     * ```
+     * offsetof (<primary type>, <int0> <index0>, ...)
+     * // 示例: Musys-Lang 代码 
+     * // [[Layout(kind = C)]]
+     * // public struct Demo {
+     * //     a: int32;
+     * //     b: int32;
+     * //     c: int64;
+     * //     d: int8;
+     * // }
+     * // public const uint offset = offsetof!(Demo.b);
+     * @offset = dso_local constant i32 offsetof ({i32, i32, i64, i8, [7 x i8]}, i32 0, i64 1), align 8
+     * ```
      */
     public class ConstOffsetOfExpr: ConstIndexPtrBase {
         public override bool is_zero { get { return false; } }
@@ -161,14 +212,14 @@ namespace Musys.IR {
         }
 
         public ConstOffsetOfExpr.raw(TypeContext tctx) {
-            base.C1(CONST_OFFSET_OF, tctx.get_intptr_type());
+            base.C1(CONST_OFFSET_OF, tctx.intptr_type);
         }
         public ConstOffsetOfExpr.raw_move(owned IndexUse[] indices) {
             assert(indices.length >= 1);
             this.raw(indices[0].elem_type.type_ctx);
             base._reg_move_index_uses((owned)indices);
         }
-        public ConstOffsetOfExpr.checked(owned IndexUse[] indices)
+        public ConstOffsetOfExpr.check_move(owned IndexUse[] indices)
             throws TypeMismatchErr, IndexPtrErr {
             this.raw_move((owned)indices);
             this.verify();
