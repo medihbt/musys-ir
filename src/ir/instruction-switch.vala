@@ -26,39 +26,45 @@
  * SwitchSSA 保证在遍历时条件总是从小到大排序的. 因此, 该实现内部采用有序树存储跳转条件.
  */
 public class Musys.IR.SwitchSSA: JumpBase {
-    public Gee.TreeMap<long, CaseTarget> cases {
-        get; internal owned set;
-        default = new Gee.TreeMap<long, CaseTarget>(longcmp);
+    public GLib.Tree<long, CaseTarget> cases {
+        get; internal set;
+        default = new Tree<long, CaseTarget>(longcmp);
     }
-    public CaseTarget? get_case(long case_n) { return cases[case_n]; }
-    public void set_case(long case_n, BasicBlock? bb)
+
+    /** GTree 不能使用 foreach 语法遍历, 这里是做了一层很薄的封装. ''非 Vala 语言不要调用这个函数''. */
+    public CaseTreeView view_cases() { return { cases }; }
+
+    public CaseTarget? get_case(long case_n) { return cases.lookup(case_n); }
+
+    public void set_case(long case_n, BasicBlock bb)
     {
-        CaseTarget? c = cases[case_n];
-        if (c == null) {
-            if (bb != null)
-                cases[case_n] = new CaseTarget.from(this, bb, case_n);
-        } else if (bb != null) {
-            c.bb = bb;
+        unowned var node = cases.lookup_node(case_n);
+        if (node == null) {
+            if (bb == null)
+                return;
+            var case_t = new CaseTarget() { target = bb, order = case_n };
+            node = cases.insert_node(case_n, case_t);
+            unowned var? prev = node.previous();
+            case_t.attach_after_node(prev == null? this._default_target: prev.value());
         } else {
-            CaseTarget value = null;
-            cases.unset(case_n, out value);
-            message("removed case %ld -> %p", case_n, value);
-            value.unplug();
+            node.value().target = bb;
         }
     }
-    public void remove_case(long case_n)
+    public bool remove_case(long case_n)
     {
-        CaseTarget? value = null;
-        cases.unset(case_n, out value);
-        if (value != null) {
-            value.unplug();
-            message("removed case %ld -> %p", case_n, value);
-        }
+        CaseTarget? value = cases.lookup(case_n);
+        if (value == null)
+            return false;
+        value.unplug();
+        return cases.remove(case_n);
     }
 
     public CaseTarget? find_case(BasicBlock target) {
-        var? res = cases.first_match((entry) => entry.value.bb == target);
-        return res == null? null: res.value;
+        foreach (CaseTarget ct in view_cases()) {
+            if (ct.target == target)
+                return ct;
+        }
+        return null;
     }
 
     private Value _condition;
@@ -75,12 +81,12 @@ public class Musys.IR.SwitchSSA: JumpBase {
     }
     public override void on_parent_finalize() {
         default_target = null;
-        cases.clear();
+        cases.remove_all();
         base._deep_clean();
     }
     public override void on_function_finalize() {
         default_target = null;
-        cases.clear();
+        cases.remove_all();
         base._deep_clean();
     }
 
@@ -146,4 +152,40 @@ public class Musys.IR.SwitchSSA: JumpBase {
             set { user.condition = value; }
         }
     } // sealed class CondUse
+
+    /** cases 树集合的简单封装, 实现了 GTree 没有的 foreach 遍历功能. */
+    public struct CaseTreeView {
+        GLib.Tree<long, CaseTarget> cases;
+        public CaseTreeIter iterator() {
+            return { cases, null };
+        }
+    } // public struct GCaseTreeView
+
+    /** cases 树集合的迭代器. 这玩意可比 Gee 的快多了. */
+    public struct CaseTreeIter {
+        unowned GLib.Tree<long, CaseTarget> cases;
+        unowned TreeNode <long, CaseTarget>  node;
+
+        public unowned CaseTarget? @get() { return node.value(); }
+        public long case_n { get { return node.key(); } }
+
+        public bool next() {
+            if (node == null)
+                node = cases.node_first();
+            else
+                node = node.next();
+            return node != null;
+        }
+        public bool has_next() {
+            return node != null && node.next() != null;
+        }
+        public bool has_prev() { return node != null && node.previous() != null; }
+        public CaseTreeIter get_next() {
+            return { cases, node == null? cases.node_first(): node.next() };
+        }
+        public CaseTreeIter get_prev() {
+            return { cases, node == null? cases.node_first(): node.previous() };
+        }
+        public bool is_valid() { return this.cases != null; }
+    } // public struct GTreeCaseIter
 } // class Musys.IR.SwitchSSA

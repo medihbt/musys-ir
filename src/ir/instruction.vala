@@ -112,7 +112,7 @@ namespace Musys.IR {
         "sitofp", "uitofp", "fptosi", "zext", "sext", "trunc", "fpext", "fptrunc",
         "bitcast", "inttoptr", "ptrtoint",
         "select", "extractelement", "insertelement", "getelementptr", "offsetof",
-        "load", "store", "alloca", "dyn-alloca", "call", "phi",
+        "load", "store", "alloca", "dyn-alloca", "call", "dyncall", "phi",
         "icmp", "fcmp",
         "constarray", "conststruct", "constvec",
         "intrin"

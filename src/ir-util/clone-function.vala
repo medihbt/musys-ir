@@ -163,12 +163,11 @@ namespace Musys.IRUtil {
             /* Terminator SwitchSSA */
             var to_default = (!)(rt.find_copy(inst.default_target) as IR.BasicBlock);
             var copy = new IR.SwitchSSA.with_default(inst.condition, to_default);
-            inst.cases.foreach((entry) => {
-                long case_n = entry.key;
-                var  bb     = (!)(rt.find_copy(entry.value.bb) as IR.BasicBlock);
+            foreach (var ct in inst.view_cases()) {
+                long case_n = ct.case_n;
+                var  bb     = rt.find_copy(ct.target) as IR.BasicBlock;
                 copy.set_case(case_n, bb);
-                return true;
-            });
+            }
             rt.saved = copy;
         }
         void visit_inst_unreachable(IR.UnreachableSSA unreachable_inst) {

@@ -369,11 +369,15 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         _write_by_ref(cond);
         iouts().printf(", label %%%d [", inst.default_target.id);
         _rt->indent_level++;
-        inst.cases.foreach((entry) => {
+        //  inst.cases.foreach((key, value) => {
+        //      _wrap_indent();
+        //      iouts().printf("%s %ld, label %%%d", cond.value_type.to_string(), key, value.target.id);
+        //      return true;
+        //  });
+        foreach (var ct in inst.view_cases()) {
             _wrap_indent();
-            iouts().printf("%s %ld, label %%%d", cond.value_type.to_string(), entry.key, entry.value.bb.id);
-            return true;
-        });
+            iouts().printf("%s %ld, label %%%d", cond.value_type.to_string(), ct.case_n, ct.target.id);
+        }
         _rt->indent_level--;
         _wrap_indent();
         iouts().putchar(']');

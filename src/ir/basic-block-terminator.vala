@@ -116,6 +116,19 @@ namespace Musys.IR {
             list.length += 1;
             return this;
         }
+        public unowned JumpTarget attach_after_node(JumpTarget prev)
+        {
+            if (this.is_attached())
+                crash_fmt("attach_back() function rejects attached blocks %p", this);
+            this.terminator = prev.terminator;
+            this._list = prev._list;
+            JumpTarget next = prev._next;
+            assert_nonnull(next);
+            this._next = next; this._prev = prev;
+            next._prev = this; prev._next = this;
+            _list.length += 1;
+            return this;
+        }
         public JumpTarget unplug() requires (this.is_attached())
         {
             JumpTarget othis = this;
