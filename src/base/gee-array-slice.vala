@@ -1,17 +1,15 @@
 namespace Musys {
-    public class GeeArraySlice<ElemT>: Gee.AbstractCollection<ElemT>, Gee.List<ElemT> {
+    public class GeeArraySlice<ElemT>: Gee.AbstractBidirList<ElemT> {
         public unowned ElemT[] array;
         public int begin;
         public int end;
 
         public override int size { get { return end - begin; } }
-        public override Gee.Iterator<ElemT> iterator() {
-            return new Iterator<ElemT>.slice_begin(this);
+        public override bool read_only { get { return true; } }
+        public Gee.EqualDataFunc<ElemT> equal_func {
+            get { return (a, b) => a == b; } set {}
         }
-        public new Gee.ListIterator<ElemT> list_iterator() {
-            return new Iterator<ElemT>.slice_begin(this);
-        }
-        public new bool @foreach (Gee.ForallFunc<ElemT> f)
+        public override bool @foreach (Gee.ForallFunc<ElemT> f)
         {
             foreach (var g in this.array) {
                 if (!f(g))
@@ -19,8 +17,29 @@ namespace Musys {
             }
             return true;
         }
-
-        public Gee.List<ElemT>? slice(int start, int stop)
+        public override Gee.Iterator<ElemT> iterator() {
+            return new Iterator<ElemT>.slice_begin(this);
+        }
+        public override Gee.ListIterator<ElemT> list_iterator() {
+            return new Iterator<ElemT>.slice_begin(this);
+        }
+        public override Gee.BidirListIterator<ElemT> bidir_list_iterator() {
+            return new Iterator<ElemT>.slice_begin(this);
+        }
+        public override bool contains(ElemT item) { return index_of(item) != -1; }
+        public override int index_of(ElemT item)
+        {
+            for (int i = 0; i < array.length; i++)
+                if (i == item) return i;
+            return -1;
+        }
+        public override ElemT @get(int index) { return array[index]; }
+        public override void @set(int index, ElemT item) { }
+        public override bool add(ElemT elem)  { return false; }
+        public override void insert(int index, ElemT item) {}
+        public override bool remove(ElemT item) { return false; }
+        public override ElemT remove_at(int index) { return null; }
+        public override Gee.List<ElemT>? slice(int start, int stop)
         {
             return new GeeArraySlice<ElemT>() {
                 array = this.array,
@@ -28,24 +47,9 @@ namespace Musys {
                 end   = this.end
             };
         }
-        public new ElemT @get(int index) { return array[index]; }
         public new Gee.List<ElemT> read_only_view { owned get { return this; } }
 
-        public int index_of(ElemT item)
-        {
-            for (int i = 0; i < array.length; i++)
-                if (i == item) return i;
-            return -1;
-        }
-        public override bool contains(ElemT item) { return index_of(item) != -1; }
-
-        public override bool read_only { get { return true; } }
-        public new void @set(int index, ElemT item) { }
-        public override bool add(ElemT item) { return false; }
         public override void clear() {}
-        public override bool remove(ElemT item) { return false; }
-        public void insert(int index, ElemT item) {}
-        public ElemT remove_at(int index) { return null; }
 
         public GeeArraySlice.from(ElemT[] array) {
             this.array = array;
@@ -62,29 +66,54 @@ namespace Musys {
             this.end   = int.min(end, array.length);
         }
 
-        public class Iterator<IElemT>: Object,
+        public class Iterator<IElemT>: Object, Gee.Traversable<IElemT>, Gee.Iterator<IElemT>,
+                                       Gee.BidirListIterator<IElemT>,
                                        Gee.ListIterator<IElemT>,
-                                       Gee.Iterator<IElemT>,
-                                       Gee.Traversable<IElemT> {
+                                       Gee.BidirIterator<IElemT> {
             [CCode(array_length=false)]
             public unowned IElemT[] array;
             public int  begin;
             public int  end;
             public long array_index;
+            public unowned GeeArraySlice<IElemT> slice;
 
-            public new IElemT? get() {
-                if (array_index >= array.length)
-                    return null;
-                return array[array_index];
-            }
-            public bool has_next() { return array_index < end; }
             public bool next()
             {
                 if (array_index < end)
                     array_index++;
                 return array_index < end;
             }
-            public new bool @foreach (Gee.ForallFunc<IElemT> f)
+            public bool has_next() { return array_index < end; }
+            public bool first() {
+                array_index = begin;
+                return true;
+            }
+            public new IElemT? get() {
+                if (array_index >= array.length)
+                    return null;
+                return array[array_index];
+            }
+            public void remove() {}
+            public bool previous() {
+                if (array_index <= begin)
+                    return false;
+                array_index--;
+                return true;
+            }
+            public bool has_previous() { return array_index <= begin; }
+            public bool last() {
+                if (begin == end)
+                    return false;
+                array_index = end - 1;
+                return true;
+            }
+            public new void @set(IElemT item) {}
+            public void add(IElemT item) {}
+            public int index() { return (int)array_index; }
+            public void insert(IElemT item) {}
+            public bool read_only { get { return true; } }
+            public bool valid { get { return has_next(); } }
+            public bool @foreach (Gee.ForallFunc<IElemT> f)
             {
                 for (long idx = array_index; idx <= array.length; idx++) {
                     if (!f(array[idx]))
@@ -92,19 +121,24 @@ namespace Musys {
                 }
                 return true;
             }
-            public bool valid { get { return has_next(); } }
-            public int index() { return (int)array_index; }
-
-            public bool read_only { get { return true; } }
-            public void remove() {}
-            public new void @set(IElemT item) {}
-            public void @add(IElemT item) {}
-
+            public Gee.Iterator<IElemT>[] tee(uint forks) {
+                if (forks == 0) {
+                    return new Gee.Iterator<IElemT>[0];
+                } else {
+                    Gee.Iterator<IElemT>[] result = new Gee.Iterator<IElemT>[forks];
+                    result[0] = this;
+                    for (uint i = 1; i < forks; i++) {
+                        result[i] = new Iterator<IElemT>.slice_begin(slice);
+                    }
+                    return result;
+                }
+            }
             public Iterator.slice_begin(GeeArraySlice slice)
             {
                 this.array = slice.array;
                 this.begin = slice.begin;
                 this.end   = slice.end;
+                this.slice = slice;
             }
         } // class Iterator<IElemT>
     } // class GeeArraySlice<ElemT>

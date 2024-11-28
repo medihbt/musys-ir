@@ -39,26 +39,26 @@ namespace Musys.IR {
         }
         public unowned BasicBlock if_true{get;set;}
 
-        protected override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
+        protected override ForeachResult foreach_jump_target(BasicBlock.ReadFunc fn) {
             if (fn(if_false)) 
-                return true;
-            return fn(if_true);
+                return STOP;
+            return ForeachResult.FromMusys(fn(if_true));
         }
-        protected override bool replace_jump_target(BasicBlock.ReplaceFunc fn)
+        protected override ForeachResult replace_jump_target(BasicBlock.ReplaceFunc fn)
         {
             BasicBlock? replaced = null;
             BasicBlock  if_false = this.if_false;
             BasicBlock  if_true  = this.if_true;
 
             replaced = fn(if_false);
-            if (replaced == null)     return true;
+            if (replaced == null)     return STOP;
             if (replaced != if_false) this.if_false = replaced;
 
             replaced = fn(if_true);
-            if (replaced == null)     return true;
+            if (replaced == null)     return STOP;
             if (replaced != if_true)  this.if_true  = replaced;
 
-            return false;
+            return CONTINUE;
         }
         protected override int64 n_jump_targets() { return 2; }
 

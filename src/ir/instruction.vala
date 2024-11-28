@@ -148,7 +148,7 @@ namespace Musys.IR {
          *
          * @see Musys.IR.BasicBlock.ReadFunc
          */
-        public abstract bool foreach_target(BasicBlock.ReadFunc fn);
+        public abstract ForeachResult foreach_target(BasicBlock.ReadFunc fn);
 
         /**
          * 遍历替换跳转目标.
@@ -165,7 +165,7 @@ namespace Musys.IR {
          *
          * @see Musys.IR.BasicBlock.ReplaceFunc
          */
-        public abstract bool replace_target(BasicBlock.ReplaceFunc fn);
+        public abstract ForeachResult replace_target(BasicBlock.ReplaceFunc fn);
     }
 
     private unowned string _instruction_opcode_names[OpCode.RESERVED_CNT] = {

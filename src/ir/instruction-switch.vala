@@ -63,28 +63,30 @@ public class Musys.IR.SwitchSSA: JumpBase {
         }
     }
 
-    public override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
+    public override ForeachResult foreach_jump_target(BasicBlock.ReadFunc fn) {
         if (fn(_default_target))
-            return true;
-        return !cases.foreach((entry) => !fn(entry.value.bb));
+            return STOP;
+        return ForeachResult.FromGee(cases.foreach((entry) => !fn(entry.value.bb)));
     }
 
     /** {@link IBasicBlockTerminator.replace_target} */
-    public override bool replace_jump_target(BasicBlock.ReplaceFunc fn) {
+    public override ForeachResult replace_jump_target(BasicBlock.ReplaceFunc fn) {
         BasicBlock? dres = fn(_default_target);
         if (dres == null)
-            return true;
+            return STOP;
         else if (dres != _default_target)
             _default_target = dres;
-        return !cases.foreach((entry) => {
-            BasicBlock  bb  = entry.value.bb;
-            BasicBlock? res = fn(bb);
-            if (res == null)
-                return false;
-            else if (res != bb)
-                entry.value.bb = res;
-            return true;
-        });
+        return ForeachResult.FromGee(
+            cases.foreach((entry) => {
+                BasicBlock  bb  = entry.value.bb;
+                BasicBlock? res = fn(bb);
+                if (res == null)
+                    return false;
+                else if (res != bb)
+                    entry.value.bb = res;
+                return true;
+            }
+        ));
     } // override bool replace_jump_target(fn: (BasicBlock) => BasicBlock?)
 
     public override int64 n_jump_targets() { return cases.size + 1; }

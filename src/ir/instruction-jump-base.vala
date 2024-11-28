@@ -13,14 +13,14 @@ namespace Musys.IR {
             set { _default_target = value; }
         }
 
-        public abstract bool foreach_jump_target(BasicBlock.ReadFunc    fn);
-        public abstract bool replace_jump_target(BasicBlock.ReplaceFunc fn);
+        public abstract ForeachResult foreach_jump_target(BasicBlock.ReadFunc    fn);
+        public abstract ForeachResult replace_jump_target(BasicBlock.ReplaceFunc fn);
         public abstract int64 n_jump_targets();
 
-        public bool foreach_target(BasicBlock.ReadFunc fn) {
+        public ForeachResult foreach_target(BasicBlock.ReadFunc fn) {
             return foreach_jump_target(fn);
         }
-        public bool replace_target(BasicBlock.ReplaceFunc fn) {
+        public ForeachResult replace_target(BasicBlock.ReplaceFunc fn) {
             return replace_jump_target(fn);
         }
 

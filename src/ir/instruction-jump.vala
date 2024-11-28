@@ -3,16 +3,16 @@ public class Musys.IR.JumpSSA: JumpBase {
         get { return _default_target;  }
         set { _default_target = value; }
     }
-    protected override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
-        return fn(default_target);
+    protected override ForeachResult foreach_jump_target(BasicBlock.ReadFunc fn) {
+        return ForeachResult.FromMusys(fn(default_target));
     }
-    protected override bool replace_jump_target(BasicBlock.ReplaceFunc fn)
+    protected override ForeachResult replace_jump_target(BasicBlock.ReplaceFunc fn)
     {
         var target = fn(default_target);
         if (target == null || target == _default_target)
-            return target != null;
+            return ForeachResult.FromMusys(target != null);
         default_target = target;
-        return false;
+        return ForeachResult.CONTINUE;
     }
     protected override int64 n_jump_targets() { return 1; }
     public override void on_parent_finalize() {

@@ -1,10 +1,9 @@
 musys_ir_src = files([
     'base/exception.vala',
     'base/stdc.vala',
-    'base/hash.vala',
-    'base/fmt.vala',
     'base/apint.vala',
     'base/base.vala',
+    'base/algorithm.vala',
     'base/stream.vala',
     'base/gee-array-slice.vala',
     'type/type.vala',
