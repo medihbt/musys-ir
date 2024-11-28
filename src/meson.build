@@ -1,8 +1,7 @@
 musys_ir_src = files([
     'base/exception.vala',
     'base/stdc.vala',
-    'base/hash.vala',
-    'base/fmt.vala',
+    'base/algorithm.vala',
     'base/apint.vala',
     'base/base.vala',
     'base/stream.vala',
@@ -33,6 +32,7 @@ musys_ir_src = files([
     'ir/global-alias.vala',
     'ir/function.vala',
     'ir/basic-block.vala',
+    'ir/basic-block-terminator.vala',
     'ir/instruction-list.vala',
     'ir/instruction-alloca.vala',
     'ir/instruction-unary.vala',

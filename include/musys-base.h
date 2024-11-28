@@ -12,6 +12,7 @@ extern "C" {
 #define musys_static_cast(elem) ((gpointer)(elem))
 
 /** @addtogroup Musys.Fmt */
+[[gnu::unused]]
 static inline char const*
 musys_fmt_u32base10(char *buf, unsigned length, unsigned number)
 {
@@ -34,6 +35,7 @@ musys_fmt_u32base10(char *buf, unsigned length, unsigned number)
 }
 
 /** @addtogroup Musys.Fmt */
+[[gnu::unused]]
 static inline char const*
 musys_fmt_u32base16(char *buf, unsigned length, unsigned number)
 {
@@ -53,6 +55,7 @@ musys_fmt_u32base16(char *buf, unsigned length, unsigned number)
 }
 
 /** @addtogroup Musys.Fmt */
+[[gnu::unused]]
 static inline char const*
 musys_fmt_u32Base16(char *buf, unsigned length, unsigned number)
 {
