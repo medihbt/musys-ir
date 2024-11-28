@@ -6,9 +6,12 @@ public class Musys.IR.ReturnSSA: Instruction, IBasicBlockTerminator {
             set_usee_type_match_self(ref _retval, value, operands.front());
         }
     }
-
-    public bool foreach_target(BasicBlock.ReadFunc    fn) { return false; }
-    public bool replace_target(BasicBlock.ReplaceFunc fn) { return false; }
+    private JumpTargetList? _jump_targets = null;
+    protected unowned JumpTargetList get_jump_target_impl() {
+        if (_jump_targets == null)
+            _jump_targets = new JumpTargetList(this);
+        return _jump_targets;
+    }
 
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_return(this);

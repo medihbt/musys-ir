@@ -200,13 +200,19 @@ namespace Musys.IR {
         }
 
         /** 自己所属的操作数列表. */
-        internal OperandList op_list{ get { return _op_list; } }
+        internal OperandList op_list{
+            get { return _op_list; } set { _op_list = value; }
+        }
 
         /** 自己所属的使用者, 一般也是指令. */
         public User user {
             get          { return  _user; }
             internal set { _user = value; }
         }
+
+        /** 自己是不是跳转目标. */
+        public bool is_jump_target { get { return _is_jump_target; } }
+        protected class bool _is_jump_target = false;
 
         /** 把自己插入使用者 user 操作数列表的末尾. */
         public unowned Use attach_back(User user)
@@ -248,7 +254,7 @@ namespace Musys.IR {
         internal  Use.C1_for_guide(OperandList op_list) {
             this._op_list = op_list;
         }
-    }
+    } // public abstract class Use
 
     sealed class GuideUse: Use {
         public override Value? usee { get { return null; } set {} }
@@ -257,9 +263,7 @@ namespace Musys.IR {
         }
     }
 
-    [Compact, CCode (has_type_id=false)]
     public class OperandList {
-        [CCode (has_type_id=false)]
         public struct Iterator {
             public unowned Use use;
             public OperandList operand_list {
@@ -292,8 +296,7 @@ namespace Musys.IR {
         public Iterator begin()    { return { _head._next }; }
         public Iterator end()      { return { _tail }; }
         public unowned Use front() { return _head._next; }
-        public unowned Use at(uint index)
-               requires(index < length)
+        public unowned Use at(uint index) requires(index < length)
         {
             unowned Use cur = _head._next;
             while (index > 0) {
@@ -315,6 +318,13 @@ namespace Musys.IR {
             }
         }
 
+        protected OperandList.C1(User user, Use head, Use tail) {
+            _head = head;        _tail = tail;
+            head.op_list = this; tail.op_list = this;
+            _head._next = _tail; _tail._prev = _head;
+            _head.user = user;   _tail.user = user;
+            _length = 0;
+        }
         public OperandList(User user) {
             _head = new GuideUse(this);
             _tail = new GuideUse(this);
@@ -324,5 +334,5 @@ namespace Musys.IR {
             _tail.user = user;
             _length = 0;
         }
-    }
+    } // public class OperandList
 }

@@ -99,7 +99,7 @@ namespace Musys.IR {
      * 
      * ==== 语法及示例 ====
      *
-     * ```
+     * {{{
      * getelementptr (<primary type>, ptr <ptr const>, <int0> <index0>, ...)
      * // 示例: Musys-Lang 代码
      * // [[Layout(kind = C)]]
@@ -114,9 +114,9 @@ namespace Musys.IR {
      * %Demo = type {i32, i32, i64, i8, [7 x i8]}
      * @a = dso_local global %Demo {}, align 8
      * @b = dso_local global ptr getelementptr (%Demo, ptr @val, i32 0, i64 1), align 8
-     * ```
+     * }}}
      *
-     * @see Musys.IR.COnstIndexPtrBase
+     * @see Musys.IR.ConstIndexPtrBase
      */
     public class ConstIndexPtrExpr: ConstIndexPtrBase {
         public override bool is_zero { get { return false; } }
@@ -191,7 +191,7 @@ namespace Musys.IR {
      *
      * ==== 语法及示例 ====
      *
-     * ```
+     * {{{
      * offsetof (<primary type>, <int0> <index0>, ...)
      * // 示例: Musys-Lang 代码 
      * // [[Layout(kind = C)]]
@@ -203,7 +203,7 @@ namespace Musys.IR {
      * // }
      * // public const uint offset = offsetof!(Demo.b);
      * @offset = dso_local constant i32 offsetof ({i32, i32, i64, i8, [7 x i8]}, i32 0, i64 1), align 8
-     * ```
+     * }}}
      */
     public class ConstOffsetOfExpr: ConstIndexPtrBase {
         public override bool is_zero { get { return false; } }

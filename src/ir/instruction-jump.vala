@@ -1,23 +1,6 @@
 public class Musys.IR.JumpSSA: JumpBase {
-    public unowned BasicBlock target {
-        get { return _default_target;  }
-        set { _default_target = value; }
-    }
-    protected override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
-        return fn(default_target);
-    }
-    protected override bool replace_jump_target(BasicBlock.ReplaceFunc fn)
-    {
-        var target = fn(default_target);
-        if (target == null || target == _default_target)
-            return target != null;
-        default_target = target;
-        return false;
-    }
-    protected override int64 n_jump_targets() { return 1; }
     public override void on_parent_finalize() {
-        _default_target = null;
-        base._deep_clean();
+        _default_target = null; base._deep_clean();
     }
     public override void on_function_finalize() {
         _default_target = null;
@@ -25,6 +8,9 @@ public class Musys.IR.JumpSSA: JumpBase {
     }
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_jump(this);
+    }
+    public BasicBlock target {
+        get { return default_target; } set { default_target = value; }
     }
 
     public JumpSSA.raw(VoidType voidty) {

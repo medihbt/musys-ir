@@ -2,6 +2,17 @@
 
 参考 LLVM 设计、使用 Vala 实现的中间代码框架. 目前 Musys 主要供 [medihbt](https://github.com/medihbt) 学习编译/优化原理使用, 将来可能会成为 [Musys 语言项目](https://github.com/medihbt/musys-lang) 的一部分.
 
+> 分支：主动追踪控制流图
+>
+> 此分支是 Musys 编译器框架的一个实验性分支，它引入了和 main 分支截然不同的控制流图管理方案 -- 主动追踪式控制流图。
+>
+> 主要变化包括：
+>
+> - 控制流图的边独立成类：新增类 `JumpTarget` 和 `JumpTargetList`, 模仿数据流的 use-def 关系组建一套 from-to 关系.
+> - 主动存储并追踪跳转目标：`BasicBlock` 新增一个叫 `incomes` 的树集合, 存储所有入边。当控制流变动时, 该入边集合会同步更新.
+>
+> 该分支尽量保证与主分支的兼容性. 目前所有的 Vala API 都与主分支兼容, C API 未测试，可能有部分不兼容.
+
 ## 项目结构
 
 与 LLVM 所有子项目都放在一个 Git 归档的做法不同, Musys 每一个模块 (前端、中间代码、后端) 都会放在不同的项目归档里. 下面是计划实现的一些子项目, 其中大多数仅仅是规划而已:
@@ -24,7 +35,7 @@
 
 ## 构建指南
 
-Musys-IR 项目使用 [Vala 语言](https://vala.dev) 编写, 采用 [Meson 构建系统](https://mesonbuild.com/), 主要支持 Linux/GLibC 平台, 能在 Linux 和 Windows 平台上成功编译. 该模块是一个动态库, 因此
+Musys-IR 项目使用 [Vala 语言](https://vala.dev) 编写, 采用 [Meson 构建系统](https://mesonbuild.com/), 主要支持 Linux/GLibC 平台, 能在 Linux 和 Windows 平台上成功编译. 该模块是一个动态库, 不自带测试样例。因此你需要自己写代码验证。
 
 Musys 在 Fedora 40 操作系统平台的依赖如下:
 

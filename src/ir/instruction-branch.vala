@@ -34,33 +34,13 @@ namespace Musys.IR {
         }
 
         public unowned BasicBlock if_false {
-            get { return _default_target;  }
-            set { _default_target = value; }
+            get { return default_target; } set { default_target = value; }
         }
-        public unowned BasicBlock if_true{get;set;}
-
-        protected override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
-            if (fn(if_false)) 
-                return true;
-            return fn(if_true);
+        private unowned JumpTarget _if_true_target;
+        public  unowned BasicBlock if_true{
+            get { return _if_true_target.target; }
+            set { _if_true_target.target = value; }
         }
-        protected override bool replace_jump_target(BasicBlock.ReplaceFunc fn)
-        {
-            BasicBlock? replaced = null;
-            BasicBlock  if_false = this.if_false;
-            BasicBlock  if_true  = this.if_true;
-
-            replaced = fn(if_false);
-            if (replaced == null)     return true;
-            if (replaced != if_false) this.if_false = replaced;
-
-            replaced = fn(if_true);
-            if (replaced == null)     return true;
-            if (replaced != if_true)  this.if_true  = replaced;
-
-            return false;
-        }
-        protected override int64 n_jump_targets() { return 2; }
 
         public override void on_parent_finalize ()
         {
@@ -75,7 +55,8 @@ namespace Musys.IR {
         public BranchSSA.raw(VoidType voidty, IntType boolty) {
             base.C1(BR_SSA, BR, voidty);
             this._boolty = boolty;
-            this._ucondition = new BranchCondUse().attach_back(this);
+            this._ucondition     = new BranchCondUse().attach_back(this);
+            this._if_true_target = new JumpTarget(IF_TRUE).attach_back(this.jump_targets);
         }
         public BranchSSA.with(Value condition, BasicBlock if_false, BasicBlock if_true)
         {

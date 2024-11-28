@@ -158,9 +158,13 @@ public class Musys.IR.InstructionList {
     }
 
     /**
-     * 修改式迭代器
+     * === 指令列表修改式迭代器 ===
+     *
+     * 和 {@link Musys.IR.InstructionList.Iterator} 一样也是迭代器, 但可以在自己
+     * 前后执行增删指令、替换原位指令等操作.
      */
     public struct Modifier: Iterator {
+        /** 在该迭代器的后面插入一条指令, 触发 ``on_plug`` 信号, 然后返回新指令的迭代器. */
         public Modifier append(Instruction inst) throws InstructionListErr
         {
             BasicBlock block = list._parent;
@@ -168,6 +172,7 @@ public class Musys.IR.InstructionList {
             inst.on_plug(block);
             return ret;
         }
+        /** 在该迭代器的前面插入一条指令, 触发 ``on_plug`` 信号, 然后返回新指令的迭代器. */
         public Modifier prepend(Instruction inst) throws InstructionListErr
         {
             BasicBlock block = list._parent;
@@ -218,6 +223,7 @@ public class Musys.IR.InstructionList {
             list._length++;
             return {new_node};
         }
+        /** 把该迭代器所在位置的指令原位替换成 ``new_item``, 然后返回原来被替换的那条指令. */
         public Instruction replace(Instruction new_item) throws InstructionListErr
         {
             Instruction old_item = get();
@@ -241,6 +247,10 @@ public class Musys.IR.InstructionList {
             old_item._nodeof_this = null;
             return old_item;
         }
+        /**
+         * 把自己所在的指令结点连带指令一起卸下来, 删除结点, 然后返回被卸下的指令.
+         * ''该方法执行后, 迭代器作废''.
+         */
         public Instruction unplug()
         {
             if (!this.is_available()) {
@@ -258,5 +268,5 @@ public class Musys.IR.InstructionList {
             ret._nodeof_this = null;
             return ret;
         }
-    }
+    } // public struct Modifier: Iterator
 }

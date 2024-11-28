@@ -7,30 +7,24 @@ namespace Musys.IR {
      * 因此 JumpBase 里所有的静态跳转目标都不是操作数, 不需要分配 Use 子类.
      */
     public abstract class JumpBase: Instruction, IBasicBlockTerminator {
-        protected unowned BasicBlock _default_target;
-        public override unowned BasicBlock? default_target {
-            get { return _default_target;  }
-            set { _default_target = value; }
+        protected unowned JumpTargetList get_jump_target_impl() {
+            return this._jump_targets;
         }
+        public JumpTargetList jump_targets { get; internal set; }
 
-        public abstract bool foreach_jump_target(BasicBlock.ReadFunc    fn);
-        public abstract bool replace_jump_target(BasicBlock.ReplaceFunc fn);
-        public abstract int64 n_jump_targets();
-
-        public bool foreach_target(BasicBlock.ReadFunc fn) {
-            return foreach_jump_target(fn);
+        protected unowned JumpTarget _default_target;
+        public BasicBlock default_target {
+            get { return _default_target.target; } set { _default_target.target = value; }
         }
-        public bool replace_target(BasicBlock.ReplaceFunc fn) {
-            return replace_jump_target(fn);
-        }
-
         /**
          * {@link Musys.IR.IBasicBlockTerminator.ntargets}
          */
-        public int64 ntargets { get { return n_jump_targets(); } }
+        public int64 ntargets { get { return jump_targets.length; } }
 
         protected JumpBase.C1(Value.TID tid, OpCode opcode, VoidType voidty) {
             base.C1(tid, opcode, voidty);
+            this.jump_targets    = new JumpTargetList(this);
+            this._default_target = new JumpTarget(DEFAULT).attach_back(jump_targets);
         }
         class construct {
             _istype[TID.JUMP_BASE]               = true;

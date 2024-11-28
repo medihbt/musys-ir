@@ -52,7 +52,7 @@ namespace Musys {
         public unowned Type element_type{get;}
 
         /**
-         * {@link Musys.AggregateType.get_element_type_at}
+         * {@link Musys.AggregateType.get_elem}
          *
          * 为了应付结构体中出现 0 长度数组的情况, 超限的下标就不返回 void 了.
          */

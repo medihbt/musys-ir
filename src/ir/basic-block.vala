@@ -26,6 +26,17 @@ public class Musys.IR.BasicBlock: Value {
     internal unowned FuncBody?  _list;
 
     /**
+     * ==== 入口边集 ====
+     *
+     * 存储所有的入口边. 注意是边而不是结点. 当跳转关系变化时, 入口边
+     * 会像数据流 use-def 关系那样自动更新.
+     */
+    public Tree<unowned JumpTarget, unowned JumpTarget> incomes {
+        get; internal set;
+        default = new Tree<unowned JumpTarget, unowned JumpTarget>((GLib.CompareDataFunc<unowned Musys.IR.JumpTarget>)ptrcmp);
+    }
+
+    /**
      * 把自己从所在的函数体上取下来, 然后返回(带所有权的自己).
      *
      * 该方法''不会检查''控制流关系或数据流关系, 不会检查这个基本块是不是函数的入口,

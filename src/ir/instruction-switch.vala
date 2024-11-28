@@ -15,40 +15,48 @@
  *
  * 一条 switch 指令就要占掉不止一行, 这在 Musys IR 中是少有的.
  *
- * ```
+ * {{{
  * switch <int type> <condition>, label <default target>, [
  *     i64 <case 1>, label %<target 1>
  *     i64 <case 2>, label %<target 2>
  *     ...
  * ]
- * ```
+ * }}}
  *
  * SwitchSSA 保证在遍历时条件总是从小到大排序的. 因此, 该实现内部采用有序树存储跳转条件.
  */
 public class Musys.IR.SwitchSSA: JumpBase {
-    public Gee.TreeMap<long, Case> cases {
+    public Gee.TreeMap<long, CaseTarget> cases {
         get; internal owned set;
-        default = new Gee.TreeMap<long, Case>(longcmp);
+        default = new Gee.TreeMap<long, CaseTarget>(longcmp);
     }
-
-    public Case? get_case(long case_n) { return cases[case_n]; }
-    public void  set_case(long case_n, BasicBlock? bb)
+    public CaseTarget? get_case(long case_n) { return cases[case_n]; }
+    public void set_case(long case_n, BasicBlock? bb)
     {
-        Case? c = cases[case_n];
+        CaseTarget? c = cases[case_n];
         if (c == null) {
             if (bb != null)
-                cases[case_n] = new Case.from(bb, case_n);
+                cases[case_n] = new CaseTarget.from(this, bb, case_n);
         } else if (bb != null) {
             c.bb = bb;
         } else {
-            remove_case(case_n);
+            CaseTarget value = null;
+            cases.unset(case_n, out value);
+            message("removed case %ld -> %p", case_n, value);
+            value.unplug();
         }
     }
-    public void remove_case(long case_n) {
-        cases.unset(case_n);
+    public void remove_case(long case_n)
+    {
+        CaseTarget? value = null;
+        cases.unset(case_n, out value);
+        if (value != null) {
+            value.unplug();
+            message("removed case %ld -> %p", case_n, value);
+        }
     }
 
-    public Case? find_case(BasicBlock target) {
+    public CaseTarget? find_case(BasicBlock target) {
         var? res = cases.first_match((entry) => entry.value.bb == target);
         return res == null? null: res.value;
     }
@@ -62,44 +70,18 @@ public class Musys.IR.SwitchSSA: JumpBase {
             User.set_usee_always(ref _condition, value, _ucondition);
         }
     }
-
-    public override bool foreach_jump_target(BasicBlock.ReadFunc fn) {
-        if (fn(_default_target))
-            return true;
-        return !cases.foreach((entry) => !fn(entry.value.bb));
-    }
-
-    /** {@link IBasicBlockTerminator.replace_target} */
-    public override bool replace_jump_target(BasicBlock.ReplaceFunc fn) {
-        BasicBlock? dres = fn(_default_target);
-        if (dres == null)
-            return true;
-        else if (dres != _default_target)
-            _default_target = dres;
-        return !cases.foreach((entry) => {
-            BasicBlock  bb  = entry.value.bb;
-            BasicBlock? res = fn(bb);
-            if (res == null)
-                return false;
-            else if (res != bb)
-                entry.value.bb = res;
-            return true;
-        });
-    } // override bool replace_jump_target(fn: (BasicBlock) => BasicBlock?)
-
-    public override int64 n_jump_targets() { return cases.size + 1; }
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_switch(this);
     }
     public override void on_parent_finalize() {
-        _default_target = null;
-        cases = null;
+        default_target = null;
+        cases.clear();
         base._deep_clean();
     }
     public override void on_function_finalize() {
-        _default_target = null;
-        cases = null;
-        this._deep_clean();
+        default_target = null;
+        cases.clear();
+        base._deep_clean();
     }
 
     public SwitchSSA.raw(VoidType voidty) {
@@ -108,7 +90,7 @@ public class Musys.IR.SwitchSSA: JumpBase {
     }
     public SwitchSSA.with_default(Value condition, BasicBlock default_target) {
         this.raw(default_target.value_type.type_ctx.void_type);
-        this._default_target = default_target;
+        this.default_target = default_target;
         this.condition = condition;
     }
     public SwitchSSA.ordered(Value condition, BasicBlock default_target,
@@ -121,7 +103,7 @@ public class Musys.IR.SwitchSSA: JumpBase {
             case_n += param.case_step;
         }
     }
-    public SwitchSSA.from(Value condition, BasicBlock default_target, Gee.Traversable<Case> cases) {
+    public SwitchSSA.from(Value condition, BasicBlock default_target, Gee.Traversable<CaseTarget> cases) {
         this.with_default(condition, default_target);
         cases.foreach((c) => {
             if (c.bb != default_target)
@@ -132,13 +114,19 @@ public class Musys.IR.SwitchSSA: JumpBase {
     class construct { _istype[TID.SWITCH_SSA] = true; }
 
     /** Switch 的条件分支 */
-    public class Case {
-        public unowned BasicBlock bb;
-        public long           case_n;
-
-        public Case.from(BasicBlock bb, long case_n) {
-            this.bb = bb;
-            this.case_n = case_n;
+    public class CaseTarget: JumpTarget {
+        public long case_n {
+            get { return this.order; }
+            internal set { this.order = value; }
+        }
+        public unowned BasicBlock bb {
+            get { return target; } set { target = value; }
+        }
+        public CaseTarget() { base(SWITCH_CASE); }
+        public CaseTarget.from(SwitchSSA parent, BasicBlock bb, long case_n) {
+            base(SWITCH_CASE);
+            this.attach_back(parent.jump_targets);
+            this.target = bb; this.case_n = case_n;
         }
     }
     public struct OrderParam {
