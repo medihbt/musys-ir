@@ -39,6 +39,16 @@ namespace Musys.IR {
             }
             return CONTINUE;
         }
+        /** 默认跳转目标, 最先被遍历到的那个. 与遍历版 API 兼容. */
+        public BasicBlock? default_target {
+            get {
+                var jmp_targets = jump_targets;
+                var it = jmp_targets.iterator();
+                if (it.next() == false)
+                    return null;
+                return it.get().target;
+            }
+        }
     }
 
     /**
