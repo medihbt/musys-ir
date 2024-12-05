@@ -7,12 +7,17 @@ namespace Musys {
 
         public bool to_gee()   { return this == CONTINUE; }
         public bool to_musys() { return this == STOP; }
+        public bool to_glib()  { return this == STOP; }
         [CCode (cname="MusysForeachResultFromGee")]
         public static ForeachResult FromGee(bool continues) {
             return continues? CONTINUE: STOP;
         }
         [CCode (cname="MusysForeachResultFromMusys")]
         public static ForeachResult FromMusys(bool stops) {
+            return stops? STOP: CONTINUE;
+        }
+        [CCode (cname="MusysForeachResultFromGLib")]
+        public static ForeachResult FromGLib(bool stops) {
             return stops? STOP: CONTINUE;
         }
     } // public enum ForeachResult
