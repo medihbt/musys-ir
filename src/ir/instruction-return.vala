@@ -12,6 +12,7 @@ public class Musys.IR.ReturnSSA: Instruction, IBasicBlockTerminator {
             _jump_targets = new JumpTargetList(this);
         return _jump_targets;
     }
+    public bool has_jump_target() { return false; }
 
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_return(this);

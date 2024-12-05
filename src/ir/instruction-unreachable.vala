@@ -17,6 +17,7 @@ public class Musys.IR.UnreachableSSA: Instruction, IBasicBlockTerminator {
             _jump_targets = new JumpTargetList(this);
         return _jump_targets;
     }
+    public bool has_jump_target() { return false; }
 
     public UnreachableSSA(BasicBlock parent)
     {

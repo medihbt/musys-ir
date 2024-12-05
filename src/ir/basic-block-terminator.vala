@@ -15,6 +15,9 @@ namespace Musys.IR {
         public JumpTargetList jump_targets { get { return get_jump_target_impl(); } }
         protected abstract unowned JumpTargetList get_jump_target_impl();
 
+        /** 跳转目标是否存在 */
+        public abstract bool has_jump_target();
+
         /** 跳转目标数量. 与遍历 API 兼容. */
         public size_t ntargets { get { return jump_targets.length; } }
 
@@ -49,7 +52,7 @@ namespace Musys.IR {
                 return it.get().target;
             }
         }
-    }
+    } // public interface IBasicBlockTerminator
 
     /**
      * === 跳转目标代理类 ===
@@ -73,6 +76,12 @@ namespace Musys.IR {
 
         /** 产生此跳转目标的终止指令。 */
         public unowned IBasicBlockTerminator terminator { get; internal set; }
+
+        /** 产生此跳转目标的源基本块 */
+        public unowned BasicBlock? get_from_bb() {
+            IBasicBlockTerminator? terminator = this.terminator;
+            return terminator == null? null: terminator.parent;
+        }
 
         /**
          * ==== 目标基本块 ====

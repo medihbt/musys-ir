@@ -181,10 +181,11 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         _rt->indent_level++;
         foreach (var inst in block.instructions) {
             _wrap_indent();
-            var opcode = inst.opcode;
-            unowned var inst_klass = inst.get_class().get_name();
             inst.accept(this);
-            iouts().puts(@" ;opcode $opcode class $inst_klass");
+#if MUSYS_DEBUG_PRINT_INST_INFO
+            unowned string inst_klass = inst.get_class().get_name();
+            iouts().puts(@" ;opcode $(inst.opcode) class $inst_klass");
+#endif
         }
         _rt->indent_level--;
     }
@@ -369,11 +370,6 @@ public class Musys.IRUtil.Writer: IR.IValueVisitor {
         _write_by_ref(cond);
         iouts().printf(", label %%%d [", inst.default_target.id);
         _rt->indent_level++;
-        //  inst.cases.foreach((key, value) => {
-        //      _wrap_indent();
-        //      iouts().printf("%s %ld, label %%%d", cond.value_type.to_string(), key, value.target.id);
-        //      return true;
-        //  });
         foreach (var ct in inst.view_cases()) {
             _wrap_indent();
             iouts().printf("%s %ld, label %%%d", cond.value_type.to_string(), ct.case_n, ct.target.id);
