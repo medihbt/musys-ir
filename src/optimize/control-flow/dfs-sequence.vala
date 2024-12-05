@@ -30,6 +30,7 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
 
     void _init_complete(int n_reachable, bool restore_id)
     {
+        this.n_reachable = n_reachable;
         if (n_reachable == dfs_sequence.length)
             return;
         int top = n_reachable;
@@ -121,7 +122,7 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
 
     public class Node {
         public unowned IR.BasicBlock bb;
-        public unowned Node?  parent;
+        public unowned Node?       parent;
         public unowned DfsSequence dfs_seq;
         public int node_index;
         public int dfs_index;
