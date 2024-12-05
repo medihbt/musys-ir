@@ -7,7 +7,7 @@
 ## 实现的数据结构
 
 - [ ] 控制流图: 部分实现(类似于 LLVM use-def 的方式)
-- [x] DFS 遍历序列 + DFS 树
+- [x] DfsSequence类: DFS 遍历序列 + DFS 树
 - [ ] 支配树
   - [ ] Semi-NCA 支配树
   - [ ] Lengauer–Tarjan 支配树
