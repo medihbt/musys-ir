@@ -65,7 +65,9 @@ musys_ir_src = files([
     'ir-util/writer.vala',
     'ir-util/dataflow-printer.vala',
     'ir-util/clone-function.vala',
+    'optimize/optimize.vala',
     'optimize/pass.vala',
+    'optimize/control-flow/dfs-tree.vala',
     '../csource/musys-backtrace.c',
 ])
 
