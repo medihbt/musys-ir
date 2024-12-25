@@ -5,7 +5,10 @@ musys_ir_src = files([
     'base/apint.vala',
     'base/base.vala',
     'base/stream.vala',
-    'base/gee-array-slice.vala',
+    'adt/gee-array-slice.vala',
+    'adt/tree-view.vala',
+    'adt/dsu.vala',
+    'adt/vec-stack.vala',
     'type/type.vala',
     'type/primitive-type.vala',
     'type/aggregate-type.vala',
@@ -61,6 +64,7 @@ musys_ir_src = files([
     'ir-util/value.vala',
     'ir-util/value-type-index.vala',
     'ir-util/basicblock.vala',
+    'ir-util/instruction.vala',
     'ir-util/module.vala',
     'ir-util/writer.vala',
     'ir-util/dataflow-printer.vala',
@@ -83,7 +87,7 @@ musys_ir_lib = shared_library(
     sources: musys_ir_src,
     dependencies: musys_ir_deps,
     include_directories: musys_include,
-    vala_gir: 'musys-ir-0.0.1.gir',
+    vala_gir: 'MusysIR-0.0.1.gir',
     install: true,
     install_dir: [true, true, true, true]
 )
