@@ -18,6 +18,9 @@ namespace Musys.IR {
         /** 跳转目标是否存在 */
         public abstract bool has_jump_target();
 
+        /** 判断自己会不会终止函数 */
+        public virtual bool terminates_function() { return true; }
+
         /** 跳转目标数量. 与遍历 API 兼容. */
         public size_t ntargets { get { return jump_targets.length; } }
 
@@ -81,6 +84,14 @@ namespace Musys.IR {
         public unowned BasicBlock? get_from_bb() {
             IBasicBlockTerminator? terminator = this.terminator;
             return terminator == null? null: terminator.parent;
+        }
+
+        public bool edge_equals(JumpTarget rhs)
+        {
+            if (this == rhs)
+                return true;
+            return this.terminator == rhs.terminator &&
+                   this.target     == rhs.target;
         }
 
         /**

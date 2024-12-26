@@ -6,13 +6,16 @@
 
 ## 实现的数据结构
 
-- [ ] 控制流图: 部分实现(类似于 LLVM use-def 的方式)
-- [x] DfsSequence类: DFS 遍历序列 + DFS 树
+- [x] 控制流图: 部分实现(类似于 LLVM use-def 的方式)
+- [x] DfsTree 类: DFS 遍历序列 + DFS 树
 - [ ] 支配树
   - [ ] Semi-NCA 支配树
-  - [ ] Lengauer–Tarjan 支配树
+  - [ ] Lengauer–Tarjan 支配树 (淘汰)
 
 ## 实现的算法
+
+- [ ] 支配边界：IDF
+- [ ] 循环检测
 
 ## 实现的优化器
 

@@ -137,6 +137,15 @@ namespace Musys.IR {
             }
             return align;
         }
+        public static unowned Instruction force_as_inst(User? user)
+        {
+            if (user == null)
+                crash_fmt("Got Null user");
+            if (user.isvalue_by_id(INSTRUCTION))
+                return static_cast<Instruction>(user);
+            crash_fmt("requires user %p (id %d) as Instruction but got `%s`",
+                user, user.id, user.get_type().name());
+        }
 
         /**
          * - 倘若 from == null, 则清空 to.

@@ -1,8 +1,13 @@
 namespace Musys.IROpti {
     /** `Pass` - 优化器基类 */
     public abstract class Pass: Object {
-        public enum Kind {
+        public enum ActionKind {
             OPTIMIZE_PASS, ANALYSIS_PASS;
+        }
+        public enum Kind {
+            FUNCTION,
+            MODULE,
+            MANAGER
         }
 
         public    size_t class_id { get { return _class_id; } }
@@ -15,11 +20,13 @@ namespace Musys.IROpti {
         }
         protected class string _class_description;
 
-        public Kind kind{get;set;}
+        public ActionKind action_kind{get;set;}
+        public Kind kind { get; private set; }
         public abstract void clear_context();
 
-        protected Pass.C1(Kind kind) {
-            this.kind = kind;
+        protected Pass.C1(ActionKind action, Kind kind) {
+            this.action_kind = action;
+            this.kind        = kind;
         }
         class construct { _klass_init_id(); }
         class void _klass_init_id() {
@@ -35,8 +42,8 @@ namespace Musys.IROpti {
         protected IR.Function _curr_function;
         public abstract void  run_on_function(IR.Function fn);
 
-        protected FunctionPass.C1(Kind kind) {
-            base.C1(kind);
+        protected FunctionPass.C1(ActionKind action) {
+            base.C1(action, Pass.Kind.FUNCTION);
         }
     }
 
@@ -45,8 +52,8 @@ namespace Musys.IROpti {
         protected IR.Module  _curr_module;
         public abstract void run_on_module(IR.Module module);
 
-        protected ModulePass.C1(Kind kind) {
-            base.C1(kind);
+        protected ModulePass.C1(ActionKind action) {
+            base.C1(action, Pass.Kind.MODULE);
         }
     }
 }

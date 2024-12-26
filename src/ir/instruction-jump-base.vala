@@ -23,6 +23,10 @@ namespace Musys.IR {
 
         public bool has_jump_target() { return true; }
 
+        public override bool terminates_function() {
+            return false;
+        }
+
         protected JumpBase.C1(Value.TID tid, OpCode opcode, VoidType voidty) {
             base.C1(tid, opcode, voidty);
             this.jump_targets    = new JumpTargetList(this);

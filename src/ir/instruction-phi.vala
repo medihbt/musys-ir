@@ -66,6 +66,11 @@ public class Musys.IR.PhiSSA: Instruction {
     public new void set(BasicBlock from, Value value) {
         set_from(from, value);
     }
+
+    public unowned BasicBlock? get_income_bb(Use u)
+    requires (u.user == this) {
+        return (u is FromUse)? ((FromUse)u).from: null;
+    }
     private void _clean_from() {
         _from_map.clear();
         operands.clean();

@@ -2,6 +2,34 @@
  * === Disjoint Set Union ===
  *
  * ''path compression enabled''. Time complexity: α(size).
+ *
+ * ==== Example ====
+ *
+ * Create a minimum spanning tree using Kruskal algorithm.
+ *
+ * {{{
+ * class Edge {
+ *     public int from;
+ *     public int to;
+ *     public int weight;
+ *     public static int cmp(Edge e1, Edge e2) {
+ *         return e1.weight - e2.weight;
+ *     }
+ * }
+ *
+ * Array<Edge> kruskal(Edge[] edges) {
+ *     var dsu = new Musys.DSU.sized(edges.length);
+ *     var ret = new Array<Edge>();
+ *     GLib.qsort_with_data(edges, sizeof(Edge), Edge.cmp);
+ *     foreach (var edge in edges) {
+ *         if (dsu.find(edge.from) != dsu.find(edge.to)) {
+ *             dsu.unite(edge.from, edge.to);
+ *             ret.append_val(edge);
+ *         }
+ *     }
+ *     return ret;
+ * }
+ * }}}
  */
 public class Musys.DSU {
     public int[] parent;
