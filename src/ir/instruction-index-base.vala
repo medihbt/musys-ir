@@ -1,4 +1,4 @@
-public abstract class Musys.IR.IndexSSABase: Instruction {
+public abstract class MusysIR.IndexSSABase: Instruction {
     protected       Value _aggregate;
     protected       Value _index;
     protected unowned Use _usrc;
@@ -18,7 +18,7 @@ public abstract class Musys.IR.IndexSSABase: Instruction {
             _aggregate_type = value;
         }
     }
-    public Type element_type{
+    public ValType element_type{
         owned get { return aggregate_type.get_elem(0); }
     }
 
@@ -52,7 +52,7 @@ public abstract class Musys.IR.IndexSSABase: Instruction {
     }
     protected IndexSSABase.C1(Value.TID tid, OpCode opcode,
                               AggregateType aggregate_type,
-                              Type type)
+                              ValType type)
     {
         base.C1(tid, opcode, type);
         this.aggregate_type = aggregate_type;

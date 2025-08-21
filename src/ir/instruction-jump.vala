@@ -1,4 +1,4 @@
-public class Musys.IR.JumpSSA: JumpBase {
+public class MusysIR.JumpSSA: JumpBase {
     public override void on_parent_finalize() {
         _default_target = null; base._deep_clean();
     }

@@ -1,6 +1,6 @@
-public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
+public class MusysIR.DataFlowPrinter: IValueVisitor {
     public unowned FileStream outs;
-    public IR.Function        func;
+    public Function           func;
     private int indent_level = 0;
     private void _wrap_indent()
     {
@@ -13,7 +13,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
      * === 打印 use-def 结点树 ===
      * 你要调用的方法在这里：打印一个函数的控制流和数据流信息.
      */
-    public void print(IR.Function func, FileStream outs = stdout)
+    public void print(Function func, FileStream outs = stdout)
     {
         this.outs = outs;
         this.func = func;
@@ -21,18 +21,18 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         _print_function(func);
     }
 
-    private void _print_operand(int index, IR.Value operand)
+    private void _print_operand(int index, Value operand)
     {
         if (operand.shares_ref) {
             operand.accept(this);
         } else if (operand.isvalue_by_id(GLOBAL_OBJECT)) {
-            var gobj = (IR.GlobalObject)operand;
+            var gobj = (GlobalObject)operand;
             outs.printf("@%s addr %p class %s", gobj.name, gobj, gobj.get_class().get_name());
         } else {
             outs.printf("%%%d addr %p class %s", operand.id, operand, operand.get_class().get_name());
         }
     }
-    private void _print_instruction(IR.Instruction inst)
+    private void _print_instruction(Instruction inst)
     {
         _wrap_indent();
         unowned var operands = inst.operands;
@@ -48,7 +48,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level++;
         int index = 0;
         foreach (var use in operands) {
-            IR.Value? op = use.usee;
+            Value? op = use.usee;
             _wrap_indent(); index++;
             if (op == null) {
                 outs.printf("[%d] = (nil)", index);
@@ -64,16 +64,16 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level++;
         foreach (var use in sau) {
             _wrap_indent();
-            IR.User user = use.user;
+            User user = use.user;
             if (user.isvalue_by_id(INSTRUCTION)) {
-                var iinst = (IR.Instruction)user;
+                var iinst = (Instruction)user;
                 outs.printf("%%%d addr %p, opcode %s, class %s, type %s ",
                     iinst.id, iinst,
                     iinst.opcode.get_name(),
                     iinst.get_class().get_name(),
                     strvty(iinst));
             } else if (user.isvalue_by_id(GLOBAL_OBJECT)) {
-                var gobj = (IR.GlobalObject)user;
+                var gobj = (GlobalObject)user;
                 outs.printf("@%s addr %p, class %s, type %s",
                     gobj.name, gobj,
                     gobj.get_class().get_name(),
@@ -88,7 +88,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level--;
         indent_level--;
     }
-    private void _print_basicblock(IR.BasicBlock bb)
+    private void _print_basicblock(BasicBlock bb)
     {
         _wrap_indent();
         outs.printf("BasicBlock %%%d (addr %p, %ld outcome, %lu instructions)",
@@ -113,7 +113,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level--;
         indent_level--;
     }
-    private void _print_function(IR.Function func)
+    private void _print_function(Function func)
     {
         _wrap_indent();
         outs.printf("Function @%s (addr %p, %d args) {",
@@ -136,22 +136,22 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         _wrap_indent(); outs.puts("}");
     }
 
-    public override void visit_const_int(IR.ConstInt value) {
+    public override void visit_const_int(ConstInt value) {
         int64 i64_value = value.i64_value;
         outs.printf("Int 0x%llx (addr %p, dec(i64) %ld, dec(u64) %lu)",
             i64_value,
             value, i64_value, (uint64)i64_value);
     }
-    public override void visit_const_float(IR.ConstFloat value) {
+    public override void visit_const_float(ConstFloat value) {
         double f64v = value.f64_value;
         uint64 u64v = *((uint64*)&f64v);
         outs.printf("Float %lg (addr %p, hex %llx)",
             f64v, value, u64v);
     }
-    public override void visit_const_data_zero(IR.ConstDataZero value) {
+    public override void visit_const_data_zero(ConstDataZero value) {
         outs.printf("Zero (addr %p)", value);
     }
-    public override void visit_const_array(IR.ConstArray value)
+    public override void visit_const_array(ConstArray value)
     {
         if (value.is_zero) {
             outs.printf("ArrayExpr (addr %p, zeroinitializer) []", value);
@@ -169,7 +169,7 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level--;
         _wrap_indent(); outs.puts("]");
     }
-    public override void visit_const_struct(IR.ConstStruct value)
+    public override void visit_const_struct(ConstStruct value)
     {
         if (value.is_zero) {
             outs.printf("StructExpr (addr %p, zeroinitializer) {}", value);
@@ -188,16 +188,16 @@ public class Musys.IRUtil.DataFlowPrinter: IR.IValueVisitor {
         indent_level--;
         _wrap_indent(); outs.puts("}");
     }
-    public override void visit_ptr_null(IR.ConstPtrNull value) { outs.puts("null"); }
-    public override void visit_undefined(IR.UndefinedValue udef) {
+    public override void visit_ptr_null(ConstPtrNull value) { outs.puts("null"); }
+    public override void visit_undefined(UndefinedValue udef) {
         outs.puts(udef.is_poisonous? "poisonous": "undefined");
     }
 
-    private static unowned string strvty(Musys.IR.Value? value)
+    private static unowned string strvty(MusysIR.Value? value)
     {
         if (value == null)
             return "<null value>";
-        Type? type = value.value_type;
+        ValType? type = value.value_type;
         if (type == null)
             return "<null type>";
         return type.to_string();

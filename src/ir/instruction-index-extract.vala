@@ -1,4 +1,4 @@
-public class Musys.IR.IndexExtractSSA: IndexSSABase {
+public class MusysIR.IndexExtractSSA: IndexSSABase {
     public override void accept(IValueVisitor visitor) {
         visitor.visit_inst_index_extract(this);
     }
@@ -9,7 +9,7 @@ public class Musys.IR.IndexExtractSSA: IndexSSABase {
     }
     public IndexExtractSSA.from(Value aggregate, Value index)
                 throws TypeMismatchErr {
-        Type type = aggregate.value_type;
+        ValType type = aggregate.value_type;
         if (!type.is_array)
             throw new TypeMismatchErr.NOT_ARRAY(@"IndexExtractSSA::from()::array requires array type, but got $type");
         var atype = static_cast<AggregateType>(type);

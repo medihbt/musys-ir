@@ -16,13 +16,13 @@
  *
  * `%<id> = select i1 <condition>, <type> <if_true>, <if_false>`
  */
-public class Musys.IR.BinarySelectSSA: Instruction {
+public class MusysIR.BinarySelectSSA: Instruction {
     private Value _condition;
     private Value _if_true;
     private Value _if_false;
-    private unowned IR.Use _ucondition;
-    private unowned IR.Use _uif_true;
-    private unowned IR.Use _uif_false;
+    private unowned MusysIR.Use _ucondition;
+    private unowned MusysIR.Use _uif_true;
+    private unowned MusysIR.Use _uif_false;
 
     public Value condition {
         get { return _condition; }
@@ -51,7 +51,7 @@ public class Musys.IR.BinarySelectSSA: Instruction {
         this.if_false  = null;
     }
 
-    public BinarySelectSSA.raw(Type value_type) {
+    public BinarySelectSSA.raw(ValType value_type) {
         base.C1(SELECT_SSA, SELECT, value_type);
         this._ucondition = new Use(CONDITION).attach_back(this);
         this._uif_true   = new Use(IF_TRUE).attach_back(this);
@@ -64,7 +64,7 @@ public class Musys.IR.BinarySelectSSA: Instruction {
         this.if_false  = if_false;
     }
 
-    private sealed class Use: IR.Use {
+    private sealed class Use: MusysIR.Use {
         public OperandOrder order;
         public new BinarySelectSSA user {
             get { return (BinarySelectSSA)_user; }

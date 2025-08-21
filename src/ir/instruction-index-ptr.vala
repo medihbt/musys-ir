@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * === 指针取索引指令 ===
      *
@@ -41,7 +41,7 @@ namespace Musys.IR {
         }
 
         /** 初始被索引类型, 也就是被 index[0] 解包以后的类型. */
-        public Type primary_target_type {
+        public ValType primary_target_type {
             get { return arr0_primary_target.element_type; }
             internal set {
                 if (_arr0_primary_target != null &&
@@ -73,7 +73,7 @@ namespace Musys.IR {
             uindex.set_usee_throws(value);
         }
 
-        public Type get_ptr_target() {
+        public ValType get_ptr_target() {
             return indices[indices.length - 1].type_after_extract;
         }
         public override void accept(IValueVisitor visitor) {
@@ -115,14 +115,14 @@ namespace Musys.IR {
             foreach (IndexUse i in _indices)
                 i.attach_back(this);
         }
-        public IndexPtrSSA.move_nocheck(Type primary_target, owned IndexUse[] indices)
+        public IndexPtrSSA.move_nocheck(ValType primary_target, owned IndexUse[] indices)
         {
             base.C1(INDEX_PTR_SSA, INDEX_PTR,
                     primary_target.type_ctx.opaque_ptr);
             this.primary_target_type = primary_target;
             this._init_uses((owned)indices);
         }
-        public IndexPtrSSA.move(Type primary_target, owned IndexUse[] indices)
+        public IndexPtrSSA.move(ValType primary_target, owned IndexUse[] indices)
         {
             ArrayType arr0 = primary_target
                             .type_ctx
@@ -130,7 +130,7 @@ namespace Musys.IR {
             this._full_empty(arr0);
 
             uint layer = 0;
-            Type curr  = arr0;
+            ValType curr  = arr0;
             foreach (IndexUse u in indices) {
                 u.layer = layer;
                 if (_check_index_stepu(u, curr))
@@ -139,15 +139,15 @@ namespace Musys.IR {
             }
             this._init_uses((owned)indices);
         }
-        public IndexPtrSSA.copy_nocheck(Type primary_target, IndexUse[] indices) {
+        public IndexPtrSSA.copy_nocheck(ValType primary_target, IndexUse[] indices) {
             try { this.move_nocheck(primary_target, CopyIndices(indices, false)); }
             catch (Error e) { crash_err(e); }
         }
-        public IndexPtrSSA.copy(Type primary_target, IndexUse[] indices)
+        public IndexPtrSSA.copy(ValType primary_target, IndexUse[] indices)
                     throws TypeMismatchErr, IndexPtrErr {
             this.move_nocheck(primary_target, CopyIndices(indices, true));
         }
-        public IndexPtrSSA.from_values(Type primary_target, Gee.List<Value> indices)
+        public IndexPtrSSA.from_values(ValType primary_target, Gee.List<Value> indices)
                     throws TypeMismatchErr, IndexPtrErr
         {
             ArrayType arr0 = primary_target
@@ -157,7 +157,7 @@ namespace Musys.IR {
 
             var  uses = new IndexUse[indices.size];
             uint layer_idx = 0;
-            Type curr = arr0;
+            ValType curr = arr0;
             foreach (Value? index in indices) {
                 if (check_type_index_step(index, layer_idx, curr, out curr)) {
                     crash_fmt(
@@ -174,7 +174,7 @@ namespace Musys.IR {
             }
             _init_uses((owned)uses);
         }
-        public IndexPtrSSA.from_value_array(Type primary_target, Value source, Value[] indices)
+        public IndexPtrSSA.from_value_array(ValType primary_target, Value source, Value[] indices)
                     throws TypeMismatchErr, IndexPtrErr {
             this.from_values(primary_target, new GeeArraySlice<Value>.from(indices));
             this.source = source;
@@ -190,10 +190,10 @@ namespace Musys.IR {
          *
          * @return 迭代函数返回值, true 表示终止迭代, false 表示继续迭代.
          */
-        private static bool _check_index_stepu(IndexUse u, Type before_extracted)
+        private static bool _check_index_stepu(IndexUse u, ValType before_extracted)
         {
             try {
-                Type after_extarcted = null;
+                ValType after_extarcted = null;
                 bool ret = check_type_index_step(u.index, u.layer,
                         before_extracted, out after_extarcted);
                 u.type_after_extract = after_extarcted;
@@ -205,12 +205,12 @@ namespace Musys.IR {
         public static IndexUse[] CopyIndices(IndexUse[] indices, bool check = false)
                     throws TypeMismatchErr, IndexPtrErr {
             var ret = new IndexUse[indices.length];
-            Type primary_target = indices[0].type_after_extract;
-            Type before_extract = primary_target;
+            ValType primary_target = indices[0].type_after_extract;
+            ValType before_extract = primary_target;
             for (int layer = 0; layer < indices.length; layer++) {
                 IndexUse ufrom = indices[layer];
                 Value?   index = ufrom.index;
-                Type after_extract = ufrom.type_after_extract;
+                ValType after_extract = ufrom.type_after_extract;
                 /* i == 0 时索引是初始索引, 不受检查限制 */
                 if (check && layer != 0) {
                     check_type_index_step(index, layer, before_extract, out after_extract);
@@ -240,14 +240,14 @@ namespace Musys.IR {
             public uint layer { get; internal set; }
 
             /** 本层取索引前的类型 */
-            public unowned Type type_before_extract {
+            public unowned ValType type_before_extract {
                 get {
                     return layer == 0? user.arr0_primary_target
                         : user._indices[layer - 1].type_after_extract;
                 }
             }
             /** 本层取索引后的类型 */
-            public unowned Type type_after_extract { get; internal set; }
+            public unowned ValType type_after_extract { get; internal set; }
 
             public new IndexPtrSSA user {
                 get { return static_cast<IndexPtrSSA>(_user); }
@@ -281,7 +281,7 @@ namespace Musys.IR {
             {
                 if (layer == 0)
                     return true;
-                Type before_extract = type_before_extract;
+                ValType before_extract = type_before_extract;
                 if (!before_extract.is_aggregate)
                     return false;
                 return ((AggregateType)before_extract).element_always_consist;

@@ -3,7 +3,7 @@
  *
  * @see Musys.IR.ConstAggregate
  */
-public sealed class Musys.IR.ConstArray: ConstAggregate {
+public sealed class MusysIR.ConstArray: ConstAggregate {
     public ArrayType array_type {
         get { return static_cast<ArrayType>(this._value_type); }
     }

@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     /**
      * Slice and iterator of GLib.Tree as a map from KeyT to ValueT.
      *

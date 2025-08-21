@@ -1,4 +1,4 @@
-public class Musys.IR.ReturnSSA: Instruction, IBasicBlockTerminator {
+public class MusysIR.ReturnSSA: Instruction, IBasicBlockTerminator {
     private Value _retval;
     public  Value  retval {
         get { return _retval; }
@@ -25,7 +25,7 @@ public class Musys.IR.ReturnSSA: Instruction, IBasicBlockTerminator {
         value_fast_clean(ref _retval, operands.front());
         base._fast_clean();
     }
-    public ReturnSSA.raw(Type return_type) {
+    public ReturnSSA.raw(ValType return_type) {
         base.C1(RET_SSA, RET, return_type);
         new RetvalUse(this).attach_back(this);
     }

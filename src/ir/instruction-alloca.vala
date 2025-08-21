@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * === 栈内存申请类指令 ===
      *
@@ -20,15 +20,15 @@ namespace Musys.IR {
         public PointerType ptr_type {
             get { return static_cast<PointerType>(value_type); }
         }
-        public Type target_type { get; internal set; }
-        public Type get_ptr_target() {
+        public ValType target_type { get; internal set; }
+        public ValType get_ptr_target() {
             return _target_type;
         }
 
         public size_t align{get;set;}
 
         protected AllocaBase.C1(Value.TID tid,  OpCode opcode,
-                                Type target_type, size_t align) {
+                                ValType target_type, size_t align) {
             base.C1 (tid, opcode, target_type.type_ctx.opaque_ptr);
             this.target_type = target_type;
             this.align       = align;
@@ -59,10 +59,10 @@ namespace Musys.IR {
             visitor.visit_inst_alloca(this);
         }
 
-        public AllocaSSA.raw(Type target_type, size_t align = 0) {
+        public AllocaSSA.raw(ValType target_type, size_t align = 0) {
             this.from_target(target_type, align);
         }
-        public AllocaSSA.from_target(Type target_type, size_t align = 0)
+        public AllocaSSA.from_target(ValType target_type, size_t align = 0)
         {
             if (align == 0)
                 align = target_type.instance_align;
@@ -114,7 +114,7 @@ namespace Musys.IR {
          *
          * 该构造函数得到的 `alloca` 指令是''不完备的'', 需要主动给 `length` 赋值.
          */
-        public DynAllocaSSA.raw(Type target_type, size_t align = 0) {
+        public DynAllocaSSA.raw(ValType target_type, size_t align = 0) {
             base.C1(DYN_ALLOCA_SSA, DYN_ALLOCA, target_type, align);
             _ulength = new LengthUse().attach_back(this);
         }
@@ -122,7 +122,7 @@ namespace Musys.IR {
          * 创建一个类型为 `target_type`, 对齐参数为 `align`, 元素个数为 `length`
          * 的动态 `alloca` 指令.
          */
-        public DynAllocaSSA.with_length(Type target_type, Value length,
+        public DynAllocaSSA.with_length(ValType target_type, Value length,
                                         size_t align = 0) {
             this.raw(target_type, align);
             this.length = length;

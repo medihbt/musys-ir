@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     /**
      * === 函数类型 ===
      *
@@ -11,7 +11,7 @@ namespace Musys {
      * 的那种变长参数是既不安全也不跨平台的坏文明, 因此在 Musys-IR 中不论函数类型还是函数
      * 调用语句都''不支持变长参数''.
      */
-    public sealed class FunctionType: Type {
+    public sealed class FunctionType: ValType {
         protected size_t _hash_cache;
         public override size_t hash()
         {
@@ -19,12 +19,12 @@ namespace Musys {
                 return _hash_cache;
             size_t ret = _TID_HASH[TID.FUNCTION_TYPE];
             ret = hash_combine2(ret, _return_type.hash());
-            foreach (Type t in params)
+            foreach (ValType t in params)
                 ret = hash_combine2(ret, t.hash());
             _hash_cache = ret;
             return ret;
         }
-        protected override bool _relatively_equals(Type rhs)
+        protected override bool _relatively_equals(ValType rhs)
         {
             if (rhs.tid != FUNCTION_TYPE)
                 return false;
@@ -47,7 +47,7 @@ namespace Musys {
         {
             var builder = new StringBuilder(@"$return_type(");
             uint cnt = 0;
-            foreach (Type ty in _params) {
+            foreach (ValType ty in _params) {
                 if (cnt != 0)
                     builder.append(", ");
                 builder.append(ty.name);
@@ -75,17 +75,17 @@ namespace Musys {
             }
         }
 
-        public Type[]   @params{ get; }
-        public Type return_type{ get; }
+        public ValType[]   @params{ get; }
+        public ValType return_type{ get; }
 
-        public FunctionType(Type return_type, Type []params)
+        public FunctionType(ValType return_type, ValType []params)
         {
             base.C1(TID.FUNCTION_TYPE, return_type.type_ctx);
             _hash_cache = 0;
             this._return_type = return_type;
             this._params      = params;
         }
-        public FunctionType.move(Type return_type, owned Type []params)
+        public FunctionType.move(ValType return_type, owned ValType []params)
         {
             base.C1(TID.FUNCTION_TYPE, return_type.type_ctx);
             _hash_cache = 0;

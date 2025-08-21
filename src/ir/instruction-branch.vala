@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * === 分支跳转指令 ===
      *

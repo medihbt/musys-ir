@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * ### 常量
      * 
@@ -8,12 +8,12 @@ namespace Musys.IR {
         /** 自己能不能确定自己是常量 0. */
         public abstract bool is_zero{get;}
 
-        protected Constant.C1(Value.TID tid, Type type) {
+        protected Constant.C1(Value.TID tid, ValType type) {
             base.C1(tid, type);
         }
         class construct { _istype[TID.CONSTANT] = true; }
 
-        private static Constant? _create_zero_impl(Type type) throws TypeMismatchErr
+        private static Constant? _create_zero_impl(ValType type) throws TypeMismatchErr
         {
             if (type.is_int)
                 return new ConstInt.from_i64(static_cast<IntType>(type), 0);
@@ -28,7 +28,7 @@ namespace Musys.IR {
             return null;
         }
 
-        public static Constant CreateZero(Type type) throws TypeMismatchErr
+        public static Constant CreateZero(ValType type) throws TypeMismatchErr
         {
             Constant? ret = _create_zero_impl(type);
             if (ret != null)
@@ -38,7 +38,7 @@ namespace Musys.IR {
             throw new TypeMismatchErr.MISMATCH(type.to_string());
         }
 
-        public static Constant CreateZeroOrUndefined(Type type)
+        public static Constant CreateZeroOrUndefined(ValType type)
         {
             try {
                 return _create_zero_impl(type) ?? new UndefinedValue(type, false);

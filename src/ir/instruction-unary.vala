@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * === 单操作数指令(基类) ===
      *
@@ -7,7 +7,7 @@ namespace Musys.IR {
      */
     public abstract class UnarySSA: Instruction {
         protected        Value _operand;
-        protected unowned Type _operand_type;
+        protected unowned ValType _operand_type;
         protected UnaryOpUse   _uoperand;
 
         protected virtual void _check_operand(Value? operand) {}
@@ -41,7 +41,7 @@ namespace Musys.IR {
             base._fast_clean();
         }
 
-        protected UnarySSA.C1(Value.TID tid, OpCode opcode, Type type, Type op_type)
+        protected UnarySSA.C1(Value.TID tid, OpCode opcode, ValType type, ValType op_type)
         {
             base.C1 (tid, opcode, type);
             this._operand_type = op_type;
@@ -85,7 +85,7 @@ namespace Musys.IR {
             type_match_or_crash(this.value_type, value.value_type);
         }
 
-        public UnaryOpSSA.raw(OpCode opcode, Type type) {
+        public UnaryOpSSA.raw(OpCode opcode, ValType type) {
             base.C1(UNARYOP_SSA, opcode, type, type);
         }
         public UnaryOpSSA.as_neg(Value value)

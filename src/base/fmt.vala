@@ -1,4 +1,4 @@
-namespace Musys.Fmt {
+namespace MusysIR.Fmt {
     [CCode (cheader_filename="musys-base.h")]
     public extern unowned string u32base10([CCode(array_length = false)]char []buf, uint length, uint num);
     [CCode (cheader_filename="musys-base.h")]

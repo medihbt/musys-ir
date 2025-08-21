@@ -9,7 +9,7 @@
  * - `get_ptr_target() abstract`: 返回该指针量指向的对象应当具有的类型.
  * - `fits_target(Type) virtual`: 类型 target 是否可以作为该指针量的子类型.
  */
-public interface Musys.IR.IPointerStorage: Value {
+public interface MusysIR.IPointerStorage: Value {
     /** 存储单元的权限信息, 包括读写/执行. */
     [Flags]
     public enum Permission {
@@ -42,12 +42,12 @@ public interface Musys.IR.IPointerStorage: Value {
     }
 
     /** 返回该指针量指向的对象应当具有的类型. */
-    public abstract Type get_ptr_target();
+    public abstract ValType get_ptr_target();
 
     /** 类型 target 是否可以作为该指针量的子类型. */
-    public virtual bool fits_target(Type target)
+    public virtual bool fits_target(ValType target)
     {
-        Type ptr_target = get_ptr_target();
+        ValType ptr_target = get_ptr_target();
         if (ptr_target.is_void)
             return PointerType.IsLegalPointee(ptr_target);
         return ptr_target.equals(target);
@@ -58,7 +58,7 @@ public interface Musys.IR.IPointerStorage: Value {
         return this.value_type.istype_by_id(OPAQUE_PTR_TYPE);
     }
 
-    public static Type? GetDirectTarget(Value value)
+    public static ValType? GetDirectTarget(Value value)
     {
         var value_type = value.value_type;
         if (!value_type.istype_by_id(OPAQUE_PTR_TYPE))

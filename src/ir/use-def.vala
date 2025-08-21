@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * 表示中间代码“值”的类, 数据流图的基本结点.
      *
@@ -55,16 +55,16 @@ namespace Musys.IR {
          */
         public int id{get;set;}
 
-        protected class stdc.bool _istype[Value.TID.RESERVED_COUNT];
-        protected class stdc.bool _shares_ref = false;
+        protected class cbool _istype[Value.TID.RESERVED_COUNT];
+        protected class cbool _shares_ref = false;
         public bool shares_ref { get { return _shares_ref; } }
         public bool isvalue_by_id(TID tid) {
             return this._tid == tid || _istype[tid];
         }
         public abstract void accept(IValueVisitor visitor);
 
-        protected unowned Type _value_type;
-        public    unowned Type  value_type{ get { return _value_type; } }
+        protected unowned ValType _value_type;
+        public    unowned ValType  value_type{ get { return _value_type; } }
 
         public Gee.TreeSet<unowned Use> set_as_usee{get;}
 
@@ -75,7 +75,7 @@ namespace Musys.IR {
             set_as_usee.remove(use);
         }
 
-        protected Value.C1(TID tid, Type value_type) {
+        protected Value.C1(TID tid, ValType value_type) {
             this._tid         = tid;
             this._value_type  = value_type;
             this._set_as_usee = new Gee.TreeSet<unowned Use>();
@@ -104,11 +104,11 @@ namespace Musys.IR {
             refv = newv;
         }
 
-        protected User.C1(TID tid, Type value_type) {
+        protected User.C1(TID tid, ValType value_type) {
             base.C1(tid, value_type);
             _operands = new OperandList(this);
         }
-        protected User.C1_null_operand(TID tid, Type value_type) {
+        protected User.C1_null_operand(TID tid, ValType value_type) {
             base.C1(tid, value_type);
             _operands = null;
         }
@@ -130,7 +130,7 @@ namespace Musys.IR {
             if (spec != null && spec.value_type == typeof(size_t)) {
                 ptr_value.get("align", &align);
             } else {
-                Type? ty = IPointerStorage.GetDirectTarget(ptr_value);
+                ValType? ty = IPointerStorage.GetDirectTarget(ptr_value);
                 if (ty == null || ty.is_void)
                     return 0;
                 align = ty.instance_align;
@@ -157,7 +157,7 @@ namespace Musys.IR {
          *
          * 这个操作会自动处理 use-def 关系.
          */
-        protected static void set_usee_type_match(Type type, ref Value? to, Value? from, Use use)
+        protected static void set_usee_type_match(ValType type, ref Value? to, Value? from, Use use)
         {
             if (unlikely(to == from)) return;
             if (from != null)
@@ -172,7 +172,7 @@ namespace Musys.IR {
             to = from;
         }
 
-        protected static void value_fast_clean(ref IR.Value? value, IR.Use use)
+        protected static void value_fast_clean(ref Value? value, Use use)
         {
             if (value == null)
                 return;
@@ -180,7 +180,7 @@ namespace Musys.IR {
                 value.remove_use_as_usee(use);
             value = null;
         }
-        protected static void value_deep_clean(ref IR.Value? value, IR.Use use) {
+        protected static void value_deep_clean(ref Value? value, Use use) {
             if (value == null)
                 return;
             value.remove_use_as_usee(use);
@@ -317,6 +317,7 @@ namespace Musys.IR {
         public void clean_raw() {
             _tail._prev = _head;
             _head._next = _tail;
+            this._length = 0;
         }
         public void clean() {
             Use u = _head._next;

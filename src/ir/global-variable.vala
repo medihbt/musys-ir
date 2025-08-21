@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     public class GlobalVariable: GlobalObject {
         public Constant    init_content{get;set;}
 
@@ -20,13 +20,13 @@ namespace Musys.IR {
             visitor.visit_global_variable(this);
         }
 
-        public GlobalVariable.extern(Type content_type, string name) {
+        public GlobalVariable.extern(ValType content_type, string name) {
             base.C1(GLOBAL_VARIABLE, content_type, name, false);
             this.align  = content_type.instance_align;
             _is_mutable = true;
             _init_content = null;
         }
-        public GlobalVariable.define(Type content_type, string name, bool is_internal = false)
+        public GlobalVariable.define(ValType content_type, string name, bool is_internal = false)
         {
             base.C1(GLOBAL_VARIABLE, content_type, name, is_internal);
             _is_mutable   = true;

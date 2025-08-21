@@ -1,5 +1,5 @@
 /** DFS sequence in CFG with a parent node. */
-public class Musys.IROpti.CtrlFlow.DfsSequence {
+public class MusysIR.CtrlFlow.DfsSequence {
     /**
      * DFS sequence with reachable and unreachable basic blocks.
      * This sequence starts with REACHABLE nodes and ends with
@@ -11,10 +11,10 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
     public int    n_reachable;
 
     /** Prevent basic block id from being changed by others */
-    public Tree<unowned IR.BasicBlock, Node> node_map;
+    public Tree<unowned BasicBlock, Node> node_map;
 
     public DfsOrder            dfs_order { get; private set; }
-    public unowned IR.Function func      { get; private set; }
+    public unowned Function func      { get; private set; }
 
     /** ``this.dfs_sequence[:n_reachable]`` contains reachable nodes */
     public unowned Node[] view_reachable()   { return this.dfs_sequence[:n_reachable]; }
@@ -34,7 +34,7 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
         if (n_reachable == dfs_sequence.length)
             return;
         int top = n_reachable;
-        foreach (IR.BasicBlock bb in this.func.body) {
+        foreach (BasicBlock bb in this.func.body) {
             if (bb.id == ID_UNREACHABLE) {
                 Node node = node_map.lookup(bb);
                 node.node_index   = top;
@@ -45,15 +45,15 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
         if (restore_id)
             this.restore_basicblock_id();
     }
-    DfsSequence.prepare(IR.Function func, DfsOrder order) {
+    DfsSequence.prepare(Function func, DfsOrder order) {
         if (func.is_extern)
             crash_fmt("DfsTree requires function definiition but @%s is declaration", func.name);
         this.func         = func;
         this.dfs_order    = order;
         this.dfs_sequence = new Node[func.body.length];
-        this.node_map     = new Tree<unowned IR.BasicBlock, Node>((a, b) => ptrcmp(a, b));
+        this.node_map     = new Tree<unowned BasicBlock, Node>((a, b) => ptrcmp(a, b));
 
-        foreach (IR.BasicBlock bb in func.body) {
+        foreach (BasicBlock bb in func.body) {
             node_map.insert(bb, new Node() {
                 bb        = bb,
                 saved_id  = bb.id,
@@ -64,18 +64,18 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
         }
     }
     /** Traverse ``func.body`` in Pre-order and build this DFS sequence. */
-    public DfsSequence.pre_order(IR.Function func, bool restore_id = false) {
+    public DfsSequence.pre_order(Function func, bool restore_id = false) {
         this.prepare(func, DfsOrder.PRE);
         int n_reachable = _do_pre_dfs(func.body.entry, 0, null);
         this._init_complete(n_reachable, restore_id);
     }
     /** Traverse ``func.body`` in Post-order and build this DFS sequence. */
-    public DfsSequence.post_order(IR.Function func, bool restore_id = false) {
+    public DfsSequence.post_order(Function func, bool restore_id = false) {
         this.prepare(func, DfsOrder.POST);
         int n_reachable = _do_post_dfs(func.body._entry, 0, null);
         this._init_complete(n_reachable, restore_id);
     }
-    private int _do_pre_dfs(IR.BasicBlock bb, int order, Node? parent)
+    private int _do_pre_dfs(BasicBlock bb, int order, Node? parent)
     {
         Node node = node_map.lookup(bb);
         node.dfs_index  = order;
@@ -85,27 +85,27 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
         dfs_sequence[order] = node;
         order++;
 
-        IR.IBasicBlockTerminator terminator = bb.terminator;
+        IBasicBlockTerminator terminator = bb.terminator;
         if (!terminator.has_jump_target())
             return order;
 
-        foreach (IR.JumpTarget jt in terminator.jump_targets) {
-            IR.BasicBlock target_bb = jt.target;
+        foreach (JumpTarget jt in terminator.jump_targets) {
+            BasicBlock target_bb = jt.target;
             if (target_bb.id != ID_UNREACHABLE)
                 continue;
             order = _do_pre_dfs(target_bb, order, node);
         }
         return order;
     }
-    private int _do_post_dfs(IR.BasicBlock bb, int order, Node? parent)
+    private int _do_post_dfs(BasicBlock bb, int order, Node? parent)
     {
         Node node = node_map.lookup(bb);
         bb.id = ID_REACHABLE_TAKEN;
 
-        IR.IBasicBlockTerminator terminator = bb.terminator;
+        IBasicBlockTerminator terminator = bb.terminator;
         if (terminator.has_jump_target()) {
-            foreach (IR.JumpTarget jt in terminator.jump_targets) {
-                IR.BasicBlock target_bb = jt.target;
+            foreach (JumpTarget jt in terminator.jump_targets) {
+                BasicBlock target_bb = jt.target;
                 if (target_bb.id != ID_UNREACHABLE)
                     continue;
                 order = _do_post_dfs(target_bb, order, node);
@@ -121,7 +121,7 @@ public class Musys.IROpti.CtrlFlow.DfsSequence {
     }
 
     public class Node {
-        public unowned IR.BasicBlock bb;
+        public unowned BasicBlock bb;
         public unowned Node?       parent;
         public unowned DfsSequence dfs_seq;
         public int node_index;

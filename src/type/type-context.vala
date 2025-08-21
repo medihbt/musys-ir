@@ -6,7 +6,7 @@
  *
  * @see Musys.Type
  */
-public class Musys.TypeContext: Object {
+public class MusysIR.TypeContext: Object {
     protected enum InsertResult {
         OK, HAD_ITEM;
     }
@@ -21,7 +21,7 @@ public class Musys.TypeContext: Object {
 
     /** 类型缓存. 这部分缓存可以加快整数等类型的存取. */
     private  TypeCtxCache _type_cache;
-    internal HashTable<unowned Type, Type> _types;
+    internal HashTable<unowned ValType, ValType> _types;
     internal HashTable<string, StructType> _symbolled_structs;
 
     public IntType   bool_type  { get { return _type_cache.ity_bytes[0]; } }
@@ -37,7 +37,7 @@ public class Musys.TypeContext: Object {
     public FloatType ieee_f64 { get { return _type_cache.ieee_f64; } }
 
     /** 获取元素类型为 elemty, 长度为 len 的数组类型 */
-    public unowned ArrayType get_array_type(Type elemty, size_t len) {
+    public unowned ArrayType get_array_type(ValType elemty, size_t len) {
         var ret = new ArrayType(this, elemty, len);
         return (ArrayType)get_or_register_type(ret);
     }
@@ -49,13 +49,13 @@ public class Musys.TypeContext: Object {
      *
      * @param ret_ty 返回值类型.
      */
-    public unowned FunctionType get_func_type(Type ret_ty, Type []?args_ty)
+    public unowned FunctionType get_func_type(ValType ret_ty, ValType []?args_ty)
     {
         FunctionType fty = null;
         if (args_ty != null)
             fty = new FunctionType(ret_ty, args_ty);
         else
-            fty = new FunctionType.move(ret_ty, new Type[0]);
+            fty = new FunctionType.move(ret_ty, new ValType[0]);
         return (FunctionType)get_or_register_type(fty);
     }
     /**
@@ -63,22 +63,22 @@ public class Musys.TypeContext: Object {
      *
      * @param ret_ty 返回值类型.
      */
-    public unowned FunctionType get_func_type_move(Type ret_ty, owned Type[] args_ty)
+    public unowned FunctionType get_func_type_move(ValType ret_ty, owned ValType[] args_ty)
     {
         var fty = new FunctionType.move(ret_ty, (owned)args_ty);
         return (FunctionType)get_or_register_type(fty);
     }
 
-    public unowned StructType get_anomymous_struct_type(owned Type[] fields)
+    public unowned StructType get_anomymous_struct_type(owned ValType[] fields)
     {
         var sty = new StructType.anomymous_move((owned)fields);
-        unowned Type? ret = _types.get(sty);
+        unowned ValType? ret = _types.get(sty);
         if (ret != null)
             return static_cast<StructType>(ret);
         _types.insert(sty, sty);
         return static_cast<StructType>(_types[sty]);
     }
-    public unowned StructType get_named_struct_type(string name, Type[]? fields)
+    public unowned StructType get_named_struct_type(string name, ValType[]? fields)
     {
         unowned StructType? vty = _symbolled_structs[name];
         if (vty != null)
@@ -89,7 +89,7 @@ public class Musys.TypeContext: Object {
         _symbolled_structs[name] = (owned)ret;
         return _symbolled_structs[name];
     }
-    public unowned VectorType get_vec_type(Type element_type, size_t length)
+    public unowned VectorType get_vec_type(ValType element_type, size_t length)
     {
         if (!is_power_of_2_nonzero(length)) {
             crash_fmt(
@@ -103,15 +103,15 @@ public class Musys.TypeContext: Object {
     }
     public unowned VectorType get_reg_vec_type(VectorType vec_ty)
     {
-        unowned Type vecvty = get_or_register_type(vec_ty);
+        unowned ValType vecvty = get_or_register_type(vec_ty);
         assert(vecvty.is_vector);
         return static_cast<VectorType>(vecvty);
     }
 
     /** 用障眼法写的方法, 让代码好看一些罢了 */
-    public bool has_type(Type ty) { return ty.type_ctx == this; }
+    public bool has_type(ValType ty) { return ty.type_ctx == this; }
 
-    private unowned Type get_or_register_type(Type ty)
+    private unowned ValType get_or_register_type(ValType ty)
     {
         if (ty.is_int)
             return _type_cache.new_or_get_int_ty(((IntType)ty).binary_bits, this);
@@ -126,7 +126,7 @@ public class Musys.TypeContext: Object {
             return _type_cache.labelty;
 
         /* common types: in a large hash map. */
-        unowned Type? vty = _types.get(ty);
+        unowned ValType? vty = _types.get(ty);
         if (vty == null) {
             _types.set(ty, ty);
             vty = ty;
@@ -141,7 +141,7 @@ public class Musys.TypeContext: Object {
             ptr_size_bytes  = (uint8)word_size,
         };
         this._type_cache.init_reg_ty(this);
-        this._types = new HashTable<unowned Type, Type>(type_hash, type_equal);
+        this._types = new HashTable<unowned ValType, ValType>(type_hash, type_equal);
         this._symbolled_structs = new HashTable<string, StructType>(str_hash, str_equal);
     }
 

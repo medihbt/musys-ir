@@ -1,8 +1,8 @@
-namespace Musys.stdc {
+namespace MusysIR {
     [SimpleType]
     [CCode (cname="stdc_bool", cprefix="cbool_", cheader_filename="stdbool.h")]
     [BooleanType]
-    public struct bool {
+    public struct cbool {
         public unowned string to_string() {
             return this? "true": "false";
         }

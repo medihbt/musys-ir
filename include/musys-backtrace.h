@@ -16,7 +16,7 @@
 extern "C" {
 #endif
 
-VALA_EXTERN int musys_print_backtrace();
+VALA_EXTERN int musys_ir_print_backtrace();
 
 #ifdef __cplusplus
 }

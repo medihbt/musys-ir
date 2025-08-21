@@ -1,11 +1,11 @@
-public errordomain Musys.IR.GlobalAliasErr {
+public errordomain MusysIR.GlobalAliasErr {
     STEP_OVERFLOW;
 }
 
 /**
  * 全局符号别名. 该值接受一个操作数 "aliasee", 相当于给 aliasee 赋予一个新的名称.
  */
-public class Musys.IR.GlobalAlias: GlobalObject, IPointerStorage {
+public class MusysIR.GlobalAlias: GlobalObject, IPointerStorage {
     private GlobalObject _aliasee;
     private unowned Use _ualiasee;
     public GlobalObject direct_aliasee {
@@ -56,7 +56,7 @@ public class Musys.IR.GlobalAlias: GlobalObject, IPointerStorage {
         visitor.visit_global_alias(this);
     }
 
-    public GlobalAlias.raw(Type content_type, string name, bool is_internal = false) {
+    public GlobalAlias.raw(ValType content_type, string name, bool is_internal = false) {
         base.C1(GLOBAL_ALIAS, content_type, name, is_internal);
         this._ualiasee = new AliaseeUse().attach_back(this);
     }

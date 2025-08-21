@@ -31,7 +31,7 @@
  * }
  * }}}
  */
-public class Musys.DSU {
+public class MusysIR.DSU {
     public int[] parent;
     public int size() { return parent.length; }
 

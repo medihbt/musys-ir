@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     [CCode (cheader_filename="musys-base.h")]
     public extern bool is_power_of_2(size_t value);
 

@@ -1,4 +1,4 @@
-public class Musys.IR.IndexInsertSSA: IndexSSABase {
+public class MusysIR.IndexInsertSSA: IndexSSABase {
     private       Value _element;
     private unowned Use _uelement;
     public Value element {

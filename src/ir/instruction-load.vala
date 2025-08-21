@@ -3,7 +3,7 @@
  *
  * 从某个对齐为 `align` 的存储单元中加载类型为 `target_type` 的值.
  */
-public class Musys.IR.LoadSSA: UnarySSA {
+public class MusysIR.LoadSSA: UnarySSA {
     [CCode(notify=false)]
     public size_t align{get;set;}
 
@@ -11,7 +11,7 @@ public class Musys.IR.LoadSSA: UnarySSA {
     public unowned PointerType source_type {
         get { return static_cast<PointerType>(_operand_type); }
     }
-    public unowned Type target_type {
+    public unowned ValType target_type {
         get          { return value_type;   }
         internal set { _value_type = value; }
     }
@@ -22,7 +22,7 @@ public class Musys.IR.LoadSSA: UnarySSA {
     protected override void _check_operand(Value? operand) {
         value_ptr_or_crash(operand, "as LoadSSA.operand");
     }
-    public LoadSSA.raw(Type target_type, size_t align = 0) {
+    public LoadSSA.raw(ValType target_type, size_t align = 0) {
         if (!PointerType.IsLegalPointee(target_type)) {
             crash_fmt("Requires legal pointee type for LoadSSA, but got %s",
                 target_type.to_string());
@@ -33,7 +33,7 @@ public class Musys.IR.LoadSSA: UnarySSA {
             align = target_type.instance_align;
         this.align = align;
     }
-    public LoadSSA.from_ptr(Value ptr_value, Type target_type, size_t align = 0) {
+    public LoadSSA.from_ptr(Value ptr_value, ValType target_type, size_t align = 0) {
         value_ptr_or_crash(ptr_value, "as LoadSSA::from_ptr()::value");
         if (align == 0)
             align = User.get_ptr_value_align(ptr_value);

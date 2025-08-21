@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * 基本块终止子. 只有实现该接口的指令类才能放在基本块末尾.
      * @see BasicBlock

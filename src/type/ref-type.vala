@@ -1,13 +1,13 @@
-namespace Musys {
-    public abstract class RefType: Type {
+namespace MusysIR {
+    public abstract class RefType: ValType {
         [Version(deprecated=true, deprecated_since="0.0.1", replacement="target_loadable_or_storable")]
-        public unowned Type target{ get { return _target; } }
+        public unowned ValType target{ get { return _target; } }
 
-        public abstract bool target_loadable(Type target);
-        public virtual  bool target_storable(Type target) {
+        public abstract bool target_loadable(ValType target);
+        public virtual  bool target_storable(ValType target) {
             return target_loadable(target);
         }
-        public bool target_loadable_or_storable(Type target) {
+        public bool target_loadable_or_storable(ValType target) {
             return target_loadable(target) ||
                    target_storable(target);
         }
@@ -26,8 +26,8 @@ namespace Musys {
             return _hash_cache;
         }
 
-        protected unowned Type _target;
-        protected RefType.C1(TypeContext tctx, TID tid, Type target) {
+        protected unowned ValType _target;
+        protected RefType.C1(TypeContext tctx, TID tid, ValType target) {
             base.C1(tid, tctx);
             this._target = target;
         }
@@ -40,10 +40,10 @@ namespace Musys {
      * 要根据应用于它的指令确定.
      */
     public sealed class PointerType: RefType {
-        protected override bool _relatively_equals(Type rhs) {
+        protected override bool _relatively_equals(ValType rhs) {
             return rhs.istype_by_id(TID.OPAQUE_PTR_TYPE);
         }
-        public override bool target_loadable(Type target) {
+        public override bool target_loadable(ValType target) {
             return IsLegalPointee(target);
         }
         public override string name { get { return "ptr"; } }
@@ -57,19 +57,19 @@ namespace Musys {
             _istype[TID.OPAQUE_PTR_TYPE] = true;
         }
 
-        public static bool IsLegalPointee(Type target) {
+        public static bool IsLegalPointee(ValType target) {
             TID tid = target.tid;
             return tid != VOID_TYPE && tid != LABEL_TYPE && tid != FUNCTION_TYPE;
         }
     }
 
     public sealed class LabelType: RefType {
-        protected override bool _relatively_equals(Type rhs) {
+        protected override bool _relatively_equals(ValType rhs) {
             return rhs.tid == TID.LABEL_TYPE &&
                    rhs.type_ctx == type_ctx;
         }
         public override string name { get { return "label"; } }
-        public override bool target_loadable(Type pointee_type) { return false; }
+        public override bool target_loadable(ValType pointee_type) { return false; }
 
         public LabelType(TypeContext tctx)
         {

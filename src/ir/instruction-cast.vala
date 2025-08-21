@@ -1,18 +1,18 @@
-namespace Musys.IR {
+namespace MusysIR {
     public class CastSSA: UnarySSA {
         public Value source {
             get { return _operand; } set { operand = value; }
         }
-        public unowned Type source_type{ get { return _operand_type; } }
+        public unowned ValType source_type{ get { return _operand_type; } }
 
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_cast(this);
         }
 
-        public CastSSA.raw(OpCode opcode, Type target_type, Type source_type) {
+        public CastSSA.raw(OpCode opcode, ValType target_type, ValType source_type) {
             base.C1(CAST_SSA, opcode, target_type, source_type);
         }
-        public CastSSA.nocheck(OpCode opcode, Type target_type, Value source) {
+        public CastSSA.nocheck(OpCode opcode, ValType target_type, Value source) {
             this.raw(opcode, target_type, source.value_type);
             this.source = source;
         }
@@ -49,7 +49,7 @@ namespace Musys.IR {
             var opcode = tbit >= sbit? OpCode.FPEXT: OpCode.FPTRUNC;
             this.nocheck(opcode, target_type, source);
         }
-        public CastSSA.as_bitcast(Type target_type, Value source)
+        public CastSSA.as_bitcast(ValType target_type, Value source)
                     throws TypeMismatchErr {
             if (!target_type.is_instantaneous) {
                 throw new TypeMismatchErr.NOT_INSTANTANEOUS(

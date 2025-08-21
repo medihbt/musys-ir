@@ -25,7 +25,7 @@
  *
  * SwitchSSA 保证在遍历时条件总是从小到大排序的. 因此, 该实现内部采用有序树存储跳转条件.
  */
-public class Musys.IR.SwitchSSA: JumpBase {
+public class MusysIR.SwitchSSA: JumpBase {
     public GLib.Tree<long, CaseTarget> cases {
         get; internal set;
         default = new Tree<long, CaseTarget>(longcmp);

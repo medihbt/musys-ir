@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * === 指针索引表达式类 ===
      *
@@ -14,15 +14,15 @@ namespace Musys.IR {
             while (prev < len - 1) {
                 int layer = prev + 1;
                 unowned IndexUse luse  = indices[layer], puse  = indices[prev];
-                unowned Type     ltype = luse.elem_type, ptype = puse.elem_type;
+                unowned ValType     ltype = luse.elem_type, ptype = puse.elem_type;
                 unowned Constant lidx = luse.get();
-                Type? after_extract = null;
+                ValType? after_extract = null;
                 check_type_index_step(lidx, layer, ptype, out after_extract);
                 type_match_or_throw(after_extract, ltype, "indices[%d]", layer);
                 prev = layer;
             }
         }
-        public unowned Type get_primary_type() {
+        public unowned ValType get_primary_type() {
             return indices[0].elem_type;
         }
 
@@ -31,13 +31,13 @@ namespace Musys.IR {
                 u.attach_back(this);
             this._indices = (owned)indices;
         }
-        protected IndexUse[] _index_values_to_use(Type primary, Gee.List<Constant> indices)
+        protected IndexUse[] _index_values_to_use(ValType primary, Gee.List<Constant> indices)
             throws TypeMismatchErr, IndexPtrErr
         {
             var uses  = new IndexUse[indices.size];
             int layer = 0;
-            Type before_extract = primary;
-            Type after_extract  = primary;
+            ValType before_extract = primary;
+            ValType after_extract  = primary;
             foreach (var c in indices) {
                 uses[layer] = new IndexUse() {
                     layer     = layer,
@@ -50,7 +50,7 @@ namespace Musys.IR {
             }
             return uses;
         }
-        protected ConstIndexPtrBase.C1(Value.TID tid, Type type) {
+        protected ConstIndexPtrBase.C1(Value.TID tid, ValType type) {
             base.C1(tid, type);
         }
 
@@ -60,7 +60,7 @@ namespace Musys.IR {
 
         public class IndexUse: Use {
             public uint layer     { get; internal set; }
-            public Type elem_type { get; internal set; }
+            public ValType elem_type { get; internal set; }
 
             internal Constant _index;
             public unowned Constant @get() { return _index; }
@@ -151,7 +151,7 @@ namespace Musys.IR {
             this.raw_move(source, (owned)indices);
             this.verify();
         }
-        public ConstIndexPtrExpr.from_values(Constant source, Type primary, Gee.List<Constant> indices)
+        public ConstIndexPtrExpr.from_values(Constant source, ValType primary, Gee.List<Constant> indices)
             throws TypeMismatchErr, IndexPtrErr {
             this.raw_move(source, base._index_values_to_use(primary, indices));
         }
@@ -224,7 +224,7 @@ namespace Musys.IR {
             this.raw_move((owned)indices);
             this.verify();
         }
-        public ConstOffsetOfExpr.from_values(Type primary, Gee.List<Constant> indices)
+        public ConstOffsetOfExpr.from_values(ValType primary, Gee.List<Constant> indices)
             throws TypeMismatchErr, IndexPtrErr {
             this.raw_move(_index_values_to_use(primary, indices));
         }

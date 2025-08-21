@@ -1,4 +1,4 @@
-namespace Musys.IROpti {
+namespace MusysIR {
     /** `Pass` - 优化器基类 */
     public abstract class Pass: Object {
         public enum ActionKind {
@@ -39,8 +39,8 @@ namespace Musys.IROpti {
 
     /** `FunctionPass` - 运行在函数上的优化器 */
     public abstract class FunctionPass: Pass {
-        protected IR.Function _curr_function;
-        public abstract void  run_on_function(IR.Function fn);
+        protected Function _curr_function;
+        public abstract void run_on_function(Function fn);
 
         protected FunctionPass.C1(ActionKind action) {
             base.C1(action, Pass.Kind.FUNCTION);
@@ -49,8 +49,8 @@ namespace Musys.IROpti {
 
     /** `ModulePass` - 运行在编译单元上的优化器 */
     public abstract class ModulePass: Pass {
-        protected IR.Module  _curr_module;
-        public abstract void run_on_module(IR.Module module);
+        protected Module  _curr_module;
+        public abstract void run_on_module(Module module);
 
         protected ModulePass.C1(ActionKind action) {
             base.C1(action, Pass.Kind.MODULE);

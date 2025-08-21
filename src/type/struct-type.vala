@@ -1,4 +1,4 @@
-public class Musys.StructType: AggregateType {
+public class MusysIR.StructType: AggregateType {
     /** 结构体的分类. 不同类型的结构体各不相同,  */
     public enum Kind {
         /**
@@ -37,7 +37,7 @@ public class Musys.StructType: AggregateType {
             kind = symbol_name == null? Kind.ANOMYMOUS: Kind.SYMBOLLED;
     }
 
-    internal Type[]? _fields;
+    internal ValType[]? _fields;
     /**
      * 结构体的字段表. 当 `fields == null` 时表示它是一个**不透明结构体**.
      *
@@ -48,7 +48,7 @@ public class Musys.StructType: AggregateType {
      *
      * @see _fields
      */
-    public Type[]? fields {
+    public ValType[]? fields {
         get { return _fields; }
         /* 把带所有权的放进去以提高效率 */
         owned set {
@@ -70,7 +70,7 @@ public class Musys.StructType: AggregateType {
      * 因为 Vala 的 "属性" 不支持直接换出带所有权的独占所有权对象, 故写此方法以执行
      * 类似 C++ 移动语义的操作.
      */
-    public Type[]? swapout_fields(owned Type[]? new_fields)
+    public ValType[]? swapout_fields(owned ValType[]? new_fields)
     {
         if (new_fields == fields)
             return null;
@@ -128,7 +128,7 @@ public class Musys.StructType: AggregateType {
     /**
      * {@inheritDoc}
      */
-    public override unowned Type get_elem(size_t index) {
+    public override unowned ValType get_elem(size_t index) {
         return index >= _fields.length? type_ctx.void_type: _fields[index];
     }
     /**
@@ -141,7 +141,7 @@ public class Musys.StructType: AggregateType {
             _hash_cache = MakeHash(kind, name, fields);
         return _hash_cache;
     }
-    protected override bool _relatively_equals(Type rhs)
+    protected override bool _relatively_equals(ValType rhs)
     {
         if (!rhs.is_struct)
             return false;
@@ -207,7 +207,7 @@ public class Musys.StructType: AggregateType {
     private void _update_size_align()
     {
         size_t isize = 0, align = 0, cnt = 0;
-        foreach (Type? type in fields) {
+        foreach (ValType? type in fields) {
             if (unlikely(type == null)) {
                 crash_fmt(
                     "StructType(name %s) index %lu NOT Initialized",
@@ -242,7 +242,7 @@ public class Musys.StructType: AggregateType {
             return "opaque";
         if (_fields_str != null)
             return _fields_str;
-        unowned Type[] fields = this.fields;
+        unowned ValType[] fields = this.fields;
         var nameb = new StringBuilder("{ ");
         for (uint index = 0; index < fields.length; index++) {
             if (index != 0)
@@ -266,8 +266,8 @@ public class Musys.StructType: AggregateType {
             if (is_opaque)
                 return false;
             if (_element_consist == 0) {
-                unowned Type ty0 = _fields[0];
-                foreach (unowned Type ty in fields) {
+                unowned ValType ty0 = _fields[0];
+                foreach (unowned ValType ty in fields) {
                     if (ty.equals(ty0))
                         continue;
                     _element_consist = -1;
@@ -282,17 +282,17 @@ public class Musys.StructType: AggregateType {
 
     public StructType.anomymous(TypeContext tctx, size_t nfields) {
         base.C1(tctx, STRUCT_TYPE);
-        this._fields = new Type[nfields];
+        this._fields = new ValType[nfields];
         this._kind   = ANOMYMOUS;
     }
-    public StructType.anomymous_copy(Type[] fields) {
+    public StructType.anomymous_copy(ValType[] fields) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
         _update_size_align();
         this._kind = ANOMYMOUS;
     }
-    public StructType.anomymous_move(owned Type[] fields) {
+    public StructType.anomymous_move(owned ValType[] fields) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = (owned)fields;
@@ -302,11 +302,11 @@ public class Musys.StructType: AggregateType {
 
     public StructType.symbolled(TypeContext tctx, size_t nfields, string name) {
         base.C1(tctx, STRUCT_TYPE);
-        this._fields = new Type[nfields];
+        this._fields = new ValType[nfields];
         this.symbol_name = name;
         this._kind = SYMBOLLED;
     }
-    public StructType.symbolled_copy(Type[] fields, string name) {
+    public StructType.symbolled_copy(ValType[] fields, string name) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = fields.copy();
@@ -314,7 +314,7 @@ public class Musys.StructType: AggregateType {
         _update_size_align();
         this._kind = SYMBOLLED;
     }
-    public StructType.symbolled_move(owned Type[] fields, string name) {
+    public StructType.symbolled_move(owned ValType[] fields, string name) {
         TypeContext tctx = fields[0].type_ctx;
         base.C1(tctx, STRUCT_TYPE);
         this._fields = (owned)fields;
@@ -334,8 +334,8 @@ public class Musys.StructType: AggregateType {
         _element_type_always_consist = false;
     }
 
-    [CCode(cname="_ZN5Musys10StructType8MakeHashE")]
-    public static size_t MakeHash(Kind kind, string? name, Type[]? fields)
+    [CCode(cname="MusysIR_StructType_MakeHash")]
+    public static size_t MakeHash(Kind kind, string? name, ValType[]? fields)
     {
         size_t ret = hash_combine2(_TID_HASH[TID.STRUCT_TYPE], kind);
         if (kind.has_name()) {
@@ -346,21 +346,21 @@ public class Musys.StructType: AggregateType {
         if (kind.has_field()) {
             if (unlikely(fields == null))
                 crash(@"Struct fields connot be null while kind is $kind");
-            foreach (unowned Type ty in fields)
+            foreach (unowned ValType ty in fields)
                 ret = hash_combine2(ret, ty.hash());
         }
         return ret;
     }
-    [CCode(cname="_ZN5Musys10StructType17MakeAnomymousHashE")]
-    public static size_t MakeAnomymousHash(Type[] fields)
+    [CCode(cname="MusysIR_StructType_MakeAnomymousHash")]
+    public static size_t MakeAnomymousHash(ValType[] fields)
     {
         size_t ret = hash_combine2(_TID_HASH[TID.STRUCT_TYPE], Kind.ANOMYMOUS);
-        foreach (unowned Type ty in fields)
+        foreach (unowned ValType ty in fields)
             ret = hash_combine2(ret, ty.hash());
         return ret;
     }
 
-    private static size_t _update_size(size_t prev_size, Type type)
+    private static size_t _update_size(size_t prev_size, ValType type)
     {
         size_t align = type.instance_align;
         size_t size  = type.instance_size;
@@ -373,10 +373,10 @@ public class Musys.StructType: AggregateType {
     private static bool _equal_by_content(StructType lhs, StructType rhs) {
         if (lhs.is_opaque || rhs.is_opaque)
             return false;
-        unowned Type[] lhs_elems = lhs._fields;
-        unowned Type[] rhs_elems = rhs._fields;
+        unowned ValType[] lhs_elems = lhs._fields;
+        unowned ValType[] rhs_elems = rhs._fields;
         if (lhs_elems.length != rhs_elems.length)
             return false;
-        return Memory.cmp(lhs_elems, rhs_elems, lhs_elems.length * sizeof(Type)) == 0;
+        return Memory.cmp(lhs_elems, rhs_elems, lhs_elems.length * sizeof(ValType)) == 0;
     }
-}
+} // public class MusysIR.StructType

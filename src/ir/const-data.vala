@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     public abstract class ConstData: Constant {
         [CCode(notify=false)]
         public abstract int64  i64_value{get;set;}

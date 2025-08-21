@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     public sealed class ConstPtrNull: ConstExpr, IConstZero {
         public override bool is_zero { get { return true; } }
         public Constant extract_value() { return this; }

@@ -4,7 +4,7 @@
  * Machine platforms for IR optimization.
  * 
  */
-public class Musys.Platform {
+public class MusysIR.Platform {
     public uint8  word_size_bytes { get; set; }
     public uint8  ptr_size_bytes  { get; set; }
     public Endian endian { get; set; }
@@ -33,7 +33,7 @@ public class Musys.Platform {
     public enum Endian {
         LITTLE, BIG;
 
-        [CCode (cname="MusysPlatformEndianHost")]
+        [CCode (cname="MusysIRPlatformEndianHost")]
         public static Endian Host() {
             switch (ByteOrder.HOST) {
                 case ByteOrder.BIG_ENDIAN:    return BIG;
@@ -41,7 +41,7 @@ public class Musys.Platform {
                 default: assert_not_reached();
             }
         }
-        [CCode (cname="MusysPlatformEndianFromGLib")]
+        [CCode (cname="MusysIRPlatformEndianFromGLib")]
         public static Endian FromGLib(GLib.ByteOrder order) {
             switch (order) {
                 case ByteOrder.BIG_ENDIAN:    return BIG;

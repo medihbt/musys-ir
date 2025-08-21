@@ -1,4 +1,4 @@
-public class Musys.IR.UndefinedValue: Constant {
+public class MusysIR.UndefinedValue: Constant {
     public bool is_poisonous { get; set; default = false; }
 
     public override bool is_zero { get { return false; } }
@@ -6,7 +6,7 @@ public class Musys.IR.UndefinedValue: Constant {
         visitor.visit_undefined (this);
     }
 
-    public UndefinedValue(Type type, bool is_poisonous) {
+    public UndefinedValue(ValType type, bool is_poisonous) {
         base.C1(CONST_UNDEFINED, type);
         this._is_poisonous = is_poisonous;
     }

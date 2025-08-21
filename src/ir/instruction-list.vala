@@ -1,8 +1,8 @@
-public errordomain Musys.IR.InstructionListErr {
+public errordomain MusysIR.InstructionListErr {
     INST_ATTACHED, INST_UNATTACHED
 }
 
-public class Musys.IR.InstructionList {
+public class MusysIR.InstList {
     internal Node _node_begin;
     internal Node _node_end;
 
@@ -60,8 +60,8 @@ public class Musys.IR.InstructionList {
         _node_end._prev   = &_node_begin;
     }
 
-    public InstructionList.empty(BasicBlock parent) { _init_empty(parent); }
-    public InstructionList.move(InstructionList another)
+    public InstList.empty(BasicBlock parent) { _init_empty(parent); }
+    public InstList.move(InstList another)
     {
         if (another.is_empty()) {
             _init_empty(another.parent);
@@ -80,7 +80,7 @@ public class Musys.IR.InstructionList {
         node_front->_prev = &_node_begin;
         node_back->_next  = &_node_end;
     }
-    ~InstructionList() { clean(); }
+    ~InstList() { clean(); }
 
     private void _init_empty(BasicBlock parent)
     {
@@ -98,13 +98,13 @@ public class Musys.IR.InstructionList {
 
     [CCode (has_type_id=false)]
     public struct Node {
-        unowned InstructionList _list;
+        unowned InstList _list;
         Node*      _prev;
         Node*      _next;
         Instruction item;
 
         [CCode (cname="Musys_IR_InstructionList_Node_Create")]
-        internal static Node* Create(InstructionList list, Instruction  item,
+        internal static Node* Create(InstList list, Instruction  item,
                                      Node*    prev = null, Node* next = null)
         {
             var ret = (Node*)malloc0(sizeof(Node));
@@ -129,7 +129,7 @@ public class Musys.IR.InstructionList {
 
     public struct Iterator {
         public Node*           node;
-        public InstructionList list { get { return node->_list; } }
+        public InstList list { get { return node->_list; } }
         public Instruction get() { return node->item; }
         public bool next()
         {

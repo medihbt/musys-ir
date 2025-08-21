@@ -17,7 +17,7 @@
  *
  * ``<start symbol> [<element>, ...] <end symbol>``
  */
-public abstract class Musys.IR.ConstAggregate: ConstExpr {
+public abstract class MusysIR.ConstAggregate: ConstExpr {
     public AggregateType aggregate_type {
         get { return (AggregateType)this._value_type; }
     }
@@ -50,7 +50,7 @@ public abstract class Musys.IR.ConstAggregate: ConstExpr {
             _elems = new Constant[aggregate_type.element_number];
             assert_nonnull(_elems);
             if (aggregate_type.tid == ARRAY_TYPE) {
-                unowned Type elemty = static_cast<ArrayType>(value_type).element_type;
+                unowned ValType elemty = static_cast<ArrayType>(value_type).element_type;
                 var elem = Constant.CreateZero(elemty);
                 for (int i = 0; i < _elems.length; i++)
                     _elems[i] = elem;
@@ -77,7 +77,7 @@ public abstract class Musys.IR.ConstAggregate: ConstExpr {
         unowned var elems = this.elems;
         if (elems[index] == value)
             return;
-        Type idx_ty = aggregate_type.get_elem(index);
+        ValType idx_ty = aggregate_type.get_elem(index);
         if (idx_ty.equals(value.value_type)) {
             elems[index] = value;
             return;

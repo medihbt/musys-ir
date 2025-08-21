@@ -1,5 +1,5 @@
-namespace Musys.IRUtil.Instruction {
-    public bool ordered(IR.Instruction before, IR.Instruction after)
+namespace MusysIR.InstructionUtil {
+    public bool ordered(Instruction before, Instruction after)
     {
         if (before.parent != after.parent) {
             crash_fmt("Requires instructions in the same basic block, but " +
@@ -17,7 +17,7 @@ namespace Musys.IRUtil.Instruction {
         return true;
     }
 
-    public bool may_write_memory(IR.Instruction inst)
+    public bool may_write_memory(Instruction inst)
     {
         switch (inst.opcode) {
         case STORE: case CALL: case DYN_CALL:
@@ -27,14 +27,14 @@ namespace Musys.IRUtil.Instruction {
         }
     }
 
-    public bool may_throw(IR.Instruction inst) {
+    public bool may_throw(Instruction inst) {
         return false;
     }
-    public bool will_return(IR.Instruction inst) {
+    public bool will_return(Instruction inst) {
         return true;
     }
 
-    public bool may_have_side_effect(IR.Instruction inst)
+    public bool may_have_side_effect(Instruction inst)
     {
         return may_write_memory(inst) ||
                may_throw(inst) || !will_return(inst);

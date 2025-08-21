@@ -5,7 +5,7 @@
 
 #include <Windows.h>
 
-int musys_print_backtrace()
+int musys_ir_print_backtrace()
 {
     PVOID backtrace_buffer[32];
     DWORD backtrace_hash;
@@ -22,7 +22,7 @@ int musys_print_backtrace()
 #include <unistd.h>
 #include <execinfo.h>
 
-int musys_print_backtrace()
+int musys_ir_print_backtrace()
 {
     void* trace_buffer[32] = {};
     int ret_nlayers = backtrace(trace_buffer, 32);
@@ -32,7 +32,7 @@ int musys_print_backtrace()
 
 #else
 
-int musys_print_backtrace() {
+int musys_ir_print_backtrace() {
     fputs("This platform has not supported backtracing yet\n", stderr);
     return -1;
 }

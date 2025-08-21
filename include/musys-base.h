@@ -9,12 +9,12 @@ extern "C" {
 /** @defgroup Musys
  * @{
  * @addtogroup Musys */
-#define musys_static_cast(elem) ((gpointer)(elem))
+#define musys_ir_static_cast(elem) ((gpointer)(elem))
 
 /** @addtogroup Musys.Fmt */
 [[gnu::unused]]
 static inline char const*
-musys_fmt_u32base10(char *buf, unsigned length, unsigned number)
+musys_ir_fmt_u32base10(char *buf, unsigned length, unsigned number)
 {
     if (length < 12) {
         *buf = '\0';
@@ -37,7 +37,7 @@ musys_fmt_u32base10(char *buf, unsigned length, unsigned number)
 /** @addtogroup Musys.Fmt */
 [[gnu::unused]]
 static inline char const*
-musys_fmt_u32base16(char *buf, unsigned length, unsigned number)
+musys_ir_fmt_u32base16(char *buf, unsigned length, unsigned number)
 {
     static const char xdigits[] = "0123456789abcdef";
     if (length < (sizeof(unsigned) * 2 + 1)) {
@@ -57,7 +57,7 @@ musys_fmt_u32base16(char *buf, unsigned length, unsigned number)
 /** @addtogroup Musys.Fmt */
 [[gnu::unused]]
 static inline char const*
-musys_fmt_u32Base16(char *buf, unsigned length, unsigned number)
+musys_ir_fmt_u32Base16(char *buf, unsigned length, unsigned number)
 {
     static const char xdigits[] = "0123456789ABCDEF";
     if (length < (sizeof(unsigned) * 2 + 1)) {
@@ -75,23 +75,23 @@ musys_fmt_u32Base16(char *buf, unsigned length, unsigned number)
 }
 
 /** @addtogroup Musys */
-static inline bool musys_is_power_of_2(size_t value) {
+static inline bool musys_ir_is_power_of_2(size_t value) {
     return (value & (value - 1)) == 0;
 }
-static inline bool musys_is_power_of_2_nonzero(size_t value) {
+static inline bool musys_ir_is_power_of_2_nonzero(size_t value) {
     return value != 0 && (value & (value - 1)) == 0;
 }
 
 /** @addtogroup Musys */
-static inline size_t musys_fill_to(size_t x, size_t mod) {
+static inline size_t musys_ir_fill_to(size_t x, size_t mod) {
     size_t xmod = x % mod;
     return xmod == 0? x: x - xmod + mod;
 }
 
 /** @addtogroup Musys */
-static inline size_t musys_fill_to_pwr_of_2(size_t x)
+static inline size_t musys_ir_fill_to_pwr_of_2(size_t x)
 {
-    if (musys_is_power_of_2(x))
+    if (musys_ir_is_power_of_2(x))
         return x;
     x |= x >> 0x01; x |= x >> 0x02;
     x |= x >> 0x04; x |= x >> 0x08;

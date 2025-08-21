@@ -1,4 +1,4 @@
-public interface Musys.IR.IValueVisitor {
+public interface MusysIR.IValueVisitor {
     public virtual void visit_const_int       (ConstInt      value) {}
     public virtual void visit_const_float     (ConstFloat    value) {}
     public virtual void visit_const_data_zero (ConstDataZero value) {}

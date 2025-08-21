@@ -3,7 +3,7 @@
  *
  * NOTE: This is not a specialization of VecStack<int>.
  */
-public class Musys.IntVecStack {
+public class MusysIR.IntVecStack {
     public   int[] data;
     internal int  _size;
     public   int   size { get { return _size; } }
@@ -42,7 +42,7 @@ public class Musys.IntVecStack {
 } // public class Musys.VecStack
 
 /** Stack containing gneric type T elements with an array inside. */
-public class Musys.VecStack<T> {
+public class MusysIR.VecStack<T> {
     public   T[]  data;
     internal int _size;
     public   int  size { get { return _size; } }

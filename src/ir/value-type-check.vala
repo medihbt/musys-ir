@@ -1,9 +1,9 @@
-namespace Musys.IR {
-    public Type? check_value_istype_throw(Value? value, Type.TID tid, string? fmt, va_list ap)
+namespace MusysIR {
+    public ValType? check_value_istype_throw(Value? value, ValType.TID tid, string? fmt, va_list ap)
                 throws TypeMismatchErr {
         if (value == null)
             return null;
-        Type valuety = value.value_type;
+        ValType valuety = value.value_type;
         if (valuety.istype_by_id(tid))
             return valuety;
         throw error_type_mismatch_by_id(tid,
@@ -40,7 +40,7 @@ namespace Musys.IR {
     {
         if (value == null)
             return null;
-        unowned Type t = value.value_type;
+        unowned ValType t = value.value_type;
         if (t.is_int && static_cast<IntType>(t).binary_bits == 1)
             return static_cast<IntType>(t);
         crash(@"Requires boolean value but got $t; additional $(fmt.vprintf(va_list()))");
@@ -50,7 +50,7 @@ namespace Musys.IR {
                 throws TypeMismatchErr {
         if (value == null)
             return null;
-        unowned Type t = value.value_type;
+        unowned ValType t = value.value_type;
         if (t.is_int && static_cast<IntType>(t).binary_bits == 1)
             return static_cast<IntType>(t);
         throw new TypeMismatchErr.NOT_BOOLEAN(
@@ -96,21 +96,21 @@ namespace Musys.IR {
     }
 
     [Diagnostics, PrintfFormat]
-    public void type_match_or_crash(Type required, Type value, string fmt = "", ...)
+    public void type_match_or_crash(ValType required, ValType value, string fmt = "", ...)
     {
         if (required.equals(value))
             return;
         crash(@"Type mismatch: requires $required, but got $value; additional: $(fmt.vprintf(va_list()))");
     }
     [Diagnostics, PrintfFormat]
-    public void type_match_or_throw(Type required, Type value, string fmt = "", ...)
+    public void type_match_or_throw(ValType required, ValType value, string fmt = "", ...)
                 throws TypeMismatchErr {
         if (required.equals(value))
             return;
         throw new TypeMismatchErr.MISMATCH(
             @"Type mismatch: requires $required, but got $value; additional: $(fmt.vprintf(va_list()))");
     }
-    public unowned Type type_match_istid_v(Type lty, Type rty, Type.TID tid, string msgfmt, va_list ap)
+    public unowned ValType type_match_istid_v(ValType lty, ValType rty, ValType.TID tid, string msgfmt, va_list ap)
             throws TypeMismatchErr {
         if (!lty.equals(rty))
             throw new TypeMismatchErr.MISMATCH(@"Type $lty and $rty unmatch");
@@ -121,12 +121,12 @@ namespace Musys.IR {
             msgfmt, ap);
     }
     [Diagnostics, PrintfFormat]
-    public unowned Type type_match_istid(Type lty, Type rty, Type.TID tid, string msgfmt = "", ...)
+    public unowned ValType type_match_istid(ValType lty, ValType rty, ValType.TID tid, string msgfmt = "", ...)
             throws TypeMismatchErr {
         return type_match_istid_v(lty, rty, tid, msgfmt, va_list());
     }
 
-    public void type_bit_same_or_throw(Type l, Type r)
+    public void type_bit_same_or_throw(ValType l, ValType r)
                 throws TypeMismatchErr {
         if (l == r)
             return;
@@ -144,13 +144,13 @@ namespace Musys.IR {
         }
     }
 
-    public unowned IntType get_bool_type(Type type)
+    public unowned IntType get_bool_type(ValType type)
     {
         if (type.is_int && static_cast<IntType>(type).binary_bits == 1)
             return static_cast<IntType>(type);
         return type.type_ctx.bool_type;
     }
-    public unowned PointerType get_ptr_type(Type type) {
+    public unowned PointerType get_ptr_type(MusysIR.ValType type) {
         if (type.is_pointer)
             return (PointerType)type;
         return type.type_ctx.opaque_ptr;
@@ -167,8 +167,8 @@ namespace Musys.IR {
      * @return 迭代函数返回值, `true` 表示终止迭代, `false` 表示继续迭代.
      */
     public bool check_type_index_step(Value? index, uint layer,
-                                      Type before_extract,
-                                      out Type after_extract)
+                                      ValType before_extract,
+                                      out ValType after_extract)
                 throws TypeMismatchErr, IndexPtrErr
     {
         if (!before_extract.is_aggregate) {

@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     public struct APInt {
         int64 data;
         uint8 bits;

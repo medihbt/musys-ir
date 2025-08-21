@@ -1,4 +1,4 @@
-namespace Musys.IRUtil {
+namespace MusysIR {
     public errordomain CloneFunctionErr {
         FUNCTION_IS_EXTERN,
         SYMBOL_NAME_EXISTS;
@@ -11,12 +11,12 @@ namespace Musys.IRUtil {
      * 最后返回 foo_2.
      *
      * {{{
-     * IR.Function clone_foo(IR.Module module, IR.Function foo_func)
+     * Function clone_foo(Module module, Function foo_func)
      * {
      *     var clone = new CloneFunction.from_module(module);
      *     try {
-     *         IR.Function foo1 = clone.run(foo_func, "foo_1");
-     *         IR.Function foo2 = clone.run(foo1, "foo_2");
+     *         Function foo1 = clone.run(foo_func, "foo_1");
+     *         Function foo2 = clone.run(foo1, "foo_2");
      *         return foo_2;
      *     } catch (Error e) {
      *         crash_err(e);
@@ -25,17 +25,17 @@ namespace Musys.IRUtil {
      * }}}
      *
      */
-    public class CloneFunction: IR.IValueVisitor {
+    public class CloneFunction: IValueVisitor {
         private Runtime       rt;
-        private IR.Module module;
+        private Module module;
         private TypeContext tctx;
-        private IR.Function from;
-        private IR.Function to;
+        private Function from;
+        private Function to;
 
         /**
          * ==== 构造函数: 这是你要调用的构造方法 ====
          */
-        public CloneFunction.from_module(IR.Module module) {
+        public CloneFunction.from_module(Module module) {
             this.module = module;
             this.tctx   = module.type_ctx;
             this.rt.init_clean(this);
@@ -44,8 +44,8 @@ namespace Musys.IRUtil {
         /**
          * ==== 拷贝函数: 这是你要调用的函数接口 ====
          */
-        public IR.Function run(IR.Function fn, string new_name, bool copy_attributes = false)
-                throws Error, CloneFunctionErr, IR.FuncBodyErr
+        public Function run(Function fn, string new_name, bool copy_attributes = false)
+                throws Error, CloneFunctionErr, FuncBodyErr
         {
             if (copy_attributes)
                 warning("Musys Value has not supported attributes yet");
@@ -56,7 +56,7 @@ namespace Musys.IRUtil {
             _copy_data_flow();
             return this.to;
         }
-        private void _raw_create(IR.Function primary, string new_name)
+        private void _raw_create(Function primary, string new_name)
                     throws CloneFunctionErr {
             if (primary.is_extern) {
                 throw new CloneFunctionErr.FUNCTION_IS_EXTERN(
@@ -73,7 +73,7 @@ namespace Musys.IRUtil {
                 );
             }
             this.from = primary;
-            this.to = new IR.Function.as_impl(primary.function_type, new_name);
+            this.to = new Function.as_impl(primary.function_type, new_name);
             globl_def[new_name] = this.to;
         }
         private void _init_value_map() {
@@ -88,16 +88,16 @@ namespace Musys.IRUtil {
         }
         private void _copy_control_flow() throws Error
         {
-            IR.BasicBlock to_entry   = to.body.entry;
+            BasicBlock to_entry   = to.body.entry;
             LabelType     labelty    = to_entry.show_label_type();
             /* 首先, 拷贝整个基本块集合 */
-            IR.BasicBlock to_curr = to_entry;
+            BasicBlock to_curr = to_entry;
             foreach (var bb in from.body) {
                 if (bb == from.body.entry) {
                     rt.copy_map[bb] = to_entry;
                     continue;
                 }
-                var bb_to = new IR.BasicBlock.with_unreachable(labelty);
+                var bb_to = new BasicBlock.with_unreachable(labelty);
                 bb_to.plug_this_after(to_curr);
                 rt.copy_map[bb] = bb_to;
                 to_curr = bb_to;
@@ -107,13 +107,13 @@ namespace Musys.IRUtil {
             foreach (var from_bb in from.body) {
                 if (!from_bb.has_terminator())
                     continue;
-                var to_bb = rt.copy_map[from_bb] as IR.BasicBlock;
+                var to_bb = rt.copy_map[from_bb] as BasicBlock;
                 _copy_terminator(from_bb, to_bb);
             }
         }
-        void visit_basicblock(IR.BasicBlock bb)
+        void visit_basicblock(BasicBlock bb)
         {
-            IR.BasicBlock? ret = rt.find_copy(bb) as IR.BasicBlock;
+            BasicBlock? ret = rt.find_copy(bb) as BasicBlock;
             if (ret != null) {
                 rt.saved = ret;
                 return;
@@ -124,8 +124,8 @@ namespace Musys.IRUtil {
 
     /* ================ [终止子] ================ */
 
-        private void _copy_terminator(IR.BasicBlock from_bb, IR.BasicBlock to_bb)
-                    throws IR.InstructionListErr
+        private void _copy_terminator(BasicBlock from_bb, BasicBlock to_bb)
+                    throws InstructionListErr
         {
             rt.from_bb = from_bb;
             rt.to_bb   = to_bb;
@@ -135,64 +135,64 @@ namespace Musys.IRUtil {
                 );
             }
             from_bb.terminator.accept(this);
-            var to_termi = rt.saved as IR.IBasicBlockTerminator;
+            var to_termi = rt.saved as IBasicBlockTerminator;
             to_bb.set_terminator_throw(to_termi);
             /* 保个险. 这个语句是为可能出现的 invoke 指令准备的. */
             if (unlikely(!to_termi.value_type.is_void))
                 rt.copy_map[from_bb.terminator] = to_termi;
         }
-        void visit_inst_jump(IR.JumpSSA jmp_inst) {
+        void visit_inst_jump(JumpSSA jmp_inst) {
             /* Terminator JumpSSA */
-            IR.BasicBlock from_target = jmp_inst.target;
-            rt.saved = new IR.JumpSSA(rt.find_copy(from_target) as IR.BasicBlock);
+            BasicBlock from_target = jmp_inst.target;
+            rt.saved = new JumpSSA(rt.find_copy(from_target) as BasicBlock);
         }
-        void visit_inst_branch(IR.BranchSSA br_inst)
+        void visit_inst_branch(BranchSSA br_inst)
         {
             /* Terminator BranchSSA */
-            var to_false = (!)(rt.find_copy(br_inst.if_false) as IR.BasicBlock);
-            var to_true  = (!)(rt.find_copy(br_inst.if_true)  as IR.BasicBlock);
+            var to_false = (!)(rt.find_copy(br_inst.if_false) as BasicBlock);
+            var to_true  = (!)(rt.find_copy(br_inst.if_true)  as BasicBlock);
             /* 指令的第一趟拷贝: 操作数引用不变 */
-            rt.saved = new IR.BranchSSA.with(br_inst.condition, to_false, to_true);
+            rt.saved = new BranchSSA.with(br_inst.condition, to_false, to_true);
         }
-        void visit_inst_return(IR.ReturnSSA ret_inst) {
+        void visit_inst_return(ReturnSSA ret_inst) {
             /* Terminator ReturnSSA */
-            rt.saved = new IR.ReturnSSA(ret_inst.retval);
+            rt.saved = new ReturnSSA(ret_inst.retval);
         }
-        void visit_inst_switch(IR.SwitchSSA inst)
+        void visit_inst_switch(SwitchSSA inst)
         {
             /* Terminator SwitchSSA */
-            var to_default = (!)(rt.find_copy(inst.default_target) as IR.BasicBlock);
-            var copy = new IR.SwitchSSA.with_default(inst.condition, to_default);
+            var to_default = (!)(rt.find_copy(inst.default_target) as BasicBlock);
+            var copy = new SwitchSSA.with_default(inst.condition, to_default);
             foreach (var ct in inst.view_cases()) {
                 long case_n = ct.case_n;
-                var  bb     = rt.find_copy(ct.target) as IR.BasicBlock;
+                var  bb     = rt.find_copy(ct.target) as BasicBlock;
                 copy.set_case(case_n, bb);
             }
             rt.saved = copy;
         }
-        void visit_inst_unreachable(IR.UnreachableSSA unreachable_inst) {
+        void visit_inst_unreachable(UnreachableSSA unreachable_inst) {
             /* Terminator UnreachableSSA */
-            rt.saved = new IR.UnreachableSSA(rt.to_bb);
+            rt.saved = new UnreachableSSA(rt.to_bb);
         }
 
     /* ================ [普通指令] ================ */
         private void _copy_data_flow() throws Error
         {
-            foreach (IR.BasicBlock from_bb in from.body) {
+            foreach (BasicBlock from_bb in from.body) {
                 var from_insts = from_bb.instructions;
                 if (from_insts.length <= 1)
                     continue;
-                var to_bb = rt.find_copy(from_bb) as IR.BasicBlock;
+                var to_bb = rt.find_copy(from_bb) as BasicBlock;
                 rt.from_bb = from_bb;
                 rt.to_bb   = to_bb;
                 var to_termi = to_bb.terminator;
                 var modifier = to_termi.modifier;
                 /* 拷贝指令 */
                 foreach (var inst in from_insts) {
-                    if (inst is IR.IBasicBlockTerminator)
+                    if (inst is IBasicBlockTerminator)
                         continue;
                     inst.accept(this);
-                    var to_inst = (!)(rt.saved as IR.Instruction);
+                    var to_inst = (!)(rt.saved as Instruction);
                     rt.copy_map[inst] = to_inst;
                     modifier.prepend(to_inst);
                 }
@@ -201,59 +201,59 @@ namespace Musys.IRUtil {
         }
         private void _map_operands() throws Error
         {
-            foreach (IR.BasicBlock to_bb in to.body) {
+            foreach (BasicBlock to_bb in to.body) {
                 var to_insts = to_bb.instructions;
                 foreach (var inst in to_insts)
                     _map_replace_inst(inst);
             }
         }
-        private void _map_replace_inst(IR.Instruction inst) throws Error
+        private void _map_replace_inst(Instruction inst) throws Error
         {
             foreach (var u in inst.operands)
                 u.usee = (!)rt.find_copy(u.usee);
         }
 
-        void visit_inst_phi(IR.PhiSSA phi)
+        void visit_inst_phi(PhiSSA phi)
         {
-            var ret = new IR.PhiSSA.raw(phi.value_type);
+            var ret = new PhiSSA.raw(phi.value_type);
             foreach (var entry in phi.from_map) {
                 var from = entry.value;
-                var to_from = rt.find_copy(from.from) as IR.BasicBlock;
+                var to_from = rt.find_copy(from.from) as BasicBlock;
                 assert_nonnull(to_from);
                 ret[to_from] = from.get_operand();
             }
             rt.saved = ret;
         }
-        void visit_inst_binary(IR.BinarySSA binary_inst)
+        void visit_inst_binary(BinarySSA binary_inst)
         {
-            rt.saved = new IR.BinarySSA.nocheck(
+            rt.saved = new BinarySSA.nocheck(
                 binary_inst.opcode, binary_inst.value_type,
                 binary_inst.lhs, binary_inst.rhs, binary_inst.is_signed);
         }
-        void visit_inst_compare(IR.CompareSSA inst) {
-            var ret = new IR.CompareSSA.raw(inst.opcode, inst.operand_type, inst.condition);
+        void visit_inst_compare(CompareSSA inst) {
+            var ret = new CompareSSA.raw(inst.opcode, inst.operand_type, inst.condition);
             ret.lhs = inst.lhs; ret.rhs = inst.rhs;
             rt.saved = ret;
         }
-        void visit_inst_unary(IR.UnaryOpSSA inst) {
-            var ret = new IR.UnaryOpSSA.raw(inst.opcode, inst.value_type);
+        void visit_inst_unary(UnaryOpSSA inst) {
+            var ret = new UnaryOpSSA.raw(inst.opcode, inst.value_type);
             ret.operand = inst.operand;
             rt.saved = ret;
         }
-        void visit_inst_cast(IR.CastSSA inst) {
-            var ret = new IR.CastSSA.raw(inst.opcode, inst.value_type, inst.source_type);
+        void visit_inst_cast(CastSSA inst) {
+            var ret = new CastSSA.raw(inst.opcode, inst.value_type, inst.source_type);
             ret.operand = inst.operand;
             rt.saved = ret;
         }
-        void visit_inst_call(IR.CallSSA inst) {
-            var ret = new IR.CallSSA.raw(inst.callee_fn_type);
+        void visit_inst_call(CallSSA inst) {
+            var ret = new CallSSA.raw(inst.callee_fn_type);
             _dup_inst_fn_call(inst, ret);
         }
-        void visit_inst_dyn_call(IR.DynCallSSA inst) {
-            var ret = new IR.DynCallSSA.raw(inst.callee_fn_type);
+        void visit_inst_dyn_call(DynCallSSA inst) {
+            var ret = new DynCallSSA.raw(inst.callee_fn_type);
             _dup_inst_fn_call(inst, ret);
         }
-        private void _dup_inst_fn_call(IR.CallBase inst, IR.CallBase ret)
+        private void _dup_inst_fn_call(CallBase inst, CallBase ret)
         {
             ret.callee = inst.callee;
             unowned var from_uargs = inst.uargs;
@@ -263,35 +263,35 @@ namespace Musys.IRUtil {
             rt.saved = ret;
         }
 
-        void visit_inst_alloca(IR.AllocaSSA alloca_inst) {
-            rt.saved = new IR.AllocaSSA.from_target(alloca_inst.target_type, alloca_inst.align);
+        void visit_inst_alloca(AllocaSSA alloca_inst) {
+            rt.saved = new AllocaSSA.from_target(alloca_inst.target_type, alloca_inst.align);
         }
-        void visit_inst_dyn_alloca(IR.DynAllocaSSA inst) {
-            rt.saved = new IR.DynAllocaSSA.with_length(inst.target_type, inst.length, inst.align);
-        }
-
-        void visit_inst_load(IR.LoadSSA inst) {
-            rt.saved = new IR.LoadSSA.from_ptr(inst.operand, inst.target_type, inst.align);
-        }
-        void visit_inst_store(IR.StoreSSA inst) {
-            rt.saved = new IR.StoreSSA.from(inst.source, inst.target, inst.align);
+        void visit_inst_dyn_alloca(DynAllocaSSA inst) {
+            rt.saved = new DynAllocaSSA.with_length(inst.target_type, inst.length, inst.align);
         }
 
-        void visit_inst_index_ptr(IR.IndexPtrSSA inst) {
-            rt.saved = new IR.IndexPtrSSA.copy_nocheck(
+        void visit_inst_load(LoadSSA inst) {
+            rt.saved = new LoadSSA.from_ptr(inst.operand, inst.target_type, inst.align);
+        }
+        void visit_inst_store(StoreSSA inst) {
+            rt.saved = new StoreSSA.from(inst.source, inst.target, inst.align);
+        }
+
+        void visit_inst_index_ptr(IndexPtrSSA inst) {
+            rt.saved = new IndexPtrSSA.copy_nocheck(
                 inst.primary_target_type, inst.indices);
         }
-        void visit_inst_index_extract(IR.IndexExtractSSA inst)
+        void visit_inst_index_extract(IndexExtractSSA inst)
         {
             try {
-                rt.saved = new IR.IndexExtractSSA.from(inst.aggregate, inst.index);
+                rt.saved = new IndexExtractSSA.from(inst.aggregate, inst.index);
             } catch (TypeMismatchErr e) {
                 crash_err(e);
             }
         }
-        void visit_inst_index_insert(IR.IndexInsertSSA inst)
+        void visit_inst_index_insert(IndexInsertSSA inst)
         {
-            var ret = new IR.IndexInsertSSA.raw(inst.aggregate_type) {
+            var ret = new IndexInsertSSA.raw(inst.aggregate_type) {
                 aggregate = inst.aggregate,
                 index     = inst.index,
                 element   = inst.element
@@ -301,8 +301,8 @@ namespace Musys.IRUtil {
 
         public struct Runtime {
             unowned CloneFunction         parent;
-            HashTable<IR.Value, IR.Value> copy_map;
-            IR.Value saved;
+            HashTable<Value, Value> copy_map;
+            Value saved;
 
             public void init_clean(CloneFunction parent)
             {
@@ -310,21 +310,21 @@ namespace Musys.IRUtil {
                 if (copy_map != null)
                     copy_map.remove_all();
                 else
-                    copy_map = new HashTable<IR.Value, IR.Value>(null, null);
+                    copy_map = new HashTable<Value, Value>(null, null);
             }
-            public bool needs_clone(IR.Value value)
+            public bool needs_clone(Value value)
             {
                 /* 常量数值和常量表达式共享引用, 不需要拷贝
                  * 全局量不在函数作用域内，不可拷贝 */
                 if (value.isvalue_by_id(CONSTANT))
                     return false;
                 if (value.isvalue_by_id(BASIC_BLOCK))
-                    return static_cast<IR.BasicBlock>(value).parent != parent.from;
+                    return static_cast<BasicBlock>(value).parent != parent.from;
                 if (value.isvalue_by_id(INSTRUCTION))
-                    return static_cast<IR.Instruction>(value).parent.parent != parent.from;
+                    return static_cast<Instruction>(value).parent.parent != parent.from;
                 return true;
             }
-            public IR.Value? find_copy(IR.Value value)
+            public Value? find_copy(Value value)
             {
                 if (!needs_clone(value))
                     return value;
@@ -336,9 +336,9 @@ namespace Musys.IRUtil {
         /* ======== [指令流拷贝] ======== */
 
             /** 当前指令拷贝的源基本块 */
-            IR.BasicBlock from_bb;
+            BasicBlock from_bb;
             /** 当前指令拷贝的目标基本块 */
-            IR.BasicBlock to_bb;
+            BasicBlock to_bb;
         
         /* ======== [终止子拷贝] ========  */
         } // struct Runtime

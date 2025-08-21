@@ -3,7 +3,7 @@
  *
  * @see Musys.IR.ConstAggregate
  */
-public sealed class Musys.IR.ConstStruct: ConstAggregate {
+public sealed class MusysIR.ConstStruct: ConstAggregate {
     public StructType struct_type {
         get { return static_cast<StructType>(value_type); }
     }

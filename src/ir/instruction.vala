@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     public enum OpCode {
         NONE,
         AND,  ORR,  XOR,  SHL,  LSHR, ASHR, 
@@ -64,10 +64,10 @@ namespace Musys.IR {
          *
          * @see Musys.IR.InstructionList.Modifier
          */
-        public   InstructionList.Modifier  modifier {
+        public   InstList.Modifier  modifier {
             get { return {_nodeof_this}; }
         }
-        internal InstructionList.Node* _nodeof_this;
+        internal InstList.Node* _nodeof_this;
         public bool is_attached() { return modifier.is_available(); }
 
         public virtual void on_plug(BasicBlock parent) {
@@ -86,7 +86,7 @@ namespace Musys.IR {
             _nodeof_this = null; _parent = null;
         }
 
-        protected Instruction.C1(Value.TID tid, OpCode opcode, Type type)
+        protected Instruction.C1(Value.TID tid, OpCode opcode, ValType type)
         {
             base.C1(tid, type);
             _opcode = opcode;

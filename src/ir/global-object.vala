@@ -5,7 +5,7 @@
  * 因此 ``GlobalObject`` 实现了 ``IPointerValue`` 接口以传达自己能存放的
  * 数据类型.
  */
-public abstract class Musys.IR.GlobalObject: Constant, IPointerStorage {
+public abstract class MusysIR.GlobalObject: Constant, IPointerStorage {
     /** 全局对象的可见性. */
     public enum Visibility {
         /** 仅内部可见 */
@@ -29,10 +29,10 @@ public abstract class Musys.IR.GlobalObject: Constant, IPointerStorage {
         get { return static_cast<PointerType>(_value_type); }
     }
     /** 内含元素类型. */
-    public Type content_type { get; internal set; }
+    public ValType content_type { get; internal set; }
 
     /** (实现 IPointerStorage 接口) */
-    public Type get_ptr_target() { return content_type; }
+    public ValType get_ptr_target() { return content_type; }
 
     /** 自己的名称. GlobalObject 是极少数有字符串名称的 Value 子类之一. */
     public string name{get;set;}
@@ -67,7 +67,7 @@ public abstract class Musys.IR.GlobalObject: Constant, IPointerStorage {
     /** 全局对象固定表示某个至少可读/可执行的指针, 这个指针一般不会是 null. */
     public override bool is_zero { get { return false; } }
 
-    protected GlobalObject.C1(Value.TID tid, Type content_type, string name, bool is_internal) {
+    protected GlobalObject.C1(Value.TID tid, ValType content_type, string name, bool is_internal) {
         var tctx = content_type.type_ctx;
         base.C1(tid, tctx.opaque_ptr);
         this.content_type = content_type;
@@ -81,7 +81,7 @@ public abstract class Musys.IR.GlobalObject: Constant, IPointerStorage {
     }
 }
 
-namespace Musys.IR {
+namespace MusysIR {
     private unowned string _gobj_visibl_name_map[GlobalObject.Visibility.RESERVED_COUNT] = {
         "internal", "dso_local", "external"
     };

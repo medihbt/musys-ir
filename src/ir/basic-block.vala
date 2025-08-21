@@ -20,7 +20,7 @@
  *
  * @see Musys.IR.IBasicBlockTerminator
  */
-public class Musys.IR.BasicBlock: Value {
+public class MusysIR.BasicBlock: Value {
     internal         BasicBlock _next;
     internal unowned BasicBlock _prev;
     internal unowned FuncBody?  _list;
@@ -33,7 +33,7 @@ public class Musys.IR.BasicBlock: Value {
      */
     public Tree<unowned JumpTarget, unowned JumpTarget> incomes {
         get; internal set;
-        default = new Tree<unowned JumpTarget, unowned JumpTarget>((GLib.CompareDataFunc<unowned Musys.IR.JumpTarget>)ptrcmp);
+        default = new Tree<unowned JumpTarget, unowned JumpTarget>((GLib.CompareDataFunc<unowned MusysIR.JumpTarget>)ptrcmp);
     }
 
     /**
@@ -124,9 +124,9 @@ public class Musys.IR.BasicBlock: Value {
     /** 中间代码结点树的父结点 -- 函数. */
     public unowned Function parent{get;set;}
 
-    internal InstructionList _instructions;
+    internal InstList _instructions;
     /** 指令列表 */
-    public   InstructionList  instructions {
+    public   InstList  instructions {
         get { return _instructions; }
     }
     public bool has_terminator() {
@@ -163,7 +163,7 @@ public class Musys.IR.BasicBlock: Value {
                 throws InstructionListErr {
         assert_nonnull(value);
         if (!has_terminator()) {
-            InstructionList.Modifier modif = _instructions.iterator();
+            InstList.Modifier modif = _instructions.iterator();
             modif.append(value);
             return;
         }
@@ -175,7 +175,7 @@ public class Musys.IR.BasicBlock: Value {
      * 从上到下遍历基本块的指令流, 然后返回第一个不是 PHI 结点的指令.
      * 在完备的 Musys IR 中, PHI 指令永远在基本块指令流的最前面.
      */
-    public InstructionList.Iterator get_1st_nonphi()
+    public InstList.Iterator get_1st_nonphi()
     {
         foreach (Instruction inst in instructions) {
             if (!(inst is PhiSSA))
@@ -190,7 +190,7 @@ public class Musys.IR.BasicBlock: Value {
      * 倘若指令 ``inst`` 不是 PHI 结点, 就把 ``inst`` 附加到指令列表的末尾.
      * 否则, 找到第一条不是 PHI 的指令, 把 PHI 结点 ``inst`` 插入到这条指令的前面.
      */
-    public InstructionList.Iterator add(Instruction inst)
+    public InstList.Iterator add(Instruction inst)
             throws InstructionListErr
     {
         if (inst is PhiSSA)
@@ -215,7 +215,7 @@ public class Musys.IR.BasicBlock: Value {
      *
      * @return 指向这条指令的修改式迭代器.
      */
-    public InstructionList.Modifier push_back(Instruction inst)
+    public InstList.Modifier push_back(Instruction inst)
             throws InstructionListErr {
         if (inst.is_attached())
             return inst.modifier;
@@ -229,9 +229,9 @@ public class Musys.IR.BasicBlock: Value {
      * 附加一条 PHI 结点指令. 该方法会在指令列表中找到第一个不是 PHI
      * 的指令, 然后把参数 phi 所示的 PHI 结点插在这条指令前面.
      */
-    public InstructionList.Iterator add_phi(PhiSSA phi)
+    public InstList.Iterator add_phi(PhiSSA phi)
             throws InstructionListErr {
-        InstructionList.Modifier m = get_1st_nonphi();
+        InstList.Modifier m = get_1st_nonphi();
         return m.prepend(phi);
     }
 
@@ -243,7 +243,7 @@ public class Musys.IR.BasicBlock: Value {
     }
     public BasicBlock.with_unreachable(LabelType labelty) {
         base.C1(BASIC_BLOCK, labelty);
-        _instructions = new InstructionList.empty(this);
+        _instructions = new InstList.empty(this);
         _instructions.append(new UnreachableSSA(this));
         message("Unreachable: refcnt %u\n", _instructions.back().ref_count);
     }
@@ -251,7 +251,7 @@ public class Musys.IR.BasicBlock: Value {
     {
         var tctx = terminator.value_type.type_ctx;
         base.C1(BASIC_BLOCK, tctx.label_type);
-        _instructions = new InstructionList.empty(this);
+        _instructions = new InstList.empty(this);
         _instructions.append(terminator);
     }
     ~BasicBlock() {

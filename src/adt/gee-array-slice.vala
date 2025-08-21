@@ -16,7 +16,7 @@
  * }
  * }}}
  */
-public class Musys.GeeArraySlice<ElemT>: Gee.AbstractBidirList<ElemT> {
+public class MusysIR.GeeArraySlice<ElemT>: Gee.AbstractBidirList<ElemT> {
     public unowned ElemT[] array;
     public int begin;
     public int end;
@@ -26,7 +26,7 @@ public class Musys.GeeArraySlice<ElemT>: Gee.AbstractBidirList<ElemT> {
     public Gee.EqualDataFunc<ElemT> equal_func {
         get { return (a, b) => a == b; } set {}
     }
-    public override bool @foreach (Gee.ForallFunc<ElemT> f)
+    public override global::bool @foreach (Gee.ForallFunc<ElemT> f)
     {
         foreach (var g in this.array) {
             if (!f(g))
@@ -43,7 +43,7 @@ public class Musys.GeeArraySlice<ElemT>: Gee.AbstractBidirList<ElemT> {
     public override Gee.BidirListIterator<ElemT> bidir_list_iterator() {
         return new Iterator<ElemT>.slice_begin(this);
     }
-    public override bool contains(ElemT item) { return index_of(item) != -1; }
+    public override global::bool contains(ElemT item) { return index_of(item) != -1; }
     public override int index_of(ElemT item)
     {
         for (int i = 0; i < array.length; i++)
@@ -52,9 +52,9 @@ public class Musys.GeeArraySlice<ElemT>: Gee.AbstractBidirList<ElemT> {
     }
     public override ElemT @get(int index) { return array[index]; }
     public override void @set(int index, ElemT item) { }
-    public override bool add(ElemT elem)  { return false; }
+    public override global::bool add(ElemT elem)  { return false; }
     public override void insert(int index, ElemT item) {}
-    public override bool remove(ElemT item) { return false; }
+    public override global::bool remove(ElemT item) { return false; }
     public override ElemT remove_at(int index) { return null; }
     public override Gee.List<ElemT>? slice(int start, int stop)
     {

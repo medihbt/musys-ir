@@ -1,4 +1,4 @@
-public errordomain Musys.IR.PhiError {
+public errordomain MusysIR.PhiError {
     NO_INCOMING_BLOCK;
 }
 
@@ -22,7 +22,7 @@ public errordomain Musys.IR.PhiError {
  *
  * ''文本格式'': `%<id> = phi <type> [value, from_bb], ...`
  */
-public class Musys.IR.PhiSSA: Instruction {
+public class MusysIR.PhiSSA: Instruction {
     public Gee.HashMap<unowned BasicBlock, FromUse> from_map{get;}
 
     public bool has_from(BasicBlock from) {
@@ -88,7 +88,7 @@ public class Musys.IR.PhiSSA: Instruction {
         visitor.visit_inst_phi(this);
     }
 
-    public PhiSSA.raw(Type type) {
+    public PhiSSA.raw(ValType type) {
         base.C1(PHI_SSA, PHI, type);
         this._from_map = new Gee.HashMap<unowned BasicBlock, FromUse>();
     }
@@ -105,7 +105,7 @@ public class Musys.IR.PhiSSA: Instruction {
         }
         public unowned BasicBlock from;
         internal       Value  _operand;
-        public inline  Type value_type { get { return parent.value_type; } }
+        public inline  ValType value_type { get { return parent.value_type; } }
 
         public inline unowned Value? get_operand() { return _operand; }
         public inline void set_operand(Value value) {

@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /** 
      * === 函数声明或函数定义 ===
      *
@@ -29,7 +29,7 @@ namespace Musys.IR {
         public unowned FunctionType function_type {
             get { return static_cast<FunctionType>(content_type); }
         }
-        public unowned Type return_type {
+        public unowned ValType return_type {
             get { return function_type.return_type; }
         }
 
@@ -136,7 +136,7 @@ namespace Musys.IR {
         /** 函数形参在参数列表中的位置. 从 0 开始计数. */
         public int index { get; set; }
 
-        public FuncArg(Type type, Function parent, int index)
+        public FuncArg(ValType type, Function parent, int index)
         {
             base.C1(FUNC_ARG, type);
             this.parent = parent;
@@ -266,4 +266,4 @@ namespace Musys.IR {
         BODY_ERR,
         FOREIGN_BASIC_BLOCK_INSERTED;
     }
-}
+} // namespace MusysIR

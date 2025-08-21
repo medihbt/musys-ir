@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     /** 表示大小的整数值出现了错误 */
     public errordomain SizeErr {
         /** 大小不是 2 的次方. */
@@ -19,7 +19,7 @@ namespace Musys {
      * 因此, 倘若你修改了某个类型对象的信息, 系统可能不会报错, 但会产生一些难以
      * 预料的后果.
      */
-    public abstract class Type {
+    public abstract class ValType {
         /**
          * TID 枚举, 每个类型类都对应一个枚举值.
          * @see tid
@@ -57,8 +57,8 @@ namespace Musys {
          */
         public unowned TypeContext type_ctx{get;set;}
 
-        protected class stdc.bool _istype[TID.COUNT] = {true, false};
-        protected class stdc.bool _is_instantaneous  = true;
+        protected class cbool _istype[TID.COUNT] = {true, false};
+        protected class cbool _is_instantaneous  = true;
         protected const uint8 _TID_HASH[32] = {
             2,  3,  5,  7,  11, 13, 17, 19,
             23, 29, 31, 37, 41, 43, 47, 53,
@@ -106,11 +106,11 @@ namespace Musys {
         public abstract size_t hash();
 
         /** 类型判等, 用于 TypeContext 验证类型的唯一性. */
-        public bool equals(Type rhs) {
+        public bool equals(ValType rhs) {
             return this == rhs || _relatively_equals(rhs);
         }
         /** 类型判等的内部实现, 剔除了引用必须相等之类的公共代码. */
-        protected abstract bool _relatively_equals(Type rhs);
+        protected abstract bool _relatively_equals(ValType rhs);
 
         /**
          * 类型的名称.
@@ -124,7 +124,7 @@ namespace Musys {
             return name;
         }
 
-        protected Type.C1(TID tid, TypeContext type_ctx) {
+        protected ValType.C1(TID tid, TypeContext type_ctx) {
             this._tid      = tid;
             this._type_ctx = type_ctx;
         }
@@ -147,8 +147,8 @@ namespace Musys {
          * 检查类型数组 lhs 和 rhs 在区间 [0, n) 之间是否相等.
          */
         public static bool array_nequals(
-                            [CCode (array_length = false)]Type[] lhs,
-                            [CCode (array_length = false)]Type[] rhs,
+                            [CCode (array_length = false)]ValType[] lhs,
+                            [CCode (array_length = false)]ValType[] rhs,
                             size_t n)
         {
             for (size_t i = 0; i < n; i++) {
@@ -159,8 +159,8 @@ namespace Musys {
         }
 
         public static bool array_nequals_full(
-                            [CCode (array_length = false)]Type[] lhs,
-                            [CCode (array_length = false)]Type[] rhs,
+                            [CCode (array_length = false)]ValType[] lhs,
+                            [CCode (array_length = false)]ValType[] rhs,
                             size_t n) {
             return lhs == rhs ||
                 Memory.cmp(lhs, rhs, n * sizeof(pointer)) == 0;
@@ -174,7 +174,7 @@ namespace Musys {
      *
      * @see Musys.Type
      */
-    public sealed class VoidType: Type {
+    public sealed class VoidType: ValType {
         public VoidType(TypeContext tctx) {
             base.C1(TID.VOID_TYPE, tctx);
         }
@@ -191,16 +191,16 @@ namespace Musys {
 
         public override size_t hash() { return _TID_HASH[TID.VOID_TYPE]; }
 
-        protected override bool _relatively_equals(Type rhs) { return false; }
+        protected override bool _relatively_equals(ValType rhs) { return false; }
     }
 
-    [CCode(cname="_ZN5Musys9type_hashE")]
-    public uint type_hash(Type type) {
+    [CCode(cname="_ZN7MusysIR9type_hashE")]
+    public uint type_hash(ValType type) {
         return (uint)type.hash();
     }
 
-    [CCode(cname="_ZN5Musys10type_equalE")]
-    public bool type_equal(Type l, Type r) {
+    [CCode(cname="_ZN7MusysIR10type_equalE")]
+    public global::bool type_equal(ValType l, ValType r) {
         return l.equals(r);
     }
 
@@ -220,7 +220,7 @@ namespace Musys {
         /** 不能实例化 */
         NOT_INSTANTANEOUS;
     }
-    public TypeMismatchErr error_type_mismatch_by_id(Type.TID tid, string coremsg, string? fmt, va_list ap)
+    public TypeMismatchErr error_type_mismatch_by_id(ValType.TID tid, string coremsg, string? fmt, va_list ap)
     {
         unowned string msg = coremsg;
         string? omsg = null;

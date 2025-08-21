@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     public class Module: Object {
         public TypeContext                       type_ctx  {get; private set;}
         public Gee.TreeMap<string, GlobalObject> global_def{get; private set;}

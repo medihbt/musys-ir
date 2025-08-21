@@ -21,7 +21,7 @@
  * * `[0] = callee`: 被调用的函数值
  * * `[1:] = args[]`: 函数的参数
  */
-public abstract class Musys.IR.CallBase: Instruction {
+public abstract class MusysIR.CallBase: Instruction {
     protected unowned FunctionType _callee_fn_type;
     /** 调用者的函数类型, 即这条指令的参数类型约束. */
     public    unowned FunctionType  callee_fn_type {
@@ -146,7 +146,7 @@ public abstract class Musys.IR.CallBase: Instruction {
         }
 
         /** 这个参数的位置应有的参数类型. */
-        public Type get_type_requirement() {
+        public ValType get_type_requirement() {
             return user.callee_fn_type.params[index];
         }
         public override Value? usee {

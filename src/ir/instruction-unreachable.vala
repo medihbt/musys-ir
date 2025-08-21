@@ -1,4 +1,4 @@
-public class Musys.IR.UnreachableSSA: Instruction, IBasicBlockTerminator {
+public class MusysIR.UnreachableSSA: Instruction, IBasicBlockTerminator {
     public override void on_parent_finalize() {
         set_as_usee.clear();
         base._deep_clean();

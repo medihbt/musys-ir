@@ -1,10 +1,10 @@
-namespace Musys.IR {
+namespace MusysIR {
     public class CompareSSA: Instruction {
         private Value _lhs;
         private Value _rhs;
         private unowned Use  _ulhs;
         private unowned Use  _urhs;
-        private unowned Type _op_type;
+        private unowned ValType _op_type;
         public  Value lhs {
             get { return _lhs; }
             set { set_usee_type_match(_op_type, ref _lhs, value, _ulhs); }
@@ -13,7 +13,7 @@ namespace Musys.IR {
             get { return _rhs; }
             set { set_usee_type_match(_op_type, ref _rhs, value, _urhs); }
         }
-        public  Type operand_type { get { return _op_type; } }
+        public  ValType operand_type { get { return _op_type; } }
         [CCode(notify=false)]
         public Condition condition { get; set; }
 
@@ -32,7 +32,7 @@ namespace Musys.IR {
         public override void accept(IValueVisitor visitor) {
             visitor.visit_inst_compare(this);
         }
-        public CompareSSA.raw(OpCode opcode, Type operand_type, Condition cond) {
+        public CompareSSA.raw(OpCode opcode, ValType operand_type, Condition cond) {
             base.C1(COMPARE_SSA, opcode, get_bool_type(operand_type));
             this._ulhs = new LHSUse().attach_back(this);
             this._urhs = new RHSUse().attach_back(this);
@@ -41,13 +41,13 @@ namespace Musys.IR {
         }
         public CompareSSA.as_icmp(Value lhs, Value rhs, Condition cond)
                     throws TypeMismatchErr {
-            Type ity = checkop_same(lhs, rhs, INT_TYPE, "CompareSSA::as_icmp");
+            ValType ity = checkop_same(lhs, rhs, INT_TYPE, "CompareSSA::as_icmp");
             this.raw(ICMP, ity, cond.make_int());
             this.lhs = lhs; this.rhs = rhs;
         }
         public CompareSSA.as_fcmp(Value lhs, Value rhs, Condition cond)
                     throws TypeMismatchErr {
-            Type fty = checkop_same(lhs, rhs, FLOAT_TYPE, "CompareSSA::as_fcmp");
+            ValType fty = checkop_same(lhs, rhs, FLOAT_TYPE, "CompareSSA::as_fcmp");
             this.raw(FCMP, fty, cond.make_float());
             this.lhs = lhs; this.rhs = rhs;
         }
@@ -103,7 +103,7 @@ namespace Musys.IR {
             }
         }
 
-        private static Type checkop_same(IR.Value lhs, IR.Value rhs, Type.TID tid, string msg)
+        private static ValType checkop_same(Value lhs, Value rhs, ValType.TID tid, string msg)
                     throws TypeMismatchErr {
             return type_match_istid(lhs.value_type, rhs.value_type, tid, "%s", msg);
         }

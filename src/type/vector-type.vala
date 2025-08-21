@@ -1,5 +1,5 @@
-public class Musys.VectorType: AggregateType {
-    public unowned Type element_type { get; internal set; }
+public class MusysIR.VectorType: AggregateType {
+    public unowned ValType element_type { get; internal set; }
     private size_t _length;
     public  size_t  length {
         get { return _length; }
@@ -14,7 +14,7 @@ public class Musys.VectorType: AggregateType {
     }
     public bool is_scalable { get { return length == 0; } }
 
-    public override unowned Type get_elem(size_t index) {
+    public override unowned ValType get_elem(size_t index) {
         return element_type;
     }
     public override size_t element_number { get { return length; } }
@@ -25,7 +25,7 @@ public class Musys.VectorType: AggregateType {
             _hash_cache = MakeHash(element_type, length);
         return _hash_cache;
     }
-    protected override bool _relatively_equals(Type rhs)
+    protected override bool _relatively_equals(ValType rhs)
     {
         if (rhs.tid != VEC_TYPE)
             return false;
@@ -53,7 +53,7 @@ public class Musys.VectorType: AggregateType {
         }
     }
 
-    public VectorType.fixed(Type element, size_t length) {
+    public VectorType.fixed(ValType element, size_t length) {
         base.C1(element.type_ctx, VEC_TYPE);
         if (!is_power_of_2_nonzero(length)) {
             crash_fmt(
@@ -67,8 +67,8 @@ public class Musys.VectorType: AggregateType {
 
     class construct { _istype[TID.VEC_TYPE] = true; }
 
-    [CCode (cname="_ZN5Musys10VectorType8MakeHashE")]
-    public static size_t MakeHash(Type element, size_t length) {
+    [CCode (cname="MusysIRVectorTypeMakeHash")]
+    public static size_t MakeHash(ValType element, size_t length) {
         return hash_combine3(_TID_HASH[TID.VEC_TYPE], element.hash(), length);
     }
 }

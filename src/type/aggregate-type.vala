@@ -1,11 +1,11 @@
-namespace Musys {
+namespace MusysIR {
     /** 集合类型: 存放元素、可以索引的类型. */
-    public abstract class AggregateType: Type {
+    public abstract class AggregateType: ValType {
         /**
          * 获取集合类型第 index 个元素类型. 当范围超限时返回 void 类型.
          * @param index 要获取的元素在集合类型中的位置.
          */
-        public abstract unowned Type get_elem(size_t index = 0);
+        public abstract unowned ValType get_elem(size_t index = 0);
         
         /** 集合元素个数 */
         public abstract size_t element_number {get;}
@@ -19,7 +19,7 @@ namespace Musys {
             get { return element_always_consist; }
         }
 
-        protected class stdc.bool _element_type_always_consist = true;
+        protected class bool _element_type_always_consist = true;
         protected string _name;
         protected size_t _hash_cache;
 
@@ -30,7 +30,7 @@ namespace Musys {
         class construct { _istype[TID.AGGR_TYPE] = true; }
     }
 
-    public sealed class ArrayType: AggregateType {
+    public sealed class ArrayType: AggregateType {         
         public override size_t hash()
         {
             if (_hash_cache != 0)
@@ -49,18 +49,18 @@ namespace Musys {
             }
         }
 
-        public unowned Type element_type{get;}
+        public unowned ValType element_type{get;}
 
         /**
          * {@link Musys.AggregateType.get_elem}
          *
          * 为了应付结构体中出现 0 长度数组的情况, 超限的下标就不返回 void 了.
          */
-        public override unowned Type get_elem(size_t index) { return element_type; }
+        public override unowned ValType get_elem(size_t index) { return element_type; }
 
         public override size_t element_number{ get { return _element_number; } }
 
-        protected override bool _relatively_equals(Type rhs)
+        protected override bool _relatively_equals(ValType rhs)
         {
             if (rhs.tid != ARRAY_TYPE)
                 return false;
@@ -70,7 +70,7 @@ namespace Musys {
         }
         protected size_t _element_number;
 
-        public ArrayType(TypeContext tctx, Type elem_type, size_t elem_number)
+        public ArrayType(TypeContext tctx, ValType elem_type, size_t elem_number)
         {
             base.C1(tctx, TID.ARRAY_TYPE);
             this._element_type   = elem_type;
@@ -81,7 +81,7 @@ namespace Musys {
         class construct { _istype[TID.ARRAY_TYPE] = true; }
 
         [CCode (cname="Musys_ArrayType_MakeHash")]
-        public static size_t MakeHash(Type elemty, size_t elem_number) {
+        public static size_t MakeHash(ValType elemty, size_t elem_number) {
             return hash_combine3(_TID_HASH[TID.ARRAY_TYPE],
                                  elemty.hash(), elem_number);
         }

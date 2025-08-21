@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     /**
      * 求能装下二进制位数为 `bit` 的整数的存储单元的最小字节数.
      *
@@ -25,7 +25,7 @@ namespace Musys {
      *
      * 标量类型的大小是按位算的, 其属性 `binary_bits` 就是该类型所占的二进制位数.
      */
-    public abstract class PrimitiveType: Type {
+    public abstract class PrimitiveType: ValType {
         protected uint32 _binary_bits;
         /** 该类型所占的二进制位大小. 例如 i32 占 32 位, double 占 64 位. */
         public    uint32  binary_bits{
@@ -84,10 +84,8 @@ namespace Musys {
                 return _name;
             }
         }
-        public override size_t hash() {
-            return _TID_HASH[TID.INT_TYPE] + _binary_bits * 257;
-        }
-        protected override bool _relatively_equals(Type rhs) {
+        public override size_t hash() { return MakeHash(_binary_bits); }
+        protected override bool _relatively_equals(ValType rhs) {
             if (rhs.tid != INT_TYPE)
                 return false;
             unowned IntType irhs = static_cast<IntType>(rhs);
@@ -98,6 +96,10 @@ namespace Musys {
             base.C1(tctx, TID.INT_TYPE, binary_bits);
         }
         class construct { _istype[TID.INT_TYPE] = true; }
+
+        public static size_t MakeHash(uint32 binary_bits) {
+            return _TID_HASH[TID.INT_TYPE] + binary_bits * 257;
+        }
     }
 
     /**
@@ -115,7 +117,7 @@ namespace Musys {
         }
 
         public override string name { get { return _name; } }
-        protected override bool _relatively_equals(Type rhs)
+        protected override bool _relatively_equals(ValType rhs)
         {
             if (rhs.tid != FLOAT_TYPE)
                 return false;
@@ -147,5 +149,11 @@ namespace Musys {
             this.full(tctx, "double", 11, 52, true);
         }
         class construct { _istype[TID.FLOAT_TYPE] = true; }
+
+        public static size_t MakeHash(bool signed, uint16 index_bits, uint16 tail_bits)
+        {
+            uint32 uid = ((uint32)signed << 31) | (index_bits << 16) | (tail_bits);
+            return hash_combine2(_TID_HASH[TID.FLOAT_TYPE], uid);
+        }
     }
 }

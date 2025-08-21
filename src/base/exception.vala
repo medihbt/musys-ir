@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     [CCode (has_type_id=false)]
     public struct SourceLocation {
         unowned string filename;
@@ -12,9 +12,9 @@ namespace Musys {
         [CCode (cname="__FILE__")]
         public extern const string CFILE;
 
-        public SourceLocation.current(string filename = Musys.SourceLocation.CFILE,
-                                      string method   = Musys.SourceLocation.CFUNC,
-                                      int    line     = Musys.SourceLocation.CLINE) {
+        public SourceLocation.current(string filename = CFILE,
+                                      string method   = CFUNC,
+                                      int    line     = CLINE) {
             this.filename = filename;
             this.method   = method;
             this.line     = line;
@@ -35,8 +35,7 @@ namespace Musys {
 
     private void _crash_print_head()
     {
-        stderr.printf("|================ [进程 %d 已崩溃] ================|\n",
-                      stdc.getpid());
+        stderr.printf("|================ [进程 %d 已崩溃] ================|\n", getpid());
         stderr.puts  ("-----------------< 栈回溯 >-----------------\n");
         print_backtrace();
     }
@@ -48,7 +47,7 @@ namespace Musys {
     public void traced_abort()
     {
         stderr.printf("|================ [进程 %d 已崩溃] ================|\n",
-                      stdc.getpid());
+                      getpid());
         print_backtrace();
         Process.abort();
     }

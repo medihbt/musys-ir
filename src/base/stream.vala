@@ -1,4 +1,4 @@
-namespace Musys {
+namespace MusysIR {
     public interface IOutputStream: Object {
         public abstract size_t write_buf(uint8* buf, size_t size);
         public virtual  void   putchar(char c) {

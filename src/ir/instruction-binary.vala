@@ -1,4 +1,4 @@
-namespace Musys.IR {
+namespace MusysIR {
     /**
      * === 双操作数指令 ===
      *
@@ -61,12 +61,12 @@ namespace Musys.IR {
             visitor.visit_inst_binary(this);
         }
 
-        public BinarySSA.empty(OpCode opcode, Type type) {
+        public BinarySSA.empty(OpCode opcode, ValType type) {
             base.C1(BINARY_SSA, opcode, type);
             _ulhs = new BinaryLHSUse(this).attach_back(this);
             _urhs = new BinaryRHSUse(this).attach_back(this);
         }
-        public BinarySSA.nocheck(OpCode opcode, Type type, Value lhs, Value rhs, bool is_signed) {
+        public BinarySSA.nocheck(OpCode opcode, ValType type, Value lhs, Value rhs, bool is_signed) {
             base.C1(BINARY_SSA, opcode, type);
             this._is_signed = is_signed;
             _ulhs = new BinaryLHSUse(this).attach_back(this);
@@ -79,32 +79,32 @@ namespace Musys.IR {
 
         public BinarySSA.as_add(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_add");
+            ValType type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_add");
             this.nocheck(type.is_int? OpCode.ADD: OpCode.FADD, type, lhs, rhs, is_signed);
         }
         public BinarySSA.as_sub(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_sub");
+            ValType type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_sub");
             this.nocheck(type.is_int? OpCode.SUB: OpCode.FSUB, type, lhs, rhs, is_signed);
         }
         public BinarySSA.as_mul(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_mul");
+            ValType type = checkop_same(lhs, rhs, PRIMITIVE_TYPE, "BinarySSA::as_mul");
             this.nocheck(type.is_int? OpCode.MUL: OpCode.FMUL, type, lhs, rhs, is_signed);
         }
         public BinarySSA.as_idiv(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, INT_TYPE, "BinarySSA::as_idiv");
+            ValType type = checkop_same(lhs, rhs, INT_TYPE, "BinarySSA::as_idiv");
             this.nocheck(is_signed? OpCode.SDIV: OpCode.UDIV, type, lhs, rhs, is_signed);
         }
         public BinarySSA.as_fdiv(Value lhs, Value rhs)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, FLOAT_TYPE, "BinarySSA::as_fdiv");
+            ValType type = checkop_same(lhs, rhs, FLOAT_TYPE, "BinarySSA::as_fdiv");
             this.nocheck(FDIV, type, lhs, rhs, true);
         }
         public BinarySSA.as_div(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type.TID tidreq;
+            ValType.TID tidreq;
             OpCode   opcode;
             if (lhs.value_type.is_float) {
                 tidreq = FLOAT_TYPE; is_signed = true;
@@ -119,17 +119,17 @@ namespace Musys.IR {
         }
         public BinarySSA.as_irem(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, INT_TYPE, "BinarySSA::as_irem");
+            ValType type = checkop_same(lhs, rhs, INT_TYPE, "BinarySSA::as_irem");
             this.nocheck(is_signed? OpCode.SREM: OpCode.UREM, type, lhs, rhs, is_signed);
         }
         public BinarySSA.as_frem(Value lhs, Value rhs)
                     throws TypeMismatchErr {
-            Type type = checkop_same(lhs, rhs, FLOAT_TYPE, "BinarySSA::as_irem");
+            ValType type = checkop_same(lhs, rhs, FLOAT_TYPE, "BinarySSA::as_irem");
             this.nocheck(FREM, type, lhs, rhs, true);
         }
         public BinarySSA.as_rem(Value lhs, Value rhs, bool is_signed = true)
                     throws TypeMismatchErr {
-            Type.TID tidreq;
+            ValType.TID tidreq;
             OpCode   opcode;
             if (lhs.value_type.is_float) {
                 tidreq = FLOAT_TYPE; is_signed = true;
@@ -161,7 +161,7 @@ namespace Musys.IR {
 
         class construct { _istype[TID.BINARY_SSA] = true; }
 
-        private static Type checkop_same(IR.Value lhs, IR.Value rhs, Type.TID tid, string msg)
+        private static ValType checkop_same(MusysIR.Value lhs, MusysIR.Value rhs, ValType.TID tid, string msg)
                     throws TypeMismatchErr {
             return type_match_istid(lhs.value_type, rhs.value_type, tid, msg);
         }
