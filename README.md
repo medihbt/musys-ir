@@ -1,5 +1,11 @@
 # Musys -- 类 LLVM 编译器框架
 
+## 警告
+
+该项目已经停止开发, 后续内容请访问重置版 [`remusys-ir`](https://github.com/medihbt/remusys-ir)
+
+## 概述
+
 参考 LLVM 设计、使用 Vala 实现的中间代码框架. 目前 Musys 主要供 [medihbt](https://github.com/medihbt) 学习编译/优化原理使用, 将来可能会成为 [Musys 语言项目](https://github.com/medihbt/musys-lang) 的一部分.
 
 > 分支：主动追踪控制流图
